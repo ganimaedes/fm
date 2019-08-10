@@ -1,4 +1,5 @@
 fm
+*.kdev4
 # Prerequisites
 *.d
 
