@@ -8,13 +8,30 @@
 
 #include "array.h"
 
+char *insert_to_menu_name(char *name)
+{
+    int len_str  = strlen(name);
+    char *add_name = (char *)malloc(sizeof(char) * (len_str + 1));
+    add_name[len_str] = '\0';
+    strcpy(add_name, name);
+    return add_name;
+}
+
+char *insert_to_menu_type(char *type)
+{
+    int len_str  = strlen(type);
+    char *add_type = (char *)malloc(sizeof(char) * (len_str + 1));
+    add_type[len_str] = '\0';
+    strcpy(add_type, type);
+    return add_type;
+}
+
 void traverse(char *fn, int indent, Array *array, int recursive)
 {
     DIR *dir;
     struct dirent *entry;
     struct stat info;
     char path[MAXPATHLEN];
-    int len_path = 0, len_type = 0;
     Menu menu;
     char *s_l;
     
@@ -27,42 +44,25 @@ void traverse(char *fn, int indent, Array *array, int recursive)
                 strcat(path, "/");
                 strcat(path, entry->d_name);
                 
-                
-                fprintf(stdout, "fn           : %s\n", fn);
-                fprintf(stdout, "entry->d_name: %s\n", entry->d_name);
-                fprintf(stdout, "path         : %s\n", path);
-                
-                len_path = strlen(path);
-                menu.name = (char *)malloc(sizeof(char) * (len_path + 1));
-                menu.name[len_path] = '\0';
-                strcpy(menu.name, path);
-                
+                menu.name = insert_to_menu_name(path);
+
                 if (stat(path, &info) != 0) {
                     fprintf(stderr, "Error: %d %s", errno, strerror(errno));
                 } else if (S_ISLNK(info.st_mode)) {
                     
                     s_l = "symbolic_link";
-                    len_type = strlen(s_l);
-                    menu.type = (char *)malloc(sizeof(char) * (len_type + 1));
-                    menu.type[len_type] = '\0';
-                    strcpy(menu.type, s_l);
-                    
+                    menu.type = insert_to_menu_type(s_l);
+
                 } else if (S_ISREG(info.st_mode)) {
                     
                     s_l = "file";
-                    len_type = strlen(s_l);
-                    menu.type = (char *)malloc(sizeof(char) * (len_type + 1));
-                    menu.type[len_type] = '\0';
-                    strcpy(menu.type, s_l);
-                    
+                    menu.type = insert_to_menu_type(s_l);
+
                 } else if (S_ISDIR(info.st_mode)) {
                     
                     s_l = "directory";
-                    len_type = strlen(s_l);
-                    menu.type = (char *)malloc(sizeof(char) * (len_type + 1));
-                    menu.type[len_type] = '\0';
-                    strcpy(menu.type, s_l);
-                    
+                    menu.type = insert_to_menu_type(s_l);
+
                     if (recursive) {
                         traverse(path, indent + 1, array, 1);
                     }
@@ -93,3 +93,12 @@ int main(int argc, char **argv)
     free_array(&a);
     return 0;
 }
+
+
+/*
+ * fprintf(stdout, "fn           : %s\n", fn);
+                fprintf(stdout, "entry->d_name: %s\n", entry->d_name);
+                fprintf(stdout, "path         : %s\n", path);
+ * 
+ * 
+ */
