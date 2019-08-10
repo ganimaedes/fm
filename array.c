@@ -21,10 +21,14 @@ void add_menu(Array *a, Menu menu)
     if (a->n_elements >= a->capacity) {
         double_capacity(a);
     }
-    a->menu[a->n_elements].name = (char *)malloc(sizeof(char) * (strlen(menu.name) + 1));
+    int len = strlen(menu.name);
+    a->menu[a->n_elements].name = (char *)malloc(sizeof(char) * (len + 1));
+    a->menu[a->n_elements].name[len] = '\0';
     strcpy(a->menu[a->n_elements].name, menu.name);
     
-    a->menu[a->n_elements].type = (char *)malloc(sizeof(char) * (strlen(menu.type) + 1));
+    len = strlen(menu.type);
+    a->menu[a->n_elements].type = (char *)malloc(sizeof(char) * (len + 1));
+    a->menu[a->n_elements].type[len] = '\0';
     strcpy(a->menu[a->n_elements].type, menu.type);
     ++a->n_elements;
 }
