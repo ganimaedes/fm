@@ -1,0 +1,12 @@
+{  "languageserver": {
+    "cquery": {
+      "command": "cquery",
+      "args": ["--log-file=/tmp/cq.log"],
+      "cquery.trace.server": "verbose",
+      "filetypes": ["c", "cpp"],
+      "rootPatterns": ["compile_commands.json", ".vim/"],
+      "initializationOptions": {
+        "cacheDirectory": "/tmp/cquery"
+      }
+    }
+  }

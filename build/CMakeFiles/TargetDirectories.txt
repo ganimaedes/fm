@@ -1,0 +1,7 @@
+/home/ubuntu-gnome/projects/fm/build/CMakeFiles/install/strip.dir
+/home/ubuntu-gnome/projects/fm/build/CMakeFiles/edit_cache.dir
+/home/ubuntu-gnome/projects/fm/build/CMakeFiles/fm.dir
+/home/ubuntu-gnome/projects/fm/build/CMakeFiles/rebuild_cache.dir
+/home/ubuntu-gnome/projects/fm/build/CMakeFiles/list_install_components.dir
+/home/ubuntu-gnome/projects/fm/build/CMakeFiles/install/local.dir
+/home/ubuntu-gnome/projects/fm/build/CMakeFiles/install.dir
