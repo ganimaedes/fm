@@ -17,16 +17,28 @@ int main(void)
 {
     printf("\x1b[?1049h\x1b[2J\x1b[H");
 
+    int c = 0; int pos = 0; int len = 0; int maxlen = 60;
+
     for (int i = 0; i < sz; ++i) {
+        
         gotoyx(i + 1, 5);
         if (i == 0) {
-            printf("%s%s%s", bg_cyan, entry[i], bg_reset);
+            len = strlen(entry[i]);
+            for (int j = 0; j < maxlen; ++j) {
+                if (j < len) {
+                    printf("%s%c", bg_cyan, entry[i][j]);
+                } else if (j == maxlen - 1) {
+                    printf(" %s", bg_reset);
+                } else {
+                    printf(" %s", bg_cyan);
+                }
+            }
         } else {
             printf("%s", entry[i]);
         }
     }
 
-    int c = 0; int pos = 0; int len = 0;
+
     while (1) {
         c = kbget();
         if (c == KEY_ESCAPE) { 
@@ -38,12 +50,22 @@ int main(void)
                 del_ncharc2right(len);
                 printf("%s", entry[pos]);
 
-                //len = strlen(entry[pos - 1]);
-                gotoyx(pos--, 5);
+                len = strlen(entry[pos - 1]);
                 //--pos;
-                //del_ncharc2right(len);
-
-                printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
+                del_ncharc2right(maxlen);
+                
+                gotoyx(pos--, 5);
+                for (int i = 0; i < maxlen; ++i) {
+                    if (i < len) {
+                        printf("%s%c", bg_cyan, entry[pos][i]);
+                    } else if (i == maxlen - 1) {
+                        printf(" %s", bg_reset);
+                    } else {
+                        printf(" %s", bg_cyan);
+                    }
+                }
+                
+                //printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
             }
         } else if (c == KEY_DOWN || c == DN) {
             if (pos < sz - 1) {
@@ -52,8 +74,20 @@ int main(void)
                 del_ncharc2right(len);
                 printf("%s", entry[pos]);
 
+                len = strlen(entry[pos + 1]);
+                del_ncharc2right(maxlen);
+
                 gotoyx(++pos + 1, 5);
-                printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
+                for (int i = 0; i < maxlen; ++i) {
+                    if (i < len) {
+                        printf("%s%c", bg_cyan, entry[pos][i]);
+                    } else if (i == maxlen - 1) {
+                        printf(" %s", bg_reset);
+                    } else {
+                        printf(" %s", bg_cyan);
+                    }
+                }
+                //printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
             }
         }
     }
