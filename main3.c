@@ -28,17 +28,34 @@ int main(void)
 
     int c = 0;
     int pos = 0;
+    int len = 0;
     while (1) {
         c = kbget();
         if (c == KEY_ESCAPE) { 
             break; 
+        } else if (c == KEY_UP) {
+            if (pos > 0) {
+                len = strlen(entry[pos]);
+                gotoyx(pos + 1, 5);
+                del_ncharc2right(len);
+                printf("%s", entry[pos]);
+
+                len = strlen(entry[pos - 1]);
+                gotoyx(pos, 5);
+                --pos;
+                del_ncharc2right(len);
+
+                printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
+            }
         } else if (c == KEY_DOWN || c == DN) {
-            int len = strlen(entry[pos]);
-            gotoyx(pos + 1, 5);
-            del_ncharc2right(len);
-            printf("%s", entry[pos]);
-            gotoyx(++pos + 1, 5);
-            printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
+            if (pos < sz - 1) {
+                len = strlen(entry[pos]);
+                gotoyx(pos + 1, 5);
+                del_ncharc2right(len);
+                printf("%s", entry[pos]);
+                gotoyx(++pos + 1, 5);
+                printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
+            }
         }
     }
     printf("\x1b[2J\x1b[H\x1b[?1049l");
