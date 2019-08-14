@@ -26,24 +26,22 @@ int main(void)
         }
     }
 
-    int c = 0;
-    int pos = 0;
-    int len = 0;
+    int c = 0; int pos = 0; int len = 0;
     while (1) {
         c = kbget();
         if (c == KEY_ESCAPE) { 
             break; 
-        } else if (c == KEY_UP) {
+        } else if (c == KEY_UP || c == UP) {
             if (pos > 0) {
                 len = strlen(entry[pos]);
                 gotoyx(pos + 1, 5);
                 del_ncharc2right(len);
                 printf("%s", entry[pos]);
 
-                len = strlen(entry[pos - 1]);
-                gotoyx(pos, 5);
-                --pos;
-                del_ncharc2right(len);
+                //len = strlen(entry[pos - 1]);
+                gotoyx(pos--, 5);
+                //--pos;
+                //del_ncharc2right(len);
 
                 printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
             }
@@ -53,6 +51,7 @@ int main(void)
                 gotoyx(pos + 1, 5);
                 del_ncharc2right(len);
                 printf("%s", entry[pos]);
+
                 gotoyx(++pos + 1, 5);
                 printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
             }
