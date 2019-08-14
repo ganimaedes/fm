@@ -17,15 +17,22 @@ int main(void)
 {
     printf("\x1b[?1049h\x1b[2J\x1b[H");
 
-
     int c = 0;
-    while (1) {
-        for (int i = 0; i < sz; ++i) {
-            gotoyx(i + 1, 5);
+    for (int i = 0; i < sz; ++i) {
+        gotoyx(i + 1, 5);
+        if (i == 0) {
+            printf("%s%s%s", bg_cyan, entry[i], bg_reset);
+        } else {
             printf("%s", entry[i]);
         }
+    }
+    while (1) {
         c = kbget();
-        if (c == KEY_ESCAPE) { break; }
+        if (c == KEY_ESCAPE) { 
+            break; 
+        } else if (c == KEY_DOWN) {
+                        
+        }
     }
     printf("\x1b[2J\x1b[H\x1b[?1049l");
     return 0;

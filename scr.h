@@ -28,6 +28,9 @@
 #define KEY_LEFT   0x0107
 #define KEY_RIGHT  0x0108
 
+#define bg_cyan  "\x1b[46m"
+#define bg_reset "\x1b[49m"
+
 static struct termios term, oterm;
 
 static int getch(void);
