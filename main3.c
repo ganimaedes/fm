@@ -17,7 +17,6 @@ int main(void)
 {
     printf("\x1b[?1049h\x1b[2J\x1b[H");
 
-    int c = 0;
     for (int i = 0; i < sz; ++i) {
         gotoyx(i + 1, 5);
         if (i == 0) {
@@ -26,14 +25,22 @@ int main(void)
             printf("%s", entry[i]);
         }
     }
+
+    int c = 0;
+    int pos = 0;
     while (1) {
         c = kbget();
         if (c == KEY_ESCAPE) { 
             break; 
-        } else if (c == KEY_DOWN) {
-                        
+        } else if (c == KEY_DOWN || c == DN) {
+            int len = strlen(entry[pos]);
+            gotoyx(pos + 1, 5);
+            del_ncharc2right(len);
+            printf("%s", entry[pos]);
+            gotoyx(++pos + 1, 5);
+            printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
         }
     }
     printf("\x1b[2J\x1b[H\x1b[?1049l");
     return 0;
-}
+} 
