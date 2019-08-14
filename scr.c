@@ -61,7 +61,7 @@ static int kbesc(void)
     return c;
 }
 
-static int kbget(void)
+int kbget(void)
 {
     int c = getch();
     return c == KEY_ESCAPE ? kbesc() : c;

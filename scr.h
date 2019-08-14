@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#define gotoyx(y, x) printf("\x1b[%d;%dH", (y), (x))
+
 #define cursorfwd(x) printf("\x1b[%dC", (x))
 #define cursorbwd(x) printf("\x1b[%dD", (x))
 
@@ -31,7 +33,7 @@ static struct termios term, oterm;
 static int getch(void);
 static int kbhit(void);
 static int kbesc(void);
-static int kbget(void);
+int kbget(void);
 
 int get_cursor_position(int ifd, int ofd, int *rows, int *cols);
 int get_window_size(int ifd, int ofd, int *rows, int *cols);
