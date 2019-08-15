@@ -1,6 +1,6 @@
 #include "scr.h"
 
-static int getch(void)
+int getch(void)
 {
     int c = 0;
     tcgetattr(STDIN_FILENO, &oterm);
@@ -14,7 +14,7 @@ static int getch(void)
     return c;
 }
 
-static int kbhit(void)
+int kbhit(void)
 {
     int c = 0;
     
@@ -30,7 +30,7 @@ static int kbhit(void)
     return c != -1 ? 1 : 0;
 }
 
-static int kbesc(void)
+int kbesc(void)
 {
     int c = 0;
     
@@ -91,7 +91,7 @@ int get_window_size(int ifd, int ofd, int *rows, int *cols)
     struct winsize w_s;
 
     if (ioctl(1, TIOCGWINSZ, &w_s) == -1 || w_s.ws_col == 0) {
-        int orig_row, orig_col, retval;
+        int orig_row = 0, orig_col = 0, retval = 0;
 
         retval = get_cursor_position(ifd, ofd, rows, cols);
         if (retval == -1) { return -1; }
@@ -109,8 +109,8 @@ int get_window_size(int ifd, int ofd, int *rows, int *cols)
         }
         return 0;
     } else {
-        *rows = w_s.ws_col;
-        *cols = w_s.ws_row;
+        *rows = w_s.ws_row;
+        *cols = w_s.ws_col;
         return 0;
     }
     return -1;

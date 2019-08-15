@@ -7,8 +7,8 @@
 
 static const int size = 2;
 
-static char *entries[2] = { "entry1", "entry2" };
-static char *types[2] = { "directory", "file" };
+//static char *entries[2] = { "entry1", "entry2" };
+//static char *types[2] = { "directory", "file" };
 
 typedef struct {
     char *name;

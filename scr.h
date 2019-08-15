@@ -9,6 +9,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <locale.h>
 
 #define gotoyx(y, x) printf("\x1b[%d;%dH", (y), (x))
 
@@ -33,11 +34,11 @@
 #define bg_cyan  "\x1b[46m"
 #define bg_reset "\x1b[49m"
 
-static struct termios term, oterm;
+struct termios term, oterm;
 
-static int getch(void);
-static int kbhit(void);
-static int kbesc(void);
+int getch(void);
+int kbhit(void);
+int kbesc(void);
 int kbget(void);
 
 int get_cursor_position(int ifd, int ofd, int *rows, int *cols);
