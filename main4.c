@@ -57,14 +57,13 @@ int main(void)
     s.n_to_print = 10;
     s.n_upper_t = pos;
     s.n_lower_t = sz - s.n_to_print;
-    //sz = s.n_to_print; // sz value changed to 10 *******************
 
     s.pos_upper_t = pos;
     s.pos_lower_t = s.n_to_print - 1;
 
     for (int i = 0; i < s.n_to_print; ++i) {
 
-        gotoyx(i + w_1.y_beg, 5);
+        gotoyx(i + w_1.y_beg, w_1.x_beg);
         if (i == 0) {
             len = strlen(entry[i]);
             for (int j = 0; j < maxlen; ++j) {
@@ -84,20 +83,6 @@ int main(void)
     int previous_pos = pos;
 
     while (1) {
-        //if (pos != previous_pos) {
-        //
-        //}
-        /*
-        if (pos > s.n_to_print) {
-            ++s.n_upper_t;
-            --s.n_lower_t;
-            pos = s.pos_lower_t;
-        } else if (pos > 0 && s.n_upper_t > 0) {
-            --s.n_upper_t;
-            ++s.n_lower_t;
-            pos = s.pos_upper_t;
-        }
-        */
         if (debug_mode) {
             gotoyx(2, (w_1.x_size / 2) - 20);
             del_ncharc2right(42);
@@ -126,7 +111,7 @@ int main(void)
             if (pos < sz - 1) {
                 int i = 0;
                 ++pos;
-                if (pos  > s.n_to_print - 1 /*pos >= s.pos_lower_t*/ && s.pos_lower_t < sz) {
+                if (pos > s.n_to_print - 1 && s.pos_lower_t < sz) {
 
                     ++s.n_upper_t;
                     s.pos_upper_t = s.n_upper_t;
@@ -134,19 +119,16 @@ int main(void)
                     s.pos_lower_t = pos;
                     gotoyx(1, 1);
                     printf("pos: %d > s.n_to_print: %d", pos, s.n_to_print);
-                    //int start = s.n_lower_t;
                     for (i = 0; i < s.n_to_print; ++i) {
                         gotoyx(i + w_1.y_beg, w_1.x_beg);
-                        len = strlen(entry[s.n_upper_t + i - 1]);
+                        //len = strlen(entry[s.n_upper_t + i - 1]);
                         del_ncharc2right(maxlen);
                         printf("%s", entry[s.n_upper_t + i]);
                     }
                     gotoyx(s.n_to_print + w_1.y_beg - 1, w_1.x_beg);
                     len = strlen(entry[pos]);
-                    for (int i = 0; i < maxlen; ++i) {
-                        if (i == 0) {
-                            del_ncharc2right(maxlen);
-                        }
+                    del_ncharc2right(maxlen);
+                    for (i = 0; i < maxlen; ++i) {
                         if (i < len) {
                             printf("%s%c", bg_cyan, entry[pos][i]);
                         } else if (i == maxlen - 1) {
@@ -155,11 +137,7 @@ int main(void)
                             printf(" %s", bg_cyan);
                         }
                     }
-                    //++pos;
                 } else {
-                    //gotoyx(1, 1);
-                    //del_ncharc2right(18);
-                    //previous_pos = pos;
 
                     len = strlen(entry[pos - 1]);
                     gotoyx(pos + w_1.y_beg - 1, w_1.x_beg);
@@ -169,9 +147,7 @@ int main(void)
 
                     len = strlen(entry[pos]);
                     del_ncharc2right(maxlen);
-                    //gotoyx(w_1.y_beg, w_1.x_beg);
                     gotoyx(pos + w_1.y_beg, w_1.x_beg);
-                    //gotoyx(s.n_upper_t + w_1.y_beg, w_1.x_beg);
                     
                     for (int i = 0; i < maxlen; ++i) {
                         if (i < len) {
@@ -183,23 +159,7 @@ int main(void)
                         }
                     }
                     
-                    //++pos;
                 }
-
-                //gotoyx(pos + w_1.y_beg, w_1.x_beg);
-                /*
-                for (int i = 0; i < maxlen; ++i) {
-                    if (i < len) {
-                        printf("%s%c", bg_cyan, entry[pos][i]);
-                    } else if (i == maxlen - 1) {
-                        printf(" %s", bg_reset);
-                    } else {
-                        printf(" %s", bg_cyan);
-                    }
-                }
-                */
-
-                //printf("%s%s%s", bg_cyan, entry[pos], bg_reset);
             }
         }
     }
