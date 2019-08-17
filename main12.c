@@ -123,8 +123,7 @@ int main(void)
             if (pos > 0) {
                 int i = 0;
                 --pos;
-                if (pos > s.pos_upper_t && pos < s.pos_lower_t) { // NO SCROLL
-                    //--pos;
+                if (pos >= s.pos_upper_t && pos < s.pos_lower_t) { // NO SCROLL
                     
                     //gotoyx(pos - s.pos_upper_t + w_1.y_beg, w_1.x_beg);
                     //del_ncharc2right(maxlen);
@@ -160,6 +159,39 @@ int main(void)
                     --s.pos_lower_t;
                     ++s.n_lower_t;
                     --s.n_upper_t;
+
+                    /* **************************************************** */
+                    // reprint all 10 decalees de 1 a partir de pos
+                    int j = pos; 
+                    for (i = 0; i < s.n_to_print ; ++i, ++j) {
+                        gotoyx(i + w_1.y_beg, w_1.x_beg);
+                        del_ncharc2right(maxlen);
+                        printf("%s", entry[j]);
+                    }
+                     
+                    gotoyx(pos - s.n_upper_t + w_1.y_beg, w_1.x_beg);
+                    del_ncharc2right(maxlen);
+                    
+                    
+                    len = strlen(entry[pos]);
+                     
+                    for (i = 0; i < maxlen; ++i) {
+                        if (i < len) {
+                            printf("%s%c", bg_cyan, entry[pos][i]);
+                        } else if (i == maxlen - 1) {
+                            printf(" %s", bg_reset);
+                        } else {
+                            printf(" %s", bg_cyan);
+                        }
+                    }
+                    
+
+
+                    /* **************************************************** */
+
+
+
+
                 
                 }
             }
