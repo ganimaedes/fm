@@ -99,32 +99,44 @@ void traverse(char *fn, int indent, Array *array, int recursive)
 
 int main(int argc, char **argv)
 {
+    if (argc < 2) { 
+        fprintf(stderr, "Error: Missing Arguments\n");
+        exit(-1);
+    }
+
     setlocale(LC_ALL, "");
     printf("\x1b[?1049h\x1b[2J\x1b[H");
-    if (argv[argc - 1] == NULL) { fprintf(stderr, "Error: Missing Arguments\n"); return EXIT_FAILURE; }
-    int len_argv = strlen(argv[1]);
+
+    int len_argv = strlen(argv[argc - 1]);
     if (argv[1][len_argv - 1] == '/') {
         argv[1][len_argv - 1] = '\0';
     }
+
     Array a;
     init(&a, 1);
-    fprintf(stdout, "%s\n", argv[1]);
     traverse(argv[1], 0, &a, 0);
-
-    //print_array(&a);
 
     int c = 0; int pos = 0; int len = 0; int maxlen = 60;
 
-    Window w_1;
+    Window w, w_1, w_2;
 
-    if (get_window_size(STDIN_FILENO, STDOUT_FILENO, &w_1.y_size, &w_1.x_size)) {
+    if (get_window_size(STDIN_FILENO, STDOUT_FILENO, &w.y_size, &w.x_size) < 0) {
         printf("\x1b[2J\x1b[H\x1b[?1049l");
         perror("Error getting window size\n");
         return EXIT_FAILURE;
     }
 
+    w.y_beg = 0;
+    w.x_beg = 0;
+
     w_1.y_beg = 5;
     w_1.x_beg = 5; // w_1 goes to x == 65 (maxlen + w_1.x_beg)
+
+    w_1.y_size = w.y_size;
+    w_1.x_size = w.x_size;
+
+    w_2.y_beg = 5;
+    w_2.x_beg = maxlen + w_1.x_beg + 2;
 
     Scroll s = set_scroll(pos, a.n_elements);
 
@@ -149,6 +161,12 @@ int main(int argc, char **argv)
         }
     }
 
+    char **sub_names = NULL;
+
+    int key_change = 0;
+    int printed = 0;
+    int num_elements = 0;
+
     while (1) {
 
         if (debug_mode) {
@@ -160,10 +178,88 @@ int main(int argc, char **argv)
             break;
         } else if (c == KEY_UP || c == UP) {
             move_up(&w_1, &s, names, &pos, &y, &maxlen, SIZE, len);
+            key_change = 1;
+            if (printed && num_elements != 0) {
+                for (i = 0; i < num_elements; ++i) {
+                    gotoyx(i + w_2.y_beg, w_2.x_beg + 10);
+                    del_ncharc2right(maxlen);
+                }
+                gotoyx(w_2.y_beg, w_2.x_beg);
+                printed = 0;
+            }
         } else if (c == KEY_DOWN || c == DN) {
             move_dn(&w_1, &s, names, &pos, &y, &maxlen, SIZE, len, &a.n_elements);
+            key_change = 1;
+            if (printed && num_elements != 0) {
+                for (i = 0; i < num_elements; ++i) {
+                    gotoyx(i + w_2.y_beg, w_2.x_beg + 10);
+                    del_ncharc2right(maxlen);
+                }
+                gotoyx(w_2.y_beg, w_2.x_beg);
+                printed = 0;
+            }
+        } else if (c == KEY_ENTER || c == ENTER || c == RIGHT) {
+            for (i = 0; i < s.n_to_print; ++i) {
+                gotoyx(i + w_1.y_beg, w_1.x_beg);
+                del_ncharc2right(maxlen);
+            }
+            if (num_elements > 0) {
+                for (i = 0; i < num_elements; ++i) {
+                    gotoyx(i + w_1.y_beg, w_1.x_beg);
+                    printf("%s", sub_names[i]);
+                }
+                gotoyx(w_1.y_beg, w_1.x_beg);
+            }
+            if (printed && num_elements != 0) {
+                for (i = 0; i < num_elements; ++i) {
+                    gotoyx(i + w_2.y_beg, w_2.x_beg + 10);
+                    del_ncharc2right(maxlen);
+                }
+                gotoyx(w_2.y_beg, w_2.x_beg);
+                printed = 0;
+            }
         }
+
+        if (key_change && !printed) {
+            for (i = 0; i < num_elements ; ++i) {
+                if (sub_names[i] != NULL) {
+                    free(sub_names[i]);
+                }
+            }
+            free(sub_names);
+            sub_names = NULL;
+        }
+
+        if (!strcmp(a.menu[pos].type, "directory") && key_change) {
+            Array sub_a;
+            init(&sub_a, 1);
+            traverse(a.menu[pos].name, 0, &sub_a, 0);
+            if (sub_a.n_elements > 0) {
+                sub_names = get_name_only(&sub_a);
+                for (i = 0; i < sub_a.n_elements; ++i) {
+                    gotoyx(i + w_2.y_beg, w_2.x_beg + 10);
+                    del_ncharc2right(maxlen);
+                    printf("%s", sub_names[i]);
+                }
+                num_elements = sub_a.n_elements;
+                gotoyx(w_2.y_beg, w_2.x_beg + 10);
+                printed = 1;
+                key_change = 0;
+            }
+            free_array(&sub_a);
+        } else {
+            num_elements = 0;
+        }
+
     }
+
+    for (i = 0; i < num_elements ; ++i) {
+        free(sub_names[i]);
+    }
+    free(sub_names);
+    sub_names = NULL;
+
+
     for (i = 0; i < a.n_elements; ++i) {
         free(names[i]);
     }

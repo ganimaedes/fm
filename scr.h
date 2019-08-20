@@ -30,6 +30,9 @@
 #define KEY_RIGHT  0x0108
 #define DN         0x006a
 #define UP         0x006b
+#define RIGHT      0x006c
+#define LEFT       0x0068
+#define ENTER      0x000d
 
 #define bg_cyan  "\x1b[46m"
 #define bg_reset "\x1b[49m"

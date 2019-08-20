@@ -23,13 +23,13 @@ void add_menu(Array *a, Menu menu)
     }
     int len = strlen(menu.name);
     a->menu[a->n_elements].name = (char *)malloc(sizeof(char) * (len + 1));
-    a->menu[a->n_elements].name[len] = '\0';
     strcpy(a->menu[a->n_elements].name, menu.name);
+    a->menu[a->n_elements].name[len] = '\0';
     
     len = strlen(menu.type);
     a->menu[a->n_elements].type = (char *)malloc(sizeof(char) * (len + 1));
-    a->menu[a->n_elements].type[len] = '\0';
     strcpy(a->menu[a->n_elements].type, menu.type);
+    a->menu[a->n_elements].type[len] = '\0';
     ++a->n_elements;
 }
 
