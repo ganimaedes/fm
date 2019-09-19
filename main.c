@@ -99,7 +99,6 @@ void traverse(char *fn, int indent, Array *array, int recursive)
 
 int main(int argc, char **argv)
 {
-
     if (argc < 2) { 
         fprintf(stderr, "Error: Missing Arguments\n");
         exit(-1);
@@ -199,7 +198,6 @@ int main(int argc, char **argv)
                 gotoyx(w_2.y_beg, w_2.x_beg);
                 printed = 0;
             }
-
         } else if (c == KEY_ENTER || c == ENTER || c == RIGHT) {
             for (i = 0; i < s.n_to_print; ++i) {
                 gotoyx(i + w_1.y_beg, w_1.x_beg);
@@ -252,8 +250,6 @@ int main(int argc, char **argv)
         } else {
             num_elements = 0;
         }
-
-
     }
 
     for (i = 0; i < num_elements ; ++i) {
