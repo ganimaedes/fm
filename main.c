@@ -250,6 +250,7 @@ int main(int argc, char **argv)
         } else {
             num_elements = 0;
         }
+
     }
 
     for (i = 0; i < num_elements ; ++i) {
