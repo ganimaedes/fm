@@ -8,19 +8,22 @@
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
-#include <fcntl.h>
+//#include <fcntl.h>
 #include <locale.h>
+#include <wchar.h>
 
-#define gotoyx(y, x) printf("\x1b[%d;%dH", (y), (x))
+#define save_state    "\033[?1049h\033[2J\033[H"
+#define restore_state "\033[2J\033[H\033[?1049l"
+#define del           "\033[%dX"
+#define place         "\033[%d;%dH"
 
-#define cursorfwd(x) printf("\x1b[%dC", (x))
-#define cursorbwd(x) printf("\x1b[%dD", (x))
+#define move(fd, str)            write((fd), (str), strlen(str))
+#define save_config              write(STDOUT_FILENO, (save_state), sizeof(save_state))
+#define restore_config           write(STDOUT_FILENO, (restore_state), sizeof(restore_state))
+#define del_from_cursor(str)     write(STDOUT_FILENO, (str), strlen(str))
+#define erase_scr(fd, str)       write((fd), (str), sizeof(str))
 
-#define del_start_scr2c     printf("\x1b[1J")
-#define del_c2eol           printf("\x1b[0K")
-#define del_startline2c     printf("\x1b[1K")
-#define del_ncharc2left(x)  printf("\x1b[%dP", (x))
-#define del_ncharc2right(x) printf("\x1b[%dX", (x))
+#define test_text "TEST_TEXT"
 
 #define KEY_ESCAPE 0x001b
 #define KEY_ENTER  0x000a
@@ -30,6 +33,9 @@
 #define KEY_RIGHT  0x0108
 #define DN         0x006a
 #define UP         0x006b
+#define RIGHT      0x006c
+#define LEFT       0x0068
+#define ENTER      0x000d
 
 #define bg_cyan  "\x1b[46m"
 #define bg_reset "\x1b[49m"

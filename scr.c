@@ -69,7 +69,7 @@ int kbget(void)
 
 int get_cursor_position(int ifd, int ofd, int *rows, int *cols)
 {
-    char buffer[32];
+    wchar_t buffer[32];
     unsigned int i = 0;
 
     if (write(ofd, "\x1b[6n", 4) != 4) { return -1; }
@@ -82,7 +82,7 @@ int get_cursor_position(int ifd, int ofd, int *rows, int *cols)
     buffer[i] = '\0';
 
     if (buffer[0] != KEY_ESCAPE || buffer[1] != '[') { return -1; }
-    if (sscanf(buffer + 2, "%d;%d", rows, cols) != 2) { return -1; }
+    if (sscanf((char *)buffer + 2, "%d;%d", rows, cols) != 2) { return -1; }
     return 0;
 }
 
@@ -100,11 +100,10 @@ int get_window_size(int ifd, int ofd, int *rows, int *cols)
         retval = get_cursor_position(ifd, ofd, rows, cols);
         if (retval == -1) { return -1; }
 
-        /* Restore position */
         char seq[32];
-        snprintf(seq, 32, "\x1b[%d;%dH", orig_row, orig_col);
-        if (write(ofd, seq, strlen(seq)) == -1) {
-            /* Can't recover */
+        snprintf((char *)seq, 32, "\x1b[%d;%dH", orig_row, orig_col);
+        if (write(ofd, (char *)seq, strlen(seq)) == -1) {
+            //  Can't recover 
             return -1;
         }
         return 0;
@@ -115,18 +114,3 @@ int get_window_size(int ifd, int ofd, int *rows, int *cols)
     }
     return -1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

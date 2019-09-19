@@ -33,11 +33,11 @@ static char *entry[] = { "array.c", "array.h", "CMakeLists.txt", "coc-settings.j
 */
 
 void highlight(char *entry[], int *maxlen, int *pos, int *len);
-void print_no_scroll(Window *w_1, char *entry[], int *y, int *pos, int *maxlen, int up);
-void print_scroll(Window *w_1, Scroll *s, char *entry[], int SIZE, int *pos, int *maxlen, int up);
-void print_debug_info(Window *w_1, Scroll *s, int *pos, int *sz, int *y);
+void print_no_scroll(Window *w, char *entry[], int *y, int *pos, int *maxlen, int up);
+void print_scroll(Window *w, Scroll *s, char *entry[], int SIZE, int *pos, int *maxlen, int up);
+void print_debug_info(Window *w, Scroll *s, int *pos, int *sz, int *y);
 Scroll set_scroll(int pos, int sz);
-void move_up(Window *w_1, Scroll *s, char *entry[], int *pos, int *y, int *maxlen, int SIZE, int len);
-void move_dn(Window *w_1, Scroll *s, char *entry[], int *pos, int *y, int *maxlen, int SIZE, int len, int *sz);
+void move_up(Window *w, Scroll *s, char *entry[], int *pos, int *y, int *maxlen, int SIZE, int len);
+void move_dn(Window *w, Scroll *s, char *entry[], int *pos, int *y, int *maxlen, int SIZE, int len, int *sz);
 
 #endif  // PRINT_H
