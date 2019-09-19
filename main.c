@@ -99,8 +99,8 @@ void traverse(char *fn, int indent, Array *array, int recursive)
 
 int main(int argc, char **argv)
 {
-    if (argv[argc - 1] == NULL) {
-        printf("\x1b[2J\x1b[H\x1b[?1049l");
+
+    if (argc < 2) { 
         fprintf(stderr, "Error: Missing Arguments\n");
         exit(-1);
     }
@@ -199,6 +199,27 @@ int main(int argc, char **argv)
                 gotoyx(w_2.y_beg, w_2.x_beg);
                 printed = 0;
             }
+
+        } else if (c == KEY_ENTER || c == ENTER || c == RIGHT) {
+            for (i = 0; i < s.n_to_print; ++i) {
+                gotoyx(i + w_1.y_beg, w_1.x_beg);
+                del_ncharc2right(maxlen);
+            }
+            if (num_elements > 0) {
+                for (i = 0; i < num_elements; ++i) {
+                    gotoyx(i + w_1.y_beg, w_1.x_beg);
+                    printf("%s", sub_names[i]);
+                }
+                gotoyx(w_1.y_beg, w_1.x_beg);
+            }
+            if (printed && num_elements != 0) {
+                for (i = 0; i < num_elements; ++i) {
+                    gotoyx(i + w_2.y_beg, w_2.x_beg + 10);
+                    del_ncharc2right(maxlen);
+                }
+                gotoyx(w_2.y_beg, w_2.x_beg);
+                printed = 0;
+            }
         }
 
         if (key_change && !printed) {
@@ -231,6 +252,7 @@ int main(int argc, char **argv)
         } else {
             num_elements = 0;
         }
+
 
     }
 
