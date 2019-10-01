@@ -50,6 +50,19 @@ int kbesc(void)
             case 'D':
                 c = KEY_RIGHT;
                 break;
+            case 'F':
+            case '4':
+                c = KEY_END;
+                break;
+            case 'H':
+                c = KEY_HOME;
+                break;
+            case '5': 
+                c = KEY_PAGE_UP;
+                break;
+            case '6':
+                c = KEY_PAGE_DN;
+                break;
             default: 
                 c = 0;
                 break;

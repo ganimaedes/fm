@@ -3,8 +3,10 @@
 void init(Array *a, int initial_size)
 {
     a->menu = (Menu *)calloc(initial_size, sizeof(Menu));
-    a->n_elements = 0;
-    a->capacity = initial_size;
+    if (a->menu) {
+        a->n_elements = 0;
+        a->capacity = initial_size;
+    }
 }
 
 void double_capacity(Array *a)
@@ -23,14 +25,18 @@ void add_menu(Array *a, Menu menu)
     }
     int len = strlen(menu.name);
     a->menu[a->n_elements].name = (char *)malloc(sizeof(char) * (len + 1));
-    strcpy(a->menu[a->n_elements].name, menu.name);
-    a->menu[a->n_elements].name[len] = '\0';
+    if (a->menu[a->n_elements].name) {
+        strcpy(a->menu[a->n_elements].name, menu.name);
+        a->menu[a->n_elements].name[len] = '\0';
+    }
     
     len = strlen(menu.type);
     a->menu[a->n_elements].type = (char *)malloc(sizeof(char) * (len + 1));
-    strcpy(a->menu[a->n_elements].type, menu.type);
-    a->menu[a->n_elements].type[len] = '\0';
-    ++a->n_elements;
+    if (a->menu[a->n_elements].type) {
+        strcpy(a->menu[a->n_elements].type, menu.type);
+        a->menu[a->n_elements].type[len] = '\0';
+        ++a->n_elements;
+    }
 }
 
 void free_array(Array *a)
