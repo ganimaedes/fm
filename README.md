@@ -12,4 +12,4 @@ To execute:
 
 Known bugs
 
-Trying to see root "/" folder makes the program crash
+Trying to see the root "/" folder makes the program crash
