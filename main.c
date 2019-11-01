@@ -117,7 +117,6 @@ int main(int argc, char **argv)
     init_attr(&attributes, 2);
 
     parcours(argv[1], 0, &left_box, 0, &w_main);
-    char *parent_up = NULL;
 
     for (;;) {
         if (!ioctl(0, TIOCGWINSZ, &w_s)) {
@@ -241,67 +240,7 @@ int main(int argc, char **argv)
             secondary_loop = 1;
             back_pressed = 0;
         } else if ((c == 'h' || c == KEY_BACKSPACE)  ) {
-            // && 
-            //    (strlen(left_box.menu[pos].complete_path) != 1) 
-            // && !strcmp(left_box.menu[pos].complete_path, "/")
 
-            // char *parent_up = get_parent(left_box.menu[pos].complete_path);
-            //if (strlen(get_parent(left_box.menu[pos].complete_path)) <= 1) {
-
-            int n_pos = 0;
-            //if (num_of_slashes(left_box.menu[pos].complete_path) > 0) 
-            //    n_pos = get_last_slash_pos(left_box.menu[pos].complete_path);
-
-            int len_cur = strlen(left_box.menu[pos].complete_path);
-            int j = 0;
-            if (len_cur > 0) {
-                j = len_cur - 1;
-                if (n_pos > 0) {
-                    for (; j >= 0; --j) {
-                        if (left_box.menu[pos].complete_path[j] == '/') break;
-                    }
-                }
-            }
-            n_pos = get_last_slash_pos(left_box.menu[pos].complete_path);
-            if (n_pos > 0) {
-                parent_up = (char *)malloc(sizeof(char) * (len_cur - n_pos ));
-                if (parent_up) {
-                    strncpy(parent_up, left_box.menu[pos].complete_path, len_cur - n_pos - 1);
-                    parent_up[len_cur - n_pos - 1] = '\0';
-                }
-            }
-
-            char DIRECTORY[sizeof(CUR_DIR)];
-            sprintf(position, place, w_main.y_beg , w_main.x_beg);
-            move(1, position);
-            write(1, "\033[2K", sizeof("\033[2K"));
-            write(1, DIRECTORY, strlen(DIRECTORY));
-            //write(1, left_box.menu[pos].complete_path, len_cur);
-            write(1, parent_up, strlen(parent_up));
-
-
-            /*
-
-            char j_number[sizeof(J_NUM)];
-            char l_number[sizeof(L_NUM)];
-            sprintf(j_number, J_NUM, j);
-            sprintf(l_number, L_NUM, n_pos);
-            sprintf(del_in, del, 50);
-
-            sprintf(position, place, w_main.y_beg , w_main.x_beg);
-            move(1, position);
-            del_from_cursor(del_in);
-            write(1, j_number, strlen(j_number));
-
-            
-            sprintf(position, place, w_main.y_beg + 1, w_main.x_beg);
-            move(1, position);
-            del_from_cursor(del_in);
-            write(1, l_number, strlen(l_number));
-            */
-            free(parent_up);
-
-            if (strlen(left_box.menu[pos].name) != 0) { // n_pos == j strlen(left_box.menu[pos].complete_path)
 
             erase_window(&w1, &s);
             --enter_backspace;
@@ -358,7 +297,6 @@ int main(int argc, char **argv)
             backspace = 1;
             back_pressed = 1;
 
-            }
         }
 
         erase_window(&w2, &s);
