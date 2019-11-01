@@ -9,17 +9,23 @@ typedef struct {
     int x_beg;
     int y_size;
     int x_size;
+    int y_previous;
+    int x_previous;
 } Window;
 
 typedef struct {
     int array_size;
     int n_to_print;
-    int n_upper_t;
     int n_lower_t;
     int pos_upper_t;
     int pos_lower_t;
+    int option_previous;
 } Scroll;
 
+typedef struct {
+    int y;
+    int x;
+} Box;
 static int debug_mode = 0;
 
 /*

@@ -10,7 +10,7 @@
 #include <unistd.h>
 //#include <fcntl.h>
 #include <locale.h>
-#include <wchar.h>
+//#include <wchar.h>
 
 
 #define save_state    "\033[?1049h\033[2J\033[H"

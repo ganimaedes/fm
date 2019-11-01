@@ -1,7 +1,5 @@
-#include "scr.h"
 #include "data.h"
-#include "array.h"
-#include <errno.h>
+#include "parcours.h"
 #include <signal.h>
 
 #ifndef __STDC_ISO_10646__
@@ -15,6 +13,7 @@ int maxlen = 40;
 int debug = 1;
 volatile sig_atomic_t outside_box = 0;
 volatile sig_atomic_t resized = 0;
+volatile sig_atomic_t reprint = 0;
 
 char position[PLACE_SZ];
 char del_in[IN_SZ];
@@ -57,8 +56,9 @@ void mvwprintw(Window *win, int y, int x, char *str);
 void draw_box(Window *w);
 void set_box_size(int y, int x);
 
-int main(void)
+int main(int argc, char **argv)
 {
+    if (argc < 2) { perror("Missing Arguments\n"); return EXIT_FAILURE; } 
     setlocale(LC_ALL, "");
     save_config;
     w1.y_beg = 5;
@@ -75,7 +75,6 @@ int main(void)
     }
 
     int pos = 0;
-        //pos2 = 0;
     w1.y_size = w_main.y_size - w1.y_beg;
     w1.x_size = (w_main.x_size / 2) - w1.x_beg;
     w1.y_previous = 0;
@@ -86,7 +85,7 @@ int main(void)
     w2.x_beg = w1.x_size + 1;
     w2.x_size = (w_main.x_size - w1.x_size);
 
-    Scroll s; //s2;
+    Scroll s;
     s.option_previous = 0;
 
     struct winsize w_s;
@@ -100,31 +99,39 @@ int main(void)
         write(STDERR_FILENO, err1, sizeof(err1));
     }
 
-    //char space[1] = " ";
-
     int c = 0,
-        //c2 = 0,
-        //debug = 0,
         option = 0,
-       // option2 = 0,
         i,
-    //    j,
         initial_loop = 1,
         secondary_loop = 0;
-    //int len = 0;
 
     Array left_box;
     Array right_box;
     init(&left_box, 1);
     init(&right_box, 1);
-    copy_array(&left_box, entries, entries_types, sz);
-    copy_array(&right_box, s_entries, s_entries_types, s_sz);
+    //copy_array(&left_box, entries, entries_types, sz);
+    //copy_array(&right_box, s_entries, s_entries_types, s_sz);
+
+    parcours(argv[1], 0, &left_box, 0);
+
+    Array ps_left_box;
+    Array ps_right_box;
+    init(&ps_left_box, 1);
+    init(&ps_right_box, 1);
+    //copy_array(&ps_left_box, entries, entries_types, sz);
+    //copy_array(&ps_right_box, s_entries, s_entries_types, s_sz);
+    
+    parcours(argv[1], 0, &ps_left_box, 0);
 
     sprintf(del_in, del, maxlen);
 
+    int left_allocation = 1;
+    int previous_pos = pos;
+
     for (;;) {
         
-        if (secondary_loop) {
+        reprint = 0;
+        if (secondary_loop && left_box.n_elements != 0 ) { // && left_allocation
             sprintf(position, place, w1.y_beg + 1, w1.x_beg + 1);
             move(1, position);
             highlight2(&left_box, &pos);
@@ -139,7 +146,6 @@ int main(void)
             w_main.x_size = w_s.ws_col;
 
             w1.y_size = w_main.y_size - w1.y_beg;
-            //w1.x_size = (w_main.x_size / 2) - w1.x_beg;
             w1.x_size = (w_main.x_size / 2) - 1;
             maxlen = (w1.x_size) - w1.x_beg - 3;
             w2.y_size = w_main.y_size - w1.y_beg;
@@ -154,7 +160,6 @@ int main(void)
                 draw_box(&w1);
                 draw_box(&w2);
                 option = update(&w1, &s, &pos, left_box.n_elements);
-                //option2 = update(&w2, &s2, &pos2);
                 
                 if (initial_loop) {
                     sprintf(position, place, w1.y_beg + 1, w1.x_beg + 1);
@@ -165,19 +170,44 @@ int main(void)
                     }
                    initial_loop = 0;
                 }
-                
             }
             w1.y_previous = w1.y_size;
             w1.x_previous = w1.x_size;
         }
         
-        print_entries(&w1, &s, entries, option, &c, &pos, &left_box);
-        if (!strcmp(left_box.menu[pos].type, "directory") && (c != 'l' && c != KEY_ENTER)) {
-            for (i = 0; i < s.n_to_print; ++i) {
-                mvwprintw(&w2, i + w2.y_beg + 1, w2.x_beg + 1, right_box.menu[i].name);
-            }
-            sprintf(position, place, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
-            move(1, position);
+        if (left_box.n_elements != 0) {
+             if (pos > left_box.n_elements - 1) { 
+                 if (previous_pos < left_box.n_elements - 1 && left_allocation != 0) {
+                    pos = previous_pos;
+                 } else {
+                    pos = left_box.n_elements - 1;
+                 }
+                 char pos_of_pos[10];
+                 sprintf(pos_of_pos, "pos: %d", pos);
+                 sprintf(position, place, w1.y_beg + 1, w1.x_beg + 1);
+                 move(1, position);
+                 write(1, pos_of_pos, strlen(pos_of_pos));
+                 //sleep(5);
+             }
+
+                if (left_allocation != 0) {
+                    //reprint = 1;
+                    previous_pos = pos;
+                } else {
+                    reprint = 1;
+                    // rentrer le chemin d access dans update 
+                    // find parent
+                    //
+                }
+                print_entries(&w1, &s, entries, option, &c, &pos, &left_box);
+                if (!strcmp(left_box.menu[pos].type, "directory") && (c != 'l' && c != KEY_ENTER)) {
+                    parcours(left_box.menu[pos].complete_path, 0, &right_box, 0);
+                    for (i = 0; i < right_box.n_elements; ++i) { // s.n_to_print
+                        mvwprintw(&w2, i + w2.y_beg + 1, w2.x_beg + 1, right_box.menu[i].name);
+                    }
+                    sprintf(position, place, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
+                    move(1, position);
+                }
         }
         if (debug) {
             int p = pos - s.pos_upper_t + w1.y_beg + 1;
@@ -186,12 +216,18 @@ int main(void)
         
         if ((c = kbget()) == KEY_ESCAPE) { 
             break; 
-        } else if (c == 'l' || c == KEY_ENTER) {
+        } else if ((c == 'l' || c == KEY_ENTER) && !strcmp(left_box.menu[pos].type, "directory")) {
             erase_window(&w1, &s);
-            free_array(&left_box);
+            if (left_box.n_elements != 0) {
+                free_array(&left_box);
+                left_box.n_elements = 0; 
+            }
 
             erase_window(&w2, &s);
-            free_array(&right_box);
+            if (right_box.n_elements != 0) {
+                free_array(&right_box);
+                right_box.n_elements = 0;
+            }
 
             init(&left_box, 1);
             init(&right_box, 1);
@@ -199,22 +235,59 @@ int main(void)
             copy_array(&right_box, t_entries, t_entries_types, t_sz);
             pos = 0;
             option = update(&w1, &s, &pos, left_box.n_elements);
-            //initial_loop = 1;
             secondary_loop = 1;
-            //erase_window(&w2, &s);
-        } 
-        /*else {
+        } else if (c == 'h') { // && parent.type == "directory"
+            erase_window(&w1, &s);
+            if (left_box.n_elements != 0) {
+                free_array(&left_box);
+            }
+
             erase_window(&w2, &s);
+            if (right_box.n_elements != 0) {
+                free_array(&right_box);
+            }
+            init(&left_box, 1);
+            init(&right_box, 1);
+            if (ps_left_box.n_elements != 0) {
+                dup_array(&ps_left_box, &left_box);
+            } else {
+                restore_config;
+                free_array(&left_box);
+                free_array(&ps_left_box);
+                free_array(&right_box);
+                fprintf(stderr, "Error: ps_left_box size: %d\n", ps_left_box.n_elements);
+                exit(1);
+            }
+            if (ps_right_box.n_elements != 0) {
+                dup_array(&ps_right_box, &right_box);
+            } else {
+                restore_config;
+                free_array(&right_box);
+                free_array(&ps_right_box);
+                free_array(&left_box);
+                free_array(&ps_left_box);
+                fprintf(stderr, "Error: ps_right_box size: %d\n", ps_right_box.n_elements);
+                exit(1);
+            }
+
+            option = update(&w1, &s, &pos, left_box.n_elements);
+            reprint = 0;
+            left_allocation = 0; 
         }
-        */
         erase_window(&w2, &s);
 
     }
     if (left_box.n_elements != 0) {
         free_array(&left_box);
     }
-    if (right_box.n_elements != 0) {
+    if (right_box.n_elements != 0 || right_box.capacity != 0) {
         free_array(&right_box);
+    }
+    if (ps_left_box.n_elements != 0) {
+        free_array(&ps_left_box);
+    }
+    if (ps_right_box.n_elements != 0 || ps_right_box.capacity != 0) {
+        free_array(&ps_right_box);
     }
     restore_config;
     return 0;
@@ -277,8 +350,6 @@ void highlight2(Array *a, int *pos)
     write(1, a->menu[*pos].name, len);
     int i;
     for (i = 0; i < maxlen - len; ++i) {
-        //sprintf(pos_c, place, i + w->y_beg + 1, w->x_beg + len + k + 1);
-        //move(1, pos_c);
         write(1, space, 1);
     }
     write(1, bg_reset, sizeof(bg_reset));
@@ -345,6 +416,11 @@ int update(Window *w, Scroll *s, int *pos, int size)
                 ++*pos;
             }
         }
+        if (reprint) {
+            //++s->pos_upper_t;
+            //++s->pos_lower_t;
+            //++*pos;
+        }
         option = 3;
     }
     s->option_previous = option;
@@ -359,19 +435,44 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
     char in[strlen(del)];
     sprintf(in, del, maxlen);
 
-    if (s->option_previous != option || resized) {
+    if (reprint) {
+        if (*pos + 1 < s->array_size - 1) {
+            //++*pos;
+            //++s->pos_upper_t;
+            //++s->pos_lower_t;
+            //++*pos;
+        }
+            //++s->pos_upper_t;
+            //++s->pos_lower_t;
+    }
+    if (s->option_previous != option || resized || reprint) {
+        //int u_value = s->pos_upper_t;
+        //int l_value = s->pos_lower_t;
         int diff = s->pos_lower_t - s->pos_upper_t + 1;
         int j = s->pos_upper_t;
+        if (reprint) {
+            //u_value = s->pos_upper_t + 1;
+            //l_value = s->pos_lower_t + 1;
+            //diff = l_value - u_value + 1;
+            //j = u_value;
+            //++s->pos_upper_t;
+            //++s->pos_lower_t;
+        }
         for (i = 0; i < diff; ++i, ++j) {
             sprintf(pos_c, place, i + w->y_beg + 1, w->x_beg + 1);
             move(1, pos_c);
             if (j == *pos) {
                 sprintf(pos_c, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+                //sprintf(pos_c, place, *pos - u_value + w->y_beg + 1, w->x_beg + 1);
                 move(1, pos_c);
                 del_from_cursor(in);
                 highlight2(a, pos);
             } else {
                 write(1, a->menu[j].name, strlen(a->menu[j].name));
+            }
+            if (reprint) {
+                //--s->pos_upper_t;
+                //--s->pos_lower_t;
             }
         }
     }
@@ -829,6 +930,9 @@ void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos)
     move(1, pos_place);
     //sprintf(num, "s->pos_upper_t: %d", s->pos_upper_t);
     sprintf(num_pos, sposupper, s->pos_upper_t);
+    del_from_cursor(del_in);
+    sprintf(pos_place, place, w->y_beg + 1, (w->x_size / 2) + 5);
+    move(1, pos_place);
     write(1, num_pos, strlen(num_pos));
 
     //char in[strlen(del)];
@@ -837,6 +941,11 @@ void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos)
     sprintf(pos_place, place, w->y_size - 2, (w->x_size / 2) + 5);
     move(1, pos_place);
     //sprintf(num, "s->pos_lower_t: %d", s->pos_lower_t);
+
+    del_from_cursor(del_in);
+    sprintf(pos_place, place, w->y_size - 2, (w->x_size / 2) + 5);
+    move(1, pos_place);
+
     sprintf(num_pos, "s->pos_lower_t: %d", s->pos_lower_t);
     write(1, num_pos, strlen(num_pos));
 
@@ -854,6 +963,12 @@ void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos)
     move(1, pos_place);
     write(1, opt, strlen(opt));
 
+
+    sprintf(pos_place, place, w->y_size - 4, (w->x_size / 2) + 10);
+    move(1, pos_place);
+    del_from_cursor(del_in);
+    sprintf(pos_place, place, w->y_size - 4, (w->x_size / 2) + 10);
+    move(1, pos_place);
     sprintf(opt, "pos:    %d", pos);
     sprintf(pos_place, place, w->y_size - 4, (w->x_size / 2) + 10);
     move(1, pos_place);

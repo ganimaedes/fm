@@ -52,3 +52,14 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+screen.c
+draw_array.c
+keypress.c
+print.c
+print.h
+traverse.c
+.main.c.swp
+draw_array2
+traverse
+screen
+main
