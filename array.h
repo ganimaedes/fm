@@ -3,15 +3,20 @@
 
 #include "scr.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
 
 typedef struct {
     char *name;
     char *type;
     char *complete_path;
-    //char *parent;
+    char *parent;
+    int parent_pos;
+    //int displaced_entry;
+    //int upper_pos;
+    //int lower_pos;
+    //int pos;
 } Menu;
 
 typedef struct {

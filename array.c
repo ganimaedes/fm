@@ -36,20 +36,37 @@ void add_menu(Array *a, Menu menu)
         strcpy(a->menu[a->n_elements].name, menu.name);
         a->menu[a->n_elements].name[len] = '\0';
     }
-    
+
     len = strlen(menu.type);
     a->menu[a->n_elements].type = (char *)malloc(sizeof(char) * (len + 1));
     if (a->menu[a->n_elements].type) {
         strcpy(a->menu[a->n_elements].type, menu.type);
         a->menu[a->n_elements].type[len] = '\0';
     }
-    
-    len = strlen(menu.complete_path);
-    a->menu[a->n_elements].complete_path = (char *)malloc(sizeof(char) * (len + 1));
-    if (a->menu[a->n_elements].complete_path) {
-        strcpy(a->menu[a->n_elements].complete_path, menu.complete_path);
-        a->menu[a->n_elements].complete_path[len] = '\0';
+
+
+    if (menu.complete_path != NULL) {
+        len = strlen(menu.complete_path);
+        a->menu[a->n_elements].complete_path = (char *)malloc(sizeof(char) * (len + 1));
+        if (a->menu[a->n_elements].complete_path) {
+            strcpy(a->menu[a->n_elements].complete_path, menu.complete_path);
+            a->menu[a->n_elements].complete_path[len] = '\0';
+        }
     }
+
+    if (menu.parent != NULL) {
+        len = strlen(menu.parent);
+        a->menu[a->n_elements].parent = (char *)malloc(sizeof(char) * (len + 1));
+        if (a->menu[a->n_elements].parent) {
+            strcpy(a->menu[a->n_elements].parent, menu.parent);
+            a->menu[a->n_elements].parent[len] = '\0';
+        }
+    }
+
+    if (menu.parent_pos != 0) {
+        a->menu[a->n_elements].parent_pos = menu.parent_pos;
+    }
+
     ++a->n_elements;
 }
 
