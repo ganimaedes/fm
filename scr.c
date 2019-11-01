@@ -85,7 +85,7 @@ int get_cursor_position(int ifd, int ofd, int *rows, int *cols)
     wchar_t buffer[32];
     unsigned int i = 0;
 
-    if (write(ofd, "\x1b[6n", 4) != 4) { return -1; }
+    if (write(ofd, "\033[6n", 4) != 4) { return -1; }
 
     while (i < sizeof(buffer) - 1) {
         if (read(ifd, buffer + i, 1) != 1) { break; }
@@ -109,12 +109,12 @@ int get_window_size(int ifd, int ofd, int *rows, int *cols)
         retval = get_cursor_position(ifd, ofd, rows, cols);
         if (retval == -1) { return -1; }
 
-        if (write(ofd, "\x1b[999C\x1b[999B", 12) != 12) { return -1; }
+        if (write(ofd, "\033[999C\033[999B", 12) != 12) { return -1; }
         retval = get_cursor_position(ifd, ofd, rows, cols);
         if (retval == -1) { return -1; }
 
         char seq[32];
-        snprintf((char *)seq, 32, "\x1b[%d;%dH", orig_row, orig_col);
+        snprintf((char *)seq, 32, "\033[%d;%dH", orig_row, orig_col);
         if (write(ofd, (char *)seq, strlen(seq)) == -1) {
             //  Can't recover 
             return -1;

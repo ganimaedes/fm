@@ -17,11 +17,13 @@
 #define restore_state "\033[2J\033[H\033[?1049l"
 #define del           "\033[%dX"
 #define place         "\033[%d;%dH"
+#define del_line      "\033[2K"
+#define n_els         "left_box.n_elements: %d"
 
 #define move(fd, str)            write((fd), (str), strlen(str))
-#define save_config              write((STDOUT_FILENO), (save_state), sizeof(save_state))
-#define restore_config           write((STDOUT_FILENO), (restore_state), sizeof(restore_state))
-#define del_from_cursor(str)     write((STDOUT_FILENO), (str), strlen(str))
+#define save_config              write((1), (save_state), sizeof(save_state))
+#define restore_config           write((1), (restore_state), sizeof(restore_state))
+#define del_from_cursor(str)     write((1), (str), strlen(str))
 #define erase_scr(fd, str)       write((fd), (str), sizeof(str))
 
 #define test_text "TEST_TEXT"
@@ -40,6 +42,7 @@
 #define RIGHT      0x006c
 #define LEFT       0x0068
 #define ENTER      0x000d
+#define KEY_BACKSPACE 0x007f
 
 #define KEY_PAGE_UP 100
 #define KEY_PAGE_DN 200
@@ -69,6 +72,9 @@
 #define rl_heavy_corner "\342\224\233"
 #define heavy_line      "\342\224\201"
 #define heavy_v_line    "\342\224\203"
+#define heavy_uppert_corner  "\342\224\263"
+#define heavy_v_up      "\342\225\271"
+#define heavy_lowert_corner "\342\224\273"
 
 #define box_color       1
 #define box_thickness   1
@@ -80,6 +86,9 @@
     #define cont_3   9
     #define cont_4   10
     #define cont_5   11
+    #define cont_6   12
+    #define cont_7   13
+    #define cont_8   14
 #else
     #define cont_0   0
     #define cont_1   1
@@ -91,7 +100,23 @@
 
 #define BOX_CONTOUR(...) const char *ARRAY[] = { __VA_ARGS__ }
 
-//enum right_keys { KEY_PAGE_UP = 1, KEY_PAGE_DN = 2 };
+typedef struct {
+    int y_beg;
+    int x_beg;
+    int y_size;
+    int x_size;
+    int y_previous;
+    int x_previous;
+} Window;
+
+typedef struct {
+    int array_size;
+    int n_to_print;
+    int n_lower_t;
+    int pos_upper_t;
+    int pos_lower_t;
+    int option_previous;
+} Scroll;
 
 struct termios term, oterm;
 
