@@ -1,5 +1,5 @@
 CC 		   = gcc
-CBASEFLAGS = -ggdb3 -O0 -rdynamic #-DEBUG #-DEBUG2
+CBASEFLAGS = #-ggdb3 -O0 -rdynamic #-DEBUG #-DEBUG2
 CFLAGS 	   = -I. $(CBASEFLAGS) -Wall -pedantic -finstrument-functions
 IMGCFLAGS  = -I/usr/local/include
 IMGOBJS    = parcours.o positions.o scr.o deb.o array.o copy.o
@@ -7,14 +7,14 @@ CFILES     = parcours.c positions.c scr.c deb.c array.c copy.c
 MAINOBJECT = main.o
 print-%    : ; @echo $* = $($*)
 
-all: main
+all: fm
 
 main.o: parcours.h positions.h scr.h deb.h array.h copy.h
 
 main.o: main.c $(CFILES)
 	$(CC) $(CFLAGS) $(IMGCFLAGS) -c $<
 
-main: $(MAINOBJECT) $(IMGOBJS)
+fm: $(MAINOBJECT) $(IMGOBJS)
 	$(CC) -I. $(CFLAGS) -o $@ $(MAINOBJECT) $(IMGOBJS) $(IMGCFLAGS)
 
 parcours.o: parcours.c
@@ -38,4 +38,4 @@ copy.o: copy.c
 .PHONY: clean
 
 clean:
-	rm -f $(IMGOBJS) $(MAINOBJECT) main
+	rm -f $(IMGOBJS) $(MAINOBJECT) fm

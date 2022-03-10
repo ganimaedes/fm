@@ -4,12 +4,9 @@ Fm is a minimal file manager/viewer for linux
 
 To compile with gcc: 
 
-gcc scr.c array.c positions.c parcours.c main.c -o main 
+cd src/
+make && make install
 
 To execute:
 
-./main "$HOME"
-
-Known bugs
-
-Trying to see the root "/" folder makes the program crash
+fm "$HOME"
