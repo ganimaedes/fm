@@ -63,3 +63,8 @@ draw_array2
 traverse
 screen
 main_FILES
+build/*
+.vimspector.json
+coc-settings.json
+settings.json
+*.swp
