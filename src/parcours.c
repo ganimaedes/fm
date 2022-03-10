@@ -289,7 +289,8 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
           write(1, num, sizeof(num));
         }
 
-        if (menu.parent != NULL && counter < 1) {
+        //if (menu.parent != NULL && counter < 1) {
+        if (menu.parent != NULL /* && counter < 1 */) {
           free(menu.parent);
           menu.parent = NULL;
         }
