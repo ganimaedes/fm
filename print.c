@@ -29,6 +29,7 @@ void print_no_scroll(Window *w, char *entry[], int *y, int *pos, int *maxlen, in
     }
 }
 
+/*
 void print_scroll(Window *w, Scroll *s, char *entry[], int SIZE, int *pos, int *maxlen, int up)
 {
     if (up) {
@@ -53,6 +54,7 @@ void print_scroll(Window *w, Scroll *s, char *entry[], int SIZE, int *pos, int *
     //gotoyx(s.n_to_print + w.y_beg - 1, w.x_beg);
     del_ncharc2right(*maxlen);
 }
+*/
 
 void print_debug_info(Window *w, Scroll *s, int *pos, int *sz, int *y)
 {

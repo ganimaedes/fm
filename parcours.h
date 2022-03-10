@@ -21,6 +21,9 @@ int get_last_slash_pos(char *name);
 char *get_name(char *fn);
 char **get_names_only(Array *a);
 char *get_parent(char *fn);
+int free_menu(Menu *menu);
+int getParent(char *child, char **parent_out);
+int insertToMenu(char *str, char **out);
 void parcours(char *fn, int indent, Array *a, int recursive, Window *w);
 
 #endif  // PARCOURS_H
