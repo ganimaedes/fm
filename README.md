@@ -1,6 +1,6 @@
 # fm
 
-Fm is a minimal file manager/viewer for linux
+Fm is a terminal file manager/viewer for linux
 
 To compile with gcc:
 
@@ -14,6 +14,8 @@ To execute:
 fm "$HOME"
 ```
 
+To leave press `<ESC>`
+
 Keys
 
 | Keys          | Associated Action |
@@ -23,4 +25,5 @@ Keys
 | \<DEL> or dd  | delete file       |
 | c or yy       | copy file         |
 | p             | paste file        |
-| \<Enter>      | view folder       |
+| \<Enter>      | enter into folder |
+| \<ESC>        | quit program      |
