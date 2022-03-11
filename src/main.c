@@ -84,7 +84,9 @@ int del_file(Window *w1, Scroll *s, Array *left_box, int *pos, int *option);
 int main(int argc, char **argv)
 {
   char **entries = NULL;
+#if defined(EBUG)
   signal(SIGSEGV, handler);
+#endif // EBUG
   if (argc < 2) { fprintf(stderr, "Missing Arguments\n"); exit(1); }
   setlocale(LC_ALL, "");
   save_config;
@@ -237,14 +239,19 @@ int main(int argc, char **argv)
         erase_window(&w1, &s);
         reprint_menu(&w1, &s, &left_box, &attributes, pos, option);
         file_pasted_signal = 1;
-      } else if (c == KEY_SUPPR) {
-        del_file(&w1, &s, &left_box, &pos, &option); //attributes missing in IN/OUT
+      } else if (c == KEY_SUPPR || c == 'd') {
+        if (c == 'd') {
+          ++delete_counter;
+        }
+        if (delete_counter != 2) {
+          del_file(&w1, &s, &left_box, &pos, &option); //attributes missing in IN/OUT
+          delete_counter = 0;
+        }
       }
       print_entries(&w1, &s, entries, option, &c, &pos, &left_box);
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
         directory_place(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
-
 
       } else if (pos < left_box.n_elements &&
                  (match_extension(left_box.menu[pos].name, "gz") ||
@@ -947,6 +954,7 @@ int match_extension(char *name, const char *ext)
   return namelen >= extlen && !strcmp(name + namelen - extlen, ext);
 }
 
+#if defined(EBUG)
 void handler(int sig)
 {
   void *array[10];
@@ -956,6 +964,7 @@ void handler(int sig)
   backtrace_symbols_fd(array, size, STDERR_FILENO);
   exit(1);
 }
+#endif // EBUG
 
 void reprint_menu(Window *w, Scroll *s1, Array *a, Attributes *attr, int pos, int option)
 {
