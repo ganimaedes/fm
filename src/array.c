@@ -204,48 +204,6 @@ void dup_array(Array *in, Array *out)
     }
 }
 
-void dupArray(Array *in, Array **out)
-{
-    int i;
-    int len = 0;
-    Menu menu;
-    for (i = 0; i < in->n_elements; ++i) {
-        len = strlen(in->menu[i].name);
-        copy(&(menu.name), in->menu[i].name, len);
-/*
-        menu.name = (char *)malloc(sizeof(char) * (len + 1));
-        if (menu.name) {
-            strcpy(menu.name, in->menu[i].name);
-            menu.name[len] = '\0';
-        }
-*/
-        len = strlen(in->menu[i].type);
-        copy(&(menu.type), in->menu[i].type, len);
-/*
-        menu.type = (char *)malloc(sizeof(char) * (len + 1));
-        if (menu.type) {
-            strcpy(menu.type, in->menu[i].type);
-            menu.type[len] = '\0';
-        }
-*/
-        len = strlen(in->menu[i].complete_path);
-        copy(&(menu.complete_path), in->menu[i].complete_path, len);
-/*
-        menu.complete_path = (char *)malloc(sizeof(char) * (len + 1));
-        if (menu.complete_path) {
-            strcpy(menu.complete_path, in->menu[i].complete_path);
-            menu.complete_path[len] = '\0';
-        }
-        add_menu(out, menu);
-*/
-        //add_menu(*out, menu);
-        addMenu(out, menu);
-        free(menu.name);
-        free(menu.type);
-        free(menu.complete_path);
-    }
-}
-
 void dupArray2(Array *in, Array *out)
 {
     int i;

@@ -34,7 +34,6 @@ void double_capacity(Array *a);
 void add_menu(Array *a, Menu menu);
 void addMenu(Array **a, Menu menu);
 void addMenu2(Array **a, Menu *menu);
-void dupArray(Array *in, Array **out);
 void free_array(Array *a);
 void print_array(Array *a);
 void dup_array(Array *in, Array *out);

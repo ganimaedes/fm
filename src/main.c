@@ -66,7 +66,6 @@ int find_parent(char *folder, char **parent);
 int find_file_name(char *folder, char **file_name);
 int copy_file2(Array *left_box, int pos);
 int read_tar(Array *left_box, int *pos);
-//int getParent(char *child, char **parent_out);
 int getBackSpaceFolder(Array *left_box, int *pos, int *previous_pos, Scroll *s);
 int directory_place(Array *left_box, Array *right_box, Scroll *s, int *pos, Window *w1, Window *w2, Window *w_main);
 int window_resize(Window *w_main,
@@ -80,9 +79,7 @@ int window_resize(Window *w_main,
                   int *pos,
                   int *initial_loop,
                   volatile sig_atomic_t *resized, int *i);
-//int del_file(Window *w1, Scroll *s, Array *left_box, int pos, int *option);
 int del_file(Window *w1, Scroll *s, Array *left_box, int *pos, int *option);
-int duplicateArray(Array *in, Array *out);
 
 int main(int argc, char **argv)
 {
@@ -248,29 +245,6 @@ int main(int argc, char **argv)
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
         directory_place(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
 
-/*
-        if (right_box.n_elements != 0) {
-          free_array(&right_box);
-          init(&right_box, 1);
-        }
-        parcours(left_box.menu[pos].complete_path, 0, &right_box, 0, &w_main);
-        int to_print = 0;
-        if (right_box.n_elements <= s.n_to_print) {
-          to_print = right_box.n_elements;
-        } else {
-          if (right_box.n_elements >= w2.y_size - 1) {
-            to_print = w2.y_size - 1;
-          } else {
-            to_print = right_box.n_elements;
-          }
-        }
-        size_t i;
-        for (i = 0; i < to_print; ++i) {
-          mvwprintw(&w2, &right_box, i + w2.y_beg + 1, w2.x_beg + 1, right_box.menu[i].name, i);
-        }
-        sprintf(position, place, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
-        move(1, position);
-*/
 
       } else if (pos < left_box.n_elements &&
                  (match_extension(left_box.menu[pos].name, "gz") ||
@@ -322,10 +296,6 @@ int main(int argc, char **argv)
         left_box.n_elements = 0;
         init(&left_box, right_box.n_elements);
       }
-/*
-      dup_array(&right_box, &left_box);
-*/
-      //duplicateArray(&right_box, &left_box);
       dupArray2(&right_box, &left_box);
 
       erase_window(&w2, &s);
@@ -366,7 +336,6 @@ int main(int argc, char **argv)
     }
 
     erase_window(&w2, &s);
-
     initial_loop = 0;
     resized = 0;
   }
@@ -390,12 +359,6 @@ int main(int argc, char **argv)
 #endif // EBUG
   restore_config;
   return 0;
-}
-
-int duplicateArray(Array *in, Array *out)
-{
-  dupArray(in, &out);
-  return 1;
 }
 
 int del_file(Window *w1, Scroll *s, Array *left_box, int *pos, int *option)
@@ -600,23 +563,6 @@ int getBackSpaceFolder(Array *left_box, int *pos, int *previous_pos, Scroll *s)
   }
   return 1;
 }
-/*
-int getParent(char *child, char **parent_out)
-{
-  size_t len_child = strlen(child);
-  size_t i, counter = 0;
-  if (len_child > 0) {
-    for (i = len_child - 1; i >= 0; --i) if (child[i] == '/' && ++counter == 2) break;
-  //if (i < len_child - 1) {
-    MALLOC(parent_out, i + 1);
-    memcpy(*parent_out, child, i);
-    *parent_out[i] = '\0';
-    return 1;
-  }
-  //}
-  return 0;
-}
-*/
 
 int read_tar(Array *left_box, int *pos)
 {
