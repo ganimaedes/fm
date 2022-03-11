@@ -1,5 +1,5 @@
 CC 		   = gcc
-CBASEFLAGS = #-ggdb3 -O0 -rdynamic #-DEBUG #-DEBUG2
+CBASEFLAGS = -ggdb3 -O0 -rdynamic #-DEBUG #-DEBUG2
 CFLAGS 	   = -I. $(CBASEFLAGS) -Wall -pedantic -finstrument-functions
 IMGCFLAGS  = -I/usr/local/include
 IMGOBJS    = parcours.o positions.o scr.o deb.o array.o copy.o

@@ -344,8 +344,9 @@ int main(int argc, char **argv)
 
       if (left_box.n_elements != 0 && strlen(left_box.menu[pos].complete_path) != 1) {
         // chercher le parent avec l'inode place en ordre decroissant
-        //getBackSpaceFolder(&left_box, &pos, &previous_pos, &s);
+        getBackSpaceFolder(&left_box, &pos, &previous_pos, &s);
 
+/*
   char *parent = NULL;
   size_t length_parent = strlen(left_box.menu[pos].complete_path);
   size_t p = length_parent - 1, counter = 0;
@@ -432,6 +433,7 @@ int main(int argc, char **argv)
     free(parent);
     parent = NULL;
   }
+*/
 
 
 

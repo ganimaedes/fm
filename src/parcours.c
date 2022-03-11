@@ -160,12 +160,12 @@ int free_menu(Menu *menu)
     free(menu->complete_path);
     menu->complete_path = NULL;
   }
-/*
+///*
   if (menu->parent != NULL) {
     free(menu->parent);
     menu->parent = NULL;
   }
-*/
+//*/
   return 1;
 }
 
@@ -314,11 +314,13 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
           menu.type = insert_to_menu("unknown");
           }
           */
+/*
         else {
           char *unknown_ = "unknown";
           insertToMenu(unknown_, &menu.type);
           //menu.type = insert_to_menu("unknown");
         }
+*/
         if (S_ISDIR(info.st_mode)) {
           char *directory_ = "directory";
           insertToMenu(directory_, &menu.type);
@@ -361,16 +363,16 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
           free(path_name);
           path_name = NULL;
         }
-/*
         if (menu.parent != NULL && counter < 1) {
           free(menu.parent);
           menu.parent = NULL;
         }
-*/
 
         if (debug_mode) {
           //exit(-1);
         }
+
+
       }
     }
     (void)closedir(dir);
