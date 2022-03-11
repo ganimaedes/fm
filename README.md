@@ -4,11 +4,15 @@ Fm is a minimal file manager/viewer for linux
 
 To compile with gcc:
 
+```bash
 cd src/ && make && sudo make install
+```
 
 To execute:
 
+```bash
 fm "$HOME"
+```
 
 Keys
 
