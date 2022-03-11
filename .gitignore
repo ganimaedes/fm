@@ -68,3 +68,5 @@ build/*
 coc-settings.json
 settings.json
 *.swp
+src/*.o
+src/errors

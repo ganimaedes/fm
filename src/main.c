@@ -246,8 +246,9 @@ int main(int argc, char **argv)
       print_entries(&w1, &s, entries, option, &c, &pos, &left_box);
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
-        //directory_place(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
+        directory_place(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
 
+/*
         if (right_box.n_elements != 0) {
           free_array(&right_box);
           init(&right_box, 1);
@@ -269,7 +270,7 @@ int main(int argc, char **argv)
         }
         sprintf(position, place, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
         move(1, position);
-
+*/
 
       } else if (pos < left_box.n_elements &&
                  (match_extension(left_box.menu[pos].name, "gz") ||
@@ -345,98 +346,6 @@ int main(int argc, char **argv)
       if (left_box.n_elements != 0 && strlen(left_box.menu[pos].complete_path) != 1) {
         // chercher le parent avec l'inode place en ordre decroissant
         getBackSpaceFolder(&left_box, &pos, &previous_pos, &s);
-
-/*
-  char *parent = NULL;
-  size_t length_parent = strlen(left_box.menu[pos].complete_path);
-  size_t p = length_parent - 1, counter = 0;
-  for (; p >= 0; --p) if (left_box.menu[pos].complete_path[p] == '/' && ++counter == 2) break;
-  if (p < length_parent - 1 && length_parent != 1) {
-    if (length_parent != 1) {
-      for (; p >= 0; --p) if (left_box.menu[pos].complete_path[p] == '/') break;
-    }
-    copy(&parent, left_box.menu[pos].complete_path, p);
-    char *r_parent = NULL;
-    int b = strlen(left_box.menu[pos].complete_path) - 1;
-    for (; b >= 0; --b) { if (left_box.menu[pos].complete_path[b] == '/') { break; } }
-    copy(&r_parent, left_box.menu[pos].complete_path, b);
-    free_array(&left_box);
-    left_box.n_elements = 0;
-    init(&left_box, 1);
-
-    char *real_parent = NULL;
-    if (file_pasted_signal) {
-      size_t len_parent = strlen(parent);
-      size_t k = len_parent - 1;
-      for (; k >= 0; --k) if (parent[k] == '/') break;
-      copy(&real_parent, parent, k);
-      parcours(real_parent, 0, &left_box, 0, &w_main);
-    } else {
-      if (b > 0) {
-        if (strlen(parent) == 0) {
-          if (parent != NULL) {
-            free(parent);
-            parent = NULL;
-          }
-          parent = malloc(2 * sizeof *parent);
-          if (parent == NULL) {
-            PRINT("malloc");
-          }
-          memcpy(parent, "/", 1);
-          parent[1] = '\0';
-        }
-        parcours(parent, 0, &left_box, 0, &w_main);
-      }
-    }
-
-    if (left_box.n_elements != 0 && r_parent != NULL) {
-      for (previous_pos = 0; previous_pos < left_box.n_elements; ++previous_pos) {
-        if (!strcmp(r_parent, left_box.menu[previous_pos].complete_path)) {
-          break;
-        }
-      }
-    }
-
-#if defined(EBUG)
-    //print_route_positions(&w3, fd, &left_box, parent, pos);
-#endif // EBUG
-
-    int position_changed = 0;
-    if (previous_pos >= left_box.n_elements) {
-      previous_pos -= 2;
-      if (previous_pos < 0) { previous_pos += 2; }
-      position_changed = 1;
-      //if (pos < 0) { pos = 0; }
-    }
-    if (file_pasted_signal) {
-      print_path(&s, parent, pos, 1);
-      pos = attributes.pos[0]->m_position;
-    } else {
-      if (pos < 0) { pos = 0;  }
-      if (previous_pos < 0) { previous_pos = 0; }
-      print_path(&s, left_box.menu[previous_pos].complete_path, pos, 1);
-    }
-    if (position_changed) {
-      previous_pos += 2;
-      position_changed = 0;
-    }
-
-    //file_pasted_signal = 0;
-
-    if (real_parent != NULL) {
-      free(real_parent);
-      real_parent = NULL;
-    }
-
-    free(r_parent);
-    r_parent = NULL;
-    free(parent);
-    parent = NULL;
-  }
-*/
-
-
-
       }
 
       erase_window(&w2, &s);
