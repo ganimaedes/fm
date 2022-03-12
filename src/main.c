@@ -23,6 +23,7 @@ volatile sig_atomic_t file_pasted_signal = 0;
 volatile sig_atomic_t file_moved_signal = 0;
 volatile sig_atomic_t file_to_be_moved_signal = 0;
 volatile sig_atomic_t position_before_copying_sig = 0;
+volatile sig_atomic_t n_elements_to_erase = 0;
 
 volatile sig_atomic_t outside_box = 0;
 volatile sig_atomic_t resized = 0;
@@ -80,6 +81,7 @@ int window_resize(Window *w_main,
                   int *initial_loop,
                   volatile sig_atomic_t *resized, int *i);
 int del_file(Window *w1, Scroll *s, Array *left_box, int *pos, int *option);
+void print_n_elements(Array *left_box);
 
 int main(int argc, char **argv)
 {
@@ -236,6 +238,9 @@ int main(int argc, char **argv)
           free(file_to_be_copied);
           file_to_be_copied = NULL;
         }
+
+        n_elements_to_erase = left_box.n_elements;
+
         erase_window(&w1, &s);
         reprint_menu(&w1, &s, &left_box, &attributes, pos, option);
         file_pasted_signal = 1;
@@ -287,6 +292,8 @@ int main(int argc, char **argv)
         pos = position_before_copying;
       }
 
+      n_elements_to_erase = left_box.n_elements;
+
       previous_pos = pos;
       erase_window(&w1, &s);
       ++enter_backspace;
@@ -305,6 +312,9 @@ int main(int argc, char **argv)
       }
       dupArray2(&right_box, &left_box);
 
+
+      n_elements_to_erase = right_box.n_elements;
+
       erase_window(&w2, &s);
       if (right_box.n_elements != 0) {
         free_array(&right_box);
@@ -315,7 +325,16 @@ int main(int argc, char **argv)
       option = update(&w1, &s, &pos, left_box.n_elements);
       secondary_loop = 1;
       back_pressed = 0;
+
+
+#if defined(EBUG)
+      print_n_elements(&left_box);
+#endif // EBUG
+
+
     } else if (c == 'h' || c == KEY_BACKSPACE) {
+
+      n_elements_to_erase = left_box.n_elements;
 
       erase_window(&w1, &s);
       --enter_backspace;
@@ -324,6 +343,8 @@ int main(int argc, char **argv)
         // chercher le parent avec l'inode place en ordre decroissant
         getBackSpaceFolder(&left_box, &pos, &previous_pos, &s);
       }
+
+      //n_elements_to_erase = right_box.n_elements;
 
       erase_window(&w2, &s);
 
@@ -340,6 +361,11 @@ int main(int argc, char **argv)
       secondary_loop = 1;
       backspace = 1;
       back_pressed = 1;
+
+#if defined(EBUG)
+      print_n_elements(&left_box);
+#endif // EBUG
+
     }
 
     erase_window(&w2, &s);
@@ -366,6 +392,19 @@ int main(int argc, char **argv)
 #endif // EBUG
   restore_config;
   return 0;
+}
+
+void print_n_elements(Array *left_box)
+{
+#define n_elements_left_box "%d"
+  char N_ELEMENTS[sizeof(n_elements_left_box)];
+  sprintf(N_ELEMENTS, n_elements_left_box, left_box->n_elements);
+  sprintf(position, place, w_main.y_size - 3, w_main.x_beg + 1);
+  move(1, position);
+  write(1, "n_elements: ", strlen("n_elements: "));
+  del_from_cursor(del_in);
+  write(1, "    ", strlen("    "));
+  write(1, N_ELEMENTS, strlen(N_ELEMENTS));
 }
 
 int del_file(Window *w1, Scroll *s, Array *left_box, int *pos, int *option)
@@ -734,8 +773,6 @@ int mv_to_trash(Array *left_box, int pos)
   return 1;
 }
 
-
-//int copy_file2(Array *left_box, int *pos)
 int copy_file2(Array *left_box, int pos)
 {
   char *path_to_copied = NULL;
@@ -1022,7 +1059,8 @@ void erase_window(Window *w, Scroll *s)
 {
   int i;
   sprintf(del_in, del, w->x_size - 2);
-  for (i = 0; i <  w->y_size - 1; ++i) {
+  //for (i = 0; i <  w->y_size - 1; ++i) {
+  for (i = 0; i < n_elements_to_erase; ++i) {
     sprintf(position, place, i + w->y_beg + 1, w->x_beg + 1);
     move(1, position);
     del_from_cursor(del_in);
