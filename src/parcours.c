@@ -1,4 +1,38 @@
 #include "parcours.h"
+#include "scr.h"
+
+int get_permissions2(char *path, char permissions[], struct stat *fileStat)
+{
+  //printf("File Size: \t\t%lu bytes\n", fileStat.st_size);
+  //printf("Number of Links: \t%lu\n", fileStat.st_nlink);
+  //printf("File inode: \t\t%lu\n", fileStat.st_ino);
+
+  char value;
+  value = (S_ISDIR(fileStat->st_mode)) ? 'd' : '-';
+  memcpy(&permissions[0], &value, 1);
+  value = (fileStat->st_mode & S_IRUSR) ? 'r' : '-';
+  memcpy(&permissions[1], &value, 1);
+  value = (fileStat->st_mode & S_IWUSR) ? 'w' : '-';
+  memcpy(&permissions[2], &value, 1);
+  value = (fileStat->st_mode & S_IXUSR) ? 'x' : '-';
+  memcpy(&permissions[3], &value, 1);
+  value = (fileStat->st_mode & S_IRGRP) ? 'r' : '-';
+  memcpy(&permissions[4], &value, 1);
+  value = (fileStat->st_mode & S_IWGRP) ? 'w' : '-';
+  memcpy(&permissions[5], &value, 1);
+  value = (fileStat->st_mode & S_IXGRP) ? 'x' : '-';
+  memcpy(&permissions[6], &value, 1);
+  value = (fileStat->st_mode & S_IROTH) ? 'r' : '-';
+  memcpy(&permissions[7], &value, 1);
+  value = (fileStat->st_mode & S_IWOTH) ? 'w' : '-';
+  memcpy(&permissions[8], &value, 1);
+  value = (fileStat->st_mode & S_IXOTH) ? 'x' : '-';
+  memcpy(&permissions[9], &value, 1);
+  permissions[10] = '\0';
+
+  //printf("The %s %s a symbolic link\n", (S_ISDIR(fileStat.st_mode)) ? "folder" : "file", (S_ISLNK(fileStat.st_mode)) ? "is" : "is not");
+  return 1;
+}
 
 int num_of_slashes(char *fn)
 {
@@ -346,7 +380,19 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
            add_menu(a, menu);
            */
         //addMenu(&a, menu);
+        char perm[11];
+        get_permissions2(menu.complete_path, perm, &info);
+        menu.permissions = malloc(11 * sizeof *menu.permissions);
+        if (menu.permissions == NULL) {
+          PRINT("malloc");
+        }
+        memcpy(menu.permissions, perm, 10);
+        menu.permissions[10] = '\0';
         addMenu2(&a, &menu);
+        if (menu.permissions != NULL) {
+          free(menu.permissions);
+          menu.permissions = NULL;
+        }
         if (menu.name != NULL) {
           free(menu.name);
           menu.name = NULL;

@@ -50,7 +50,6 @@ void reprint_menu(Window *w, Scroll *s1, Array *a, Attributes *attr, int pos, in
 void copy_scroll(Scroll *s_in, Scroll *s_out);
 void indicators(Window *w, int y, int x, char pos_c[], char in[], char *msg);
 void erase_window(Window *w, Scroll *s);
-void copy_array(Array *array, char **entry, char **types, int size);
 int print_logos(char *name, char *type);
 void highlight2(Array *a, int *pos);
 int update(Window *w, Scroll *s, int *pos, int size);
@@ -82,6 +81,7 @@ int window_resize(Window *w_main,
                   volatile sig_atomic_t *resized, int *i);
 int del_file(Window *w1, Scroll *s, Array *left_box, int *pos, int *option);
 void print_n_elements(Array *left_box);
+void print_permissions(Array *a, Scroll *s1, Window *w, int pos);
 
 int main(int argc, char **argv)
 {
@@ -254,6 +254,7 @@ int main(int argc, char **argv)
         }
       }
       print_entries(&w1, &s, entries, option, &c, &pos, &left_box);
+      print_permissions(&left_box, &s, &w1, pos);
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
         directory_place(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
@@ -392,6 +393,19 @@ int main(int argc, char **argv)
 #endif // EBUG
   restore_config;
   return 0;
+}
+
+void print_permissions(Array *a, Scroll *s1, Window *w, int pos)
+{
+  // print permissions
+  if (pos < a->n_elements -  1) {
+    sprintf(position, place, w_main.y_size - 2, w->x_beg + 1);
+    move(1, position);
+    del_from_cursor(del_in);
+    write(1, a->menu[pos].permissions, strlen(a->menu[pos].permissions));
+    sprintf(position, place, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+    move(1, position);
+  }
 }
 
 void print_n_elements(Array *left_box)
@@ -1033,7 +1047,15 @@ void reprint_menu(Window *w, Scroll *s1, Array *a, Attributes *attr, int pos, in
         print(w, a, i);
       }
     }
-
+    // print permissions
+    if (pos < a->n_elements -  1) {
+      sprintf(position, place, w_main.y_size - 2, w->x_beg + 1);
+      move(1, position);
+      del_from_cursor(del_in);
+      write(1, a->menu[pos].permissions, strlen(a->menu[pos].permissions));
+      sprintf(position, place, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+      move(1, position);
+    }
   }
 }
 
@@ -1059,35 +1081,11 @@ void erase_window(Window *w, Scroll *s)
 {
   int i;
   sprintf(del_in, del, w->x_size - 2);
-  //for (i = 0; i <  w->y_size - 1; ++i) {
-  for (i = 0; i < n_elements_to_erase; ++i) {
+  for (i = 0; i <  w->y_size - 1; ++i) {
+  //for (i = 0; i < n_elements_to_erase; ++i) {
     sprintf(position, place, i + w->y_beg + 1, w->x_beg + 1);
     move(1, position);
     del_from_cursor(del_in);
-  }
-}
-
-void copy_array(Array *array, char **entry, char **types, int size)
-{
-  Menu menu;
-  int i;
-  int len = 0;
-  for (i = 0; i < size; ++i) {
-    len = strlen(entry[i]);
-    menu.name = (char *)malloc(sizeof(char) * (len + 1));
-    if (menu.name) {
-      strcpy(menu.name, entry[i]);
-      menu.name[len] = '\0';
-    }
-    len = strlen(types[i]);
-    menu.type = (char *)malloc(sizeof *(menu.type) * (len + 1));
-    if (menu.type) {
-      strcpy(menu.type, types[i]);
-      menu.type[len] = '\0';
-    }
-    add_menu(array, menu);
-    free(menu.name);
-    free(menu.type);
   }
 }
 

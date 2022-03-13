@@ -149,6 +149,11 @@ void addMenu2(Array **a, Menu *menu)
     copy(&((*a)->menu[(*a)->n_elements].parent), menu->parent, len);
   }
 
+  if (menu->permissions != NULL) {
+    len = strlen(menu->permissions);
+    copy(&((*a)->menu[(*a)->n_elements].permissions), menu->permissions, len);
+  }
+
   ++(*a)->n_elements;
 }
 
@@ -161,6 +166,8 @@ void free_array(Array *a)
         a->menu[i].type = NULL;
         free(a->menu[i].complete_path);
         a->menu[i].complete_path = NULL;
+        free(a->menu[i].permissions);
+        a->menu[i].permissions = NULL;
     }
     free(a->menu);
     a->menu = NULL;
@@ -216,6 +223,8 @@ void dupArray2(Array *in, Array *out)
         copy(&(menu.type), in->menu[i].type, len);
         len = strlen(in->menu[i].complete_path);
         copy(&(menu.complete_path), in->menu[i].complete_path, len);
+        len = strlen(in->menu[i].permissions);
+        copy(&(menu.permissions), in->menu[i].permissions, len);
         addMenu2(&out, &menu);
         if (menu.name) {
           free(menu.name);
@@ -228,6 +237,10 @@ void dupArray2(Array *in, Array *out)
         if (menu.complete_path) {
           free(menu.complete_path);
           menu.complete_path = NULL;
+        }
+        if (menu.permissions) {
+          free(menu.permissions);
+          menu.permissions = NULL;
         }
     }
 }

@@ -15,6 +15,7 @@
 
 static int debug_mode = 0;
 
+int get_permissions2(char *path, char permissions[], struct stat *fileStat);
 int num_of_slashes(char *fn);
 char *insert_to_menu(char *str);
 int get_last_slash_pos(char *name);

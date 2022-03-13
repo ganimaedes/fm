@@ -17,6 +17,7 @@ typedef struct {
     char *complete_path;
     char *parent;
     int parent_pos;
+    char *permissions;
     //int displaced_entry;
     //int upper_pos;
     //int lower_pos;
