@@ -1048,6 +1048,8 @@ void reprint_menu(Window *w, Scroll *s1, Array *a, Attributes *attr, int pos, in
       }
     }
     // print permissions
+    print_permissions(a, s1, w, pos);
+/*
     if (pos < a->n_elements -  1) {
       sprintf(position, place, w_main.y_size - 2, w->x_beg + 1);
       move(1, position);
@@ -1056,6 +1058,7 @@ void reprint_menu(Window *w, Scroll *s1, Array *a, Attributes *attr, int pos, in
       sprintf(position, place, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
       move(1, position);
     }
+*/
   }
 }
 

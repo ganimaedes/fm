@@ -56,18 +56,6 @@ int insertToMenu(char *str, char **out)
   return 1;
 }
 
-char *insert_to_menu(char *str)
-{
-    int len_str = strlen(str);
-    char *add = (char *)malloc(sizeof(char) * (len_str + 1));
-    if (add) {
-        strcpy(add, str);
-        add[len_str] = '\0';
-        return add;
-    }
-    return "error malloc";
-}
-
 int get_last_slash_pos(char *name)
 {
     int j = strlen(name) - 1;
@@ -96,45 +84,6 @@ int get_name2(char *fn, char **out)
 */
   }
   return 1;
-}
-
-char *get_name(char *fn)
-{
-    int len = strlen(fn);
-    int s_pos = get_last_slash_pos(fn);
-    if (s_pos == -1) {
-        fprintf(stderr, "s_pos: %d\n", s_pos);
-        exit(-1);
-    }
-    char *s_path = NULL;
-    if (s_pos >= 0) {
-        s_path = (char *)malloc(sizeof(char) * (len - s_pos + 1));
-        if (s_path) {
-            strncpy(s_path, fn + s_pos + 1, len - s_pos);
-            s_path[len - s_pos] = '\0';
-        }
-    }
-    return s_path;
-}
-
-char **get_names_only(Array *a)
-{
-    char **names = (char **)calloc(a->n_elements, sizeof(char *));
-    int i;
-    int len = 0;
-    int slash_pos = 0;
-    int total = 0;
-    for (i = 0; i < a->n_elements; ++i) {
-        slash_pos = get_last_slash_pos(a->menu[i].name);
-        if (slash_pos >= 0) {
-            len = strlen(a->menu[i].name);
-            total = len - slash_pos;
-            names[i] = (char *)malloc(sizeof(char) * (total + 1));
-            strncpy(names[i], &a->menu[i].name[slash_pos + 1], total);
-            names[i][total] = '\0';
-        }
-    }
-    return names;
 }
 
 int getParent(char *child, char **parent_out)
@@ -200,6 +149,10 @@ int free_menu(Menu *menu)
     menu->parent = NULL;
   }
 //*/
+  if (menu->permissions != NULL) {
+    free(menu->permissions);
+    menu->permissions = NULL;
+  }
   return 1;
 }
 
@@ -213,12 +166,6 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
   struct stat info;
   char path[MAXPATHLEN];
   Menu menu = {};
-  /*
-     menu.name = NULL;
-     menu.type = NULL;
-     menu.complete_path = NULL;
-     menu.parent = NULL;
-     */
   char *path_name = NULL;
 
   int len = strlen(fn);
@@ -260,21 +207,12 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
           strcat(path, "/");
         }
         strcat(path, entry->d_name);
-        //path_name = get_name(path);
         get_name2(path, &path_name);
         // if (path_name != NULL)
-        /*
-           menu.name = insert_to_menu(path_name);
-           menu.complete_path = insert_to_menu(path);
-           */
         insertToMenu(path_name, &(menu.name));
         insertToMenu(path, &(menu.complete_path));
 
         if (num_of_slashes(path) > 1 && counter == 0) { // && recursive == 0
-          /*
-             menu.parent = get_parent(path);
-
-*/
           getParent(path, &(menu.parent));
           ++counter;
         }
@@ -336,29 +274,24 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
           write(1, del_line, sizeof(del_line));
           write(1, error_str, strlen(error_str));
         } else if (S_ISLNK(info.st_mode)) {
-          //menu.type = insert_to_menu("symbolic_link");
           char *symb = "symbolic_link";
           insertToMenu(symb, &menu.type);
         } else if (S_ISREG(info.st_mode)) {
           char *file_ = "file";
           insertToMenu(file_, &menu.type);
-          //  menu.type = insert_to_menu("file");
         }
         /*else if (entry->d_type == DT_UNKNOWN) {
-          menu.type = insert_to_menu("unknown");
           }
           */
 /*
         else {
           char *unknown_ = "unknown";
           insertToMenu(unknown_, &menu.type);
-          //menu.type = insert_to_menu("unknown");
         }
 */
         if (S_ISDIR(info.st_mode)) {
           char *directory_ = "directory";
           insertToMenu(directory_, &menu.type);
-          //menu.type = insert_to_menu("directory");
           if (recursive) {
             if (path_name != NULL) {
               free(path_name);
@@ -376,10 +309,6 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
           write(1, "menu.type: ", strlen("menu.type: "));
           write(1, menu.type, strlen(menu.type));
         }
-        /*
-           add_menu(a, menu);
-           */
-        //addMenu(&a, menu);
         char perm[11];
         get_permissions2(menu.complete_path, perm, &info);
         menu.permissions = malloc(11 * sizeof *menu.permissions);
