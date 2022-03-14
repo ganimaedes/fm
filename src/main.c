@@ -62,8 +62,6 @@ void mvwprintw(Window *win, Array *a, int y, int x, char *str, int pos);
 void draw_box(Window *w);
 void print_attributes_debug(Window *w, Scroll *s, int option, int pos,
     int cursor_pos, Array *a, Attributes *attributes, int fd);
-int find_parent(char *folder, char **parent);
-int find_file_name(char *folder, char **file_name);
 int copy_file2(Array *left_box, int pos);
 int read_tar(Array *left_box, int *pos);
 int getBackSpaceFolder(Array *left_box, int *pos, int *previous_pos, Scroll *s);
@@ -852,58 +850,6 @@ int copy_file2(Array *left_box, int pos)
 
   }
   return 1;
-}
-
-int find_file_name(char *folder, char **file_name)
-{
-  size_t len_folder = strlen(folder);
-  if (len_folder > 0) {
-    size_t i = len_folder - 1;
-    for (; i >= 0; --i) {
-      if (folder[i] == '/') {
-        break;
-      }
-    }
-    if (!(*file_name = malloc((len_folder - i) * sizeof **file_name))) {
-      fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-      fprintf(stdout, "malloc\n");
-      exit(1);
-    }
-    memcpy(*file_name, folder, len_folder - i - 1);
-    *file_name[len_folder - i] = '\0';
-    return 1;
-  }
-  return 0;
-}
-
-int find_parent(char *folder, char **parent)
-{
-  //*parent = NULL;
-  size_t len_folder = strlen(folder);
-  if (len_folder > 0) {
-    size_t i = len_folder - 1;
-    for (; i >= 0; --i) {
-      if (folder[i] == '/') {
-        break;
-      }
-    }
-    //printf("i = %lu\n", i);
-    printf("%s\n", &folder[i - 1]);
-    //printf("%c\n", folder[i]);
-    sleep(10);
-    if (!(*parent = malloc((i + 1) * sizeof **parent))) {
-      fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-      fprintf(stdout, "malloc\n");
-      exit(1);
-    }
-    memcpy(*parent, folder, i);
-    *parent[i] = '\0';
-    printf("%s\n", *parent);
-    sleep(10);
-
-    return 1;
-  }
-  return 0;
 }
 
 void print_path(Scroll *s, char *path, int pos, int backspace_pressed)
