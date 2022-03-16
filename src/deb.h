@@ -7,6 +7,6 @@
 
 char position[PLACE_SZ];
 
-int print_tty(Window *w, int fd, Attributes *attributes);
+int print_tty(Window_ *w, int fd, Attributes *attributes);
 
 #endif  // DEB_H

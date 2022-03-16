@@ -6,6 +6,7 @@
 #include "parcours.h"
 #include "deb.h"
 #include "copy.h"
+#include "img.h"
 #include <execinfo.h>
 #include <signal.h>
 #include <stddef.h>
@@ -34,7 +35,7 @@ volatile sig_atomic_t enter_backspace = 1;
 char position[PLACE_SZ];
 char del_in[IN_SZ];
 
-Window w_main, w1, w2, w3;
+Window_ w_main, w1, w2, w3;
 Attributes attributes;
 char *file_to_be_copied;
 
@@ -46,29 +47,29 @@ int strpos(char *hay, char *needle, int offset);
 int show_tar(pid_t *pid, char *buffer, int *bytes_read, char *tar_name);
 int match_extension(char *name, const char *ext);
 void handler(int sig);
-void reprint_menu(Window *w, Scroll *s1, Array *a, Attributes *attr, int pos, int option);
+void reprint_menu(Window_ *w, Scroll *s1, Array *a, Attributes *attr, int pos, int option);
 void copy_scroll(Scroll *s_in, Scroll *s_out);
-void indicators(Window *w, int y, int x, char pos_c[], char in[], char *msg);
-void erase_window(Window *w, Scroll *s);
+void indicators(Window_ *w, int y, int x, char pos_c[], char in[], char *msg);
+void erase_window(Window_ *w, Scroll *s);
 int print_logos(char *name, char *type);
 void highlight2(Array *a, int *pos);
-int update(Window *w, Scroll *s, int *pos, int size);
-void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos, Array *a);
-void move_erase(Window *w, int fd, int y, int x);
-void print_entries(Window *w, Scroll *s, char **entries, int option, int *c, int *pos, Array *a);
-void print(Window *w, Array *a, int pos_array);
+int update(Window_ *w, Scroll *s, int *pos, int size);
+void print_debug(Window_ *w, Scroll *s, int option, int pos, int cursor_pos, Array *a);
+void move_erase(Window_ *w, int fd, int y, int x);
+void print_entries(Window_ *w, Scroll *s, char **entries, int option, int *c, int *pos, Array *a);
+void print(Window_ *w, Array *a, int pos_array);
 static void sig_win_ch_handler(int sig);
-void mvwprintw(Window *win, Array *a, int y, int x, char *str, int pos);
-void draw_box(Window *w);
-void print_attributes_debug(Window *w, Scroll *s, int option, int pos,
+void mvwprintw(Window_ *win, Array *a, int y, int x, char *str, int pos);
+void draw_box(Window_ *w);
+void print_attributes_debug(Window_ *w, Scroll *s, int option, int pos,
     int cursor_pos, Array *a, Attributes *attributes, int fd);
 int copy_file2(Array *left_box, int pos);
 int read_tar(Array *left_box, int *pos);
 int getBackSpaceFolder(Array *left_box, int *pos, int *previous_pos, Scroll *s);
-int directory_place(Array *left_box, Array *right_box, Scroll *s, int *pos, Window *w1, Window *w2, Window *w_main);
-int window_resize(Window *w_main,
-                  Window *w1,
-                  Window *w2,
+int directory_placement(Array *left_box, Array *right_box, Scroll *s, int *pos, Window_ *w1, Window_ *w2, Window_ *w_main);
+int window_resize(Window_ *w_main,
+                  Window_ *w1,
+                  Window_ *w2,
                   struct winsize *w_s,
                   Scroll *s,
                   Array *left_box,
@@ -77,9 +78,9 @@ int window_resize(Window *w_main,
                   int *pos,
                   int *initial_loop,
                   volatile sig_atomic_t *resized, int *i);
-int del_file(Window *w1, Scroll *s, Array *left_box, int *pos, int *option);
+int del_file(Window_ *w1, Scroll *s, Array *left_box, int *pos, int *option);
 void print_n_elements(Array *left_box);
-void print_permissions(Array *a, Scroll *s1, Window *w, int pos);
+void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos);
 
 int main(int argc, char **argv)
 {
@@ -91,11 +92,11 @@ int main(int argc, char **argv)
   setlocale(LC_ALL, "");
   save_config;
 
-  char position[strlen(place)];
+  char position[strlen(place_)];
   if (get_window_size(0, 1, &w_main.y_size, &w_main.x_size) < 0) {
     restore_config;
     char *error = "Error getting window size";
-    sprintf(position, place, w1.y_beg + 1, w1.x_beg + 1);
+    sprintf(position, place_, w1.y_beg + 1, w1.x_beg + 1);
     move(1, position);
     write(1, error, strlen(error));
     return EXIT_FAILURE;
@@ -255,14 +256,21 @@ int main(int argc, char **argv)
       print_permissions(&left_box, &s, &w1, pos);
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
-        directory_place(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
+        directory_placement(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
 
       } else if (pos < left_box.n_elements &&
                  (match_extension(left_box.menu[pos].name, "gz") ||
                  match_extension(left_box.menu[pos].name, "xz"))) {
         read_tar(&left_box, &pos);
-        sprintf(position, place, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
+        sprintf(position, place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
         move(1, position);
+      } else if (match_extension(left_box.menu[pos].name, "jpeg") ||
+                 match_extension(left_box.menu[pos].name, "jpg") ||
+                 match_extension(left_box.menu[pos].name, "png")) {
+//./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
+        //char *arguments = "name 0x200008 ../../../x_min/MIN2/22_.png 0.5 980 50";
+        //set_img(6, &arguments);
+        set_img(6, "fm", 0x200008, "../../../x_min/MIN2/22_.png", 0.5, 50, 980);
       }
     }
 
@@ -393,7 +401,7 @@ int main(int argc, char **argv)
   return 0;
 }
 
-void print_permissions(Array *a, Scroll *s1, Window *w, int pos)
+void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos)
 {
 /*
   printf("  %s%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
@@ -402,11 +410,11 @@ void print_permissions(Array *a, Scroll *s1, Window *w, int pos)
 */
   // print permissions
 //  if (pos < a->n_elements -  1) {
-    sprintf(position, place, w_main.y_size - 2, w->x_beg + 1);
+    sprintf(position, place_, w_main.y_size - 2, w->x_beg + 1);
     move(1, position);
     del_from_cursor(del_in);
     write(1, a->menu[pos].permissions, strlen(a->menu[pos].permissions));
-    sprintf(position, place, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+    sprintf(position, place_, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
     move(1, position);
 //  }
 }
@@ -416,7 +424,7 @@ void print_n_elements(Array *left_box)
 #define n_elements_left_box "%d"
   char N_ELEMENTS[sizeof(n_elements_left_box)];
   sprintf(N_ELEMENTS, n_elements_left_box, left_box->n_elements);
-  sprintf(position, place, w_main.y_size - 3, w_main.x_beg + 1);
+  sprintf(position, place_, w_main.y_size - 3, w_main.x_beg + 1);
   move(1, position);
   write(1, "n_elements: ", strlen("n_elements: "));
   del_from_cursor(del_in);
@@ -424,7 +432,7 @@ void print_n_elements(Array *left_box)
   write(1, N_ELEMENTS, strlen(N_ELEMENTS));
 }
 
-int del_file(Window *w1, Scroll *s, Array *left_box, int *pos, int *option)
+int del_file(Window_ *w1, Scroll *s, Array *left_box, int *pos, int *option)
 {
   int supp_word = 0;
   supp_word = kbget();
@@ -462,9 +470,9 @@ int del_file(Window *w1, Scroll *s, Array *left_box, int *pos, int *option)
 }
 
 
-int window_resize(Window *w_main,
-                  Window *w1,
-                  Window *w2,
+int window_resize(Window_ *w_main,
+                  Window_ *w1,
+                  Window_ *w2,
                   struct winsize *w_s,
                   Scroll *s,
                   Array *left_box,
@@ -496,7 +504,7 @@ int window_resize(Window *w_main,
     *option = update(w1, s, pos, left_box->n_elements);
 
     if (*initial_loop) {
-      sprintf(position, place, w1->y_beg + 1, w1->x_beg + 1);
+      sprintf(position, place_, w1->y_beg + 1, w1->x_beg + 1);
       move(1, position);
       highlight2(left_box, pos);
       for (*i = 1; *i < s->n_to_print; ++*i) {
@@ -510,7 +518,7 @@ int window_resize(Window *w_main,
   return 1;
 }
 
-int directory_place(Array *left_box, Array *right_box, Scroll *s, int *pos, Window *w1, Window *w2, Window *w_main)
+int directory_placement(Array *left_box, Array *right_box, Scroll *s, int *pos, Window_ *w1, Window_ *w2, Window_ *w_main)
 {
   if (right_box->n_elements != 0) {
     free_array(right_box);
@@ -531,7 +539,7 @@ int directory_place(Array *left_box, Array *right_box, Scroll *s, int *pos, Wind
   for (i = 0; i < to_print; ++i) {
     mvwprintw(w2, right_box, i + w2->y_beg + 1, w2->x_beg + 1, right_box->menu[i].name, i);
   }
-  sprintf(position, place, *pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
+  sprintf(position, place_, *pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
   move(1, position);
   return 1;
 }
@@ -683,7 +691,7 @@ int read_tar(Array *left_box, int *pos)
     }
   }
 
-  sprintf(position, place, w2.y_beg + 1, w2.x_beg + 1);
+  sprintf(position, place_, w2.y_beg + 1, w2.x_beg + 1);
   move(1, position);
 
   //fsync(STDOUT_FILENO);
@@ -703,7 +711,7 @@ int read_tar(Array *left_box, int *pos)
 
       write(1, &buffer[array_n[x - 1] + 1 + alloc_n + 1], array_n[x] - 1 - array_n[x - 1] - alloc_n - 1);
     }
-    sprintf(position, place, x + w2.y_beg + 1, w2.x_beg + 1);
+    sprintf(position, place_, x + w2.y_beg + 1, w2.x_beg + 1);
     move(1, position);
     if (buf_tmp != NULL) {
       free(buf_tmp);
@@ -884,10 +892,10 @@ void print_path(Scroll *s, char *path, int pos, int backspace_pressed)
       pos_slashes[n_slashes++] = i;
     }
   }
-  sprintf(position, place, w1.y_beg - 2, w_main.x_beg + 1);
+  sprintf(position, place_, w1.y_beg - 2, w_main.x_beg + 1);
   move(1, position);
   write(1 , "\033[2K", sizeof("\033[2K"));
-  sprintf(position, place, w1.y_beg - 2, w_main.x_beg + 1);
+  sprintf(position, place_, w1.y_beg - 2, w_main.x_beg + 1);
   move(1, position);
   int j;
   for (j = 1; j < n_slashes; ++j) {
@@ -907,7 +915,7 @@ void print_path(Scroll *s, char *path, int pos, int backspace_pressed)
   write(1, &path[pos_slashes[j - 1] + 1], len_path - pos_slashes[j - 1] - 1);
   write(1, space, 1);
   write(1, fg_reset, sizeof(fg_reset));
-  sprintf(position, place, pos - s->pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
+  sprintf(position, place_, pos - s->pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
   move(1, position);
   if (pos_slashes != NULL) {
     free(pos_slashes);
@@ -968,7 +976,7 @@ void handler(int sig)
 }
 #endif // EBUG
 
-void reprint_menu(Window *w, Scroll *s1, Array *a, Attributes *attr, int pos, int option)
+void reprint_menu(Window_ *w, Scroll *s1, Array *a, Attributes *attr, int pos, int option)
 {
   if (s1->option_previous != option || resized || reprint) {
 
@@ -987,11 +995,11 @@ void reprint_menu(Window *w, Scroll *s1, Array *a, Attributes *attr, int pos, in
     }
     int i;
     for (i = s1->pos_upper_t; i <= s1->pos_lower_t; ++i) {
-      sprintf(position, place, i - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+      sprintf(position, place_, i - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
       move(1, position);
       if (i == pos) {
         del_from_cursor(del_in);
-        sprintf(position, place, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+        sprintf(position, place_, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
         move(1, position);
         highlight2(a, &pos);
       } else if (i < a->n_elements) {
@@ -1013,21 +1021,21 @@ void copy_scroll(Scroll *s_in, Scroll *s_out)
   s_out->pos_upper_t = s_in->pos_upper_t;
 }
 
-void indicators(Window *w, int y, int x, char pos_c[], char in[], char *msg)
+void indicators(Window_ *w, int y, int x, char pos_c[], char in[], char *msg)
 {
-  sprintf(pos_c, place, y, x);
+  sprintf(pos_c, place_, y, x);
   move(1, pos_c);
   del_from_cursor(in);
   //mvwprintw(w, y, x, msg);
 }
 
-void erase_window(Window *w, Scroll *s)
+void erase_window(Window_ *w, Scroll *s)
 {
   int i;
   sprintf(del_in, del, w->x_size - 2);
   for (i = 0; i <  w->y_size - 1; ++i) {
   //for (i = 0; i < n_elements_to_erase; ++i) {
-    sprintf(position, place, i + w->y_beg + 1, w->x_beg + 1);
+    sprintf(position, place_, i + w->y_beg + 1, w->x_beg + 1);
     move(1, position);
     del_from_cursor(del_in);
   }
@@ -1127,7 +1135,7 @@ void highlight2(Array *a, int *pos)
 
 static void sig_win_ch_handler(int sig) { resized = 1; }
 
-int update(Window *w, Scroll *s, int *pos, int size)
+int update(Window_ *w, Scroll *s, int *pos, int size)
 {
   int option = 0;
   s->array_size = size;
@@ -1195,7 +1203,7 @@ int update(Window *w, Scroll *s, int *pos, int size)
   return option;
 }
 
-void print(Window *w, Array *a, int pos_array)
+void print(Window_ *w, Array *a, int pos_array)
 {
   size_t len_space = 1;
   size_t len_logo = 2;
@@ -1207,17 +1215,17 @@ void print(Window *w, Array *a, int pos_array)
   write(1, a->menu[pos_array].name, len);
 }
 
-void move_erase(Window *w, int fd, int y, int x)
+void move_erase(Window_ *w, int fd, int y, int x)
 {
   sprintf(del_in, del, w->x_size - 2);
-  sprintf(position, place, y, x);
+  sprintf(position, place_, y, x);
   move(fd, position);
   del_from_cursor(del_in);
-  sprintf(position, place, y, x);
+  sprintf(position, place_, y, x);
   move(fd, position);
 }
 
-void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entries,
+void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **entries,
                    int option, int *c, int *pos, Array *a)
 {
   int i;
@@ -1238,7 +1246,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
 
           print(w, a, *pos + 1);
 
-          sprintf(position, place, y, w->x_beg + 1);
+          sprintf(position, place_, y, w->x_beg + 1);
           move(1, position);
         } else if (*pos <= s->pos_upper_t && s->pos_upper_t > 0) {
           --s->pos_upper_t;
@@ -1252,7 +1260,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
             }
           }
           //del_from_cursor(del_in);
-          sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+          sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
           move(1, position);
         }
         if (*pos >= s->pos_lower_t) {
@@ -1282,7 +1290,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
 
             print(w, a, *pos - 1);
           }
-          sprintf(position, place, y + 1, w->x_beg + 1);
+          sprintf(position, place_, y + 1, w->x_beg + 1);
           move(1, position);
           outside_box = 0;
         } else if (*pos - 1 >= s->pos_lower_t) {
@@ -1302,7 +1310,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
             move_erase(w, 1, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
           } else {
             outside_box = 1;
-            sprintf(position, place, i + w->y_beg, w->x_beg + 1);
+            sprintf(position, place_, i + w->y_beg, w->x_beg + 1);
             move(1, position);
           }
         }
@@ -1322,7 +1330,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
 
           if (debug) {
 #if defined(EBUG)
-            sprintf(position, place, w_main.y_size - 1, w->x_beg + 2);
+            sprintf(position, place_, w_main.y_size - 1, w->x_beg + 2);
             move(1, position);
             write(1, pg_up, strlen(pg_up));
             indicators(w, w_main.y_size - 2, w->x_beg + 1, position, del_in, "1aup");
@@ -1337,16 +1345,16 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
               print(w, a, *pos);
             }
             *pos -= (s->n_to_print - 1); // donne *pos = *pos - s->n_to_print + 1
-            sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+            sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
             move(1, position);
 
           } else {
-            sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+            sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
             move(1, position);
             //del_from_cursor(in);
             del_from_cursor(del_in);
             *pos = s->pos_lower_t;
-            sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+            sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
             move(1, position);
           }
           highlight2(a, pos);
@@ -1380,7 +1388,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
             }
           }
 
-          sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+          sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
           move(1, position);
           highlight2(a, pos);
         }
@@ -1397,7 +1405,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
         //move(1, position);
         for (i = 0; i < s->n_to_print; ++i) {
 
-          sprintf(position, place, i + w->y_beg + 1, w->x_beg + 1);
+          sprintf(position, place_, i + w->y_beg + 1, w->x_beg + 1);
           move(1, position);
           del_from_cursor(del_in);
 
@@ -1409,7 +1417,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
         s->pos_lower_t -= s->pos_upper_t;
         s->pos_upper_t = *pos;
         s->n_lower_t = s->array_size - s->n_to_print;
-        sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+        sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
         move(1, position);
 
         highlight2(a, pos);
@@ -1422,7 +1430,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
       if (*pos + s->n_to_print - 1 <= s->array_size - 1) {
         if (debug) {
 #if defined(EBUG)
-          sprintf(position, place, w_main.y_size - 2, w->x_beg + 2);
+          sprintf(position, place_, w_main.y_size - 2, w->x_beg + 2);
           move(1, position);
           write(1, pg_dn, strlen(pg_dn));
           indicators(w, w_main.y_size - 1, w->x_beg + 2, position, del_in, "1");
@@ -1459,7 +1467,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
           }
           *pos += (s->n_to_print - 1);
         }
-        sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+        sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
         move(1, position);
         highlight2(a, pos);
 
@@ -1481,7 +1489,7 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
 
         *pos = s->array_size - 1;
 
-        sprintf(position, place, s->n_to_print + w->y_beg, w->x_beg + 1);
+        sprintf(position, place_, s->n_to_print + w->y_beg, w->x_beg + 1);
         move(1, position);
         highlight2(a, pos);
       } else if (*pos + 1 < s->array_size - 1) {
@@ -1495,12 +1503,12 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
       s->pos_lower_t = s->n_to_print - 1;
       s->n_lower_t = s->array_size - s->n_to_print;
       for (i = 0; i < s->n_to_print; ++i) {
-        sprintf(position, place, i + w->y_beg + 1, w->x_beg + 1);
+        sprintf(position, place_, i + w->y_beg + 1, w->x_beg + 1);
         move(1, position);
         del_from_cursor(del_in);
         print(w, a, i);
       }
-      sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+      sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
       move(1, position);
       highlight2(a, pos);
       break;
@@ -1510,12 +1518,12 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
       s->pos_lower_t = *pos;
       s->n_lower_t = 0;
       for (i = 0; i < s->n_to_print; ++i) {
-        sprintf(position, place, i + w->y_beg + 1, w->x_beg + 1);
+        sprintf(position, place_, i + w->y_beg + 1, w->x_beg + 1);
         move(1, position);
         del_from_cursor(del_in);
         print(w, a, i + s->pos_upper_t);
       }
-      sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+      sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
       move(1, position);
       highlight2(a, pos);
       break;
@@ -1524,15 +1532,15 @@ void print_entries(Window *w, Scroll *s, __attribute__((__unused__)) char **entr
   }
 
   if (*pos == 0) {
-    sprintf(position, place, w->y_beg + 1, w->x_beg + 1);
+    sprintf(position, place_, w->y_beg + 1, w->x_beg + 1);
     move(1, position);
   }
 
-  snprintf(position, strlen(place), place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+  snprintf(position, strlen(place_), place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
   move(1, position);
 }
 
-void draw_box(Window *w)
+void draw_box(Window_ *w)
 {
   int i = 1, j = 0;
   int horiz = w->x_size;
@@ -1546,7 +1554,7 @@ void draw_box(Window *w)
     write(1, fg_cyan, sizeof(fg_cyan));
   }
   // upper left corner
-  sprintf(position, place, w->y_beg, w->x_beg);
+  sprintf(position, place_, w->y_beg, w->x_beg);
   move(1, position);
   if (w != &w2) {
     write(1, ARRAY[cont_2], strlen(ARRAY[cont_2]));
@@ -1559,25 +1567,25 @@ void draw_box(Window *w)
   }
   // upper right corner
   if (w == &w2) {
-    sprintf(position, place, w->y_beg, w->x_beg + horiz );
+    sprintf(position, place_, w->y_beg, w->x_beg + horiz );
     move(1, position);
     write(1, ARRAY[cont_4], strlen(ARRAY[cont_4]));
   }
   // both vertical lines
   for (; i < vert ; ++i) {
-    sprintf(position, place, w->y_beg + i  , w->x_beg);
+    sprintf(position, place_, w->y_beg + i  , w->x_beg);
     move(1, position);
     if (w != &w2) {
       write(1, ARRAY[cont_1], strlen(ARRAY[cont_1]));
     } else {
       write(1, ARRAY[cont_1], strlen(ARRAY[cont_1]));
-      sprintf(position, place, w->y_beg + i , w->x_beg + horiz);
+      sprintf(position, place_, w->y_beg + i , w->x_beg + horiz);
       move(1, position);
       write(1, ARRAY[cont_1], strlen(ARRAY[cont_1]));
     }
   }
   // lower left corner
-  sprintf(position, place, vert + w->y_beg, w->x_beg );
+  sprintf(position, place_, vert + w->y_beg, w->x_beg );
   move(1, position);
   if (w == &w2) {
     write(1, ARRAY[cont_8], strlen(ARRAY[cont_8]));
@@ -1585,24 +1593,24 @@ void draw_box(Window *w)
     write(1, ARRAY[cont_3], strlen(ARRAY[cont_3]));
   }
   // lower horizontal line
-  sprintf(position, place, vert + w->y_beg, w->x_beg + 1);
+  sprintf(position, place_, vert + w->y_beg, w->x_beg + 1);
   move(1, position);
   for (j = 0; j < horiz - 1; ++j) {
     write(1, ARRAY[cont_0], strlen(ARRAY[cont_0]));
   }
   // lower right corner
   if (w == &w2) {
-    sprintf(position, place, vert + w->y_beg, w->x_beg + horiz);
+    sprintf(position, place_, vert + w->y_beg, w->x_beg + horiz);
     move(1, position);
     write(1, ARRAY[cont_5], strlen(ARRAY[cont_5]));
   }
   write(1, fg_reset, sizeof(fg_reset));
-  sprintf(position, place, vert / 2, w->x_beg + 1);
+  sprintf(position, place_, vert / 2, w->x_beg + 1);
   move(1, position);
 }
 
 //#define len_menu "len = %d"
-void mvwprintw(Window *win, Array *a, int y, int x, char *str, int pos)
+void mvwprintw(Window_ *win, Array *a, int y, int x, char *str, int pos)
 {
   if (win->y_size > w_main.y_size) {
     char *err = "Error: out of window size: ";
@@ -1612,7 +1620,7 @@ void mvwprintw(Window *win, Array *a, int y, int x, char *str, int pos)
 
   //int len = strlen(str);
   int len = strlen(a->menu[pos].name);
-  sprintf(position, place, w_main.y_beg + 1, w_main.x_beg + 1);
+  sprintf(position, place_, w_main.y_beg + 1, w_main.x_beg + 1);
   move(1, position);
   del_from_cursor(del_in);
   /*
@@ -1626,7 +1634,7 @@ void mvwprintw(Window *win, Array *a, int y, int x, char *str, int pos)
   if (len > win->x_size - 2 - len_space - len_logo) {
     len = win->x_size - 2 - len_space - len_logo;
   }
-  sprintf(position, place, y, x);
+  sprintf(position, place_, y, x);
   move(1, position);
   del_from_cursor(del_in);
   move(1, position);
@@ -1656,7 +1664,7 @@ void mvwprintw(Window *win, Array *a, int y, int x, char *str, int pos)
 #define PREVIOUS_POS "previous_pos : %d"
 #define PREVIOUS_POS_FROM_ATTR "previous_pos_from_attr : %d"
 
-void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos, Array *a)
+void print_debug(Window_ *w, Scroll *s, int option, int pos, int cursor_pos, Array *a)
 {
 /*
   char back[sizeof(BACK_PRESSED)];
@@ -1668,25 +1676,25 @@ void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos, Arra
 */
   char x_size[sizeof("%d")];
   char y_size[sizeof("%d")];
-  char pos_place[sizeof(place) + 1];
+  char pos_place_[sizeof(place_) + 1];
 
-  sprintf(pos_place, place, 1, w->x_size - 3);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, 1, w->x_size - 3);
+  move(1, pos_place_);
   sprintf(y_size, "%d", w->y_size);
   write(1, y_size, strlen(y_size));
 
-  sprintf(pos_place, place, 2, w->x_size - 3);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, 2, w->x_size - 3);
+  move(1, pos_place_);
   sprintf(x_size, "%d", w->x_size);
   write(1, x_size, strlen(x_size));
 
-  sprintf(position, place, w->y_size - 3, (w->x_size / 2) - 30);
+  sprintf(position, place_, w->y_size - 3, (w->x_size / 2) - 30);
   move(1, position);
   char ny_size[sizeof(Y_SIZE)];
   sprintf(ny_size, Y_SIZE, w1.y_size);
   write(1, ny_size, strlen(ny_size));
 
-  sprintf(position, place, w->y_size - 2, (w->x_size / 2) - 30);
+  sprintf(position, place_, w->y_size - 2, (w->x_size / 2) - 30);
   move(1, position);
   char nx_size[sizeof(X_SIZE)];
   sprintf(nx_size, X_SIZE, w1.x_size);
@@ -1697,18 +1705,18 @@ void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos, Arra
 
   char attributes_num[sizeof(ATTR_N)];
   sprintf(attributes_num, ATTR_N, attributes.n_elements);
-  sprintf(position, place, w->y_size - 4, w->x_beg + 2);
+  sprintf(position, place_, w->y_size - 4, w->x_beg + 2);
   move(1, position);
   del_from_cursor(del_in);
   write(1, attributes_num, sizeof(attributes_num));
 
-  sprintf(pos_place, place, w->y_beg + 1, w->x_beg + 1);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_beg + 1, w->x_beg + 1);
+  move(1, pos_place_);
   del_from_cursor(del_in);
   sprintf(num, snprint, s->n_to_print);
   write(1, num, strlen(num));
 
-  sprintf(position, place, w->y_size - 3, (w->x_size / 2) - 10);
+  sprintf(position, place_, w->y_size - 3, (w->x_size / 2) - 10);
   move(1, position);
   int len = strlen(a->menu[pos].name);
   int horiz = 0;
@@ -1725,60 +1733,60 @@ void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos, Arra
 
   char num_pos[strlen(sposupper)];
 
-  sprintf(pos_place, place, w->y_beg + 1, (w->x_size / 2) + 5);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_beg + 1, (w->x_size / 2) + 5);
+  move(1, pos_place_);
   sprintf(num_pos, sposupper, s->pos_upper_t);
   del_from_cursor(del_in);
-  sprintf(pos_place, place, w->y_beg + 1, (w->x_size / 2) + 5);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_beg + 1, (w->x_size / 2) + 5);
+  move(1, pos_place_);
   write(1, num_pos, strlen(num_pos));
 
-  sprintf(pos_place, place, w->y_size - 2, (w->x_size / 2) + 5);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_size - 2, (w->x_size / 2) + 5);
+  move(1, pos_place_);
 
-  sprintf(pos_place, place, w->y_beg + 1, (w->x_size / 2) + 5);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_beg + 1, (w->x_size / 2) + 5);
+  move(1, pos_place_);
   sprintf(num_pos, sposupper, s->pos_upper_t);
   del_from_cursor(del_in);
-  sprintf(pos_place, place, w->y_beg + 1, (w->x_size / 2) + 5);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_beg + 1, (w->x_size / 2) + 5);
+  move(1, pos_place_);
   write(1, num_pos, strlen(num_pos));
 
-  sprintf(pos_place, place, w->y_size - 2, (w->x_size / 2) + 5);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_size - 2, (w->x_size / 2) + 5);
+  move(1, pos_place_);
 
 
   del_from_cursor(del_in);
-  sprintf(pos_place, place, w->y_size - 2, (w->x_size / 2) - 1);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_size - 2, (w->x_size / 2) - 1);
+  move(1, pos_place_);
   sprintf(num_pos, "s->pos_lower_t: %d", s->pos_lower_t);
   write(1, num_pos, strlen(num_pos));
 
   char num_lower[strlen(snlower)];
-  sprintf(pos_place, place, w->y_size - 2, (w->x_size / 2) + 19);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_size - 2, (w->x_size / 2) + 19);
+  move(1, pos_place_);
   del_from_cursor(del_in);
   sprintf(num_lower, snlower, s->n_lower_t);
   write(1, num_lower, strlen(num_lower));
 
   char opt[10];
   sprintf(opt, "option: %d", option);
-  sprintf(pos_place, place, w->y_size - 3, (w->x_size / 2) + 10);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_size - 3, (w->x_size / 2) + 10);
+  move(1, pos_place_);
   write(1, opt, strlen(opt));
 
-  sprintf(pos_place, place, w->y_size - 4, (w->x_size / 2) + 10);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_size - 4, (w->x_size / 2) + 10);
+  move(1, pos_place_);
   del_from_cursor(del_in);
-  sprintf(pos_place, place, w->y_size - 4, (w->x_size / 2) + 10);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_size - 4, (w->x_size / 2) + 10);
+  move(1, pos_place_);
   sprintf(opt, "pos:    %d", pos);
-  sprintf(pos_place, place, w->y_size - 4, (w->x_size / 2) + 10);
-  move(1, pos_place);
+  sprintf(pos_place_, place_, w->y_size - 4, (w->x_size / 2) + 10);
+  move(1, pos_place_);
   write(1, opt, strlen(opt));
 
-  char pos_c[strlen(place)];
-  sprintf(pos_c, place, w->y_size + 4, w->x_size - 20);
+  char pos_c[strlen(place_)];
+  sprintf(pos_c, place_, w->y_size + 4, w->x_size - 20);
   move(1, pos_c);
   char de[sizeof(del)];
   sprintf(de, del, 20);
@@ -1797,21 +1805,21 @@ void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos, Arra
      }
      */
   char attr_arr[sizeof("attr_arr: %s")];
-  sprintf(pos_c, place, w->y_size - 1, w->x_beg + 1);
+  sprintf(pos_c, place_, w->y_size - 1, w->x_beg + 1);
   move(1, pos_c);
   sprintf(de, del, 40);
   del_from_cursor(de);
-  sprintf(pos_c, place, w->y_size - 1, w->x_beg + 1);
+  sprintf(pos_c, place_, w->y_size - 1, w->x_beg + 1);
   move(1, pos_c);
   sprintf(attr_arr, "attr_arr: %s", attributes.paths[0]);
   write(1, attr_arr, strlen(attr_arr));
 
   char entr_bckspc[sizeof("enter_backspace: %d")];
-  sprintf(pos_c, place, w->y_size, w->x_beg);
+  sprintf(pos_c, place_, w->y_size, w->x_beg);
   move(1, pos_c);
   sprintf(de, del, 20);
   del_from_cursor(de);
-  sprintf(pos_c, place, w->y_size, w->x_beg);
+  sprintf(pos_c, place_, w->y_size, w->x_beg);
   move(1, pos_c);
   sprintf(entr_bckspc, "enter_backspace: %d", enter_backspace);
   write(1, entr_bckspc, strlen(entr_bckspc));
@@ -1828,28 +1836,28 @@ void print_debug(Window *w, Scroll *s, int option, int pos, int cursor_pos, Arra
   //move(1, pos_c);
   //sprintf(de, del, 20);
   //del_from_cursor(de);
-  sprintf(pos_c, place, w->y_size, (int)(w->x_beg + strlen(entr_bckspc) + 5));
+  sprintf(pos_c, place_, w->y_size, (int)(w->x_beg + strlen(entr_bckspc) + 5));
   move(1, pos_c);
 
   sprintf(prev_pos, PREVIOUS_POS, previous_pos_copy);
   write(1, prev_pos, strlen(prev_pos));
 
 
-  sprintf(pos_c, place, w->y_size, (int)(w->x_beg + strlen(entr_bckspc) + strlen(prev_pos) + 10));
+  sprintf(pos_c, place_, w->y_size, (int)(w->x_beg + strlen(entr_bckspc) + strlen(prev_pos) + 10));
   move(1, pos_c);
   sprintf(prev_pos_from_attr, PREVIOUS_POS_FROM_ATTR, previous_pos_copy_from_attr);
   write(1, prev_pos_from_attr, strlen(prev_pos_from_attr));
 
-  //sprintf(pos_place, place, w->y_size - 2, (w->x_size) + 5);
+  //sprintf(pos_place_, place, w->y_size - 2, (w->x_size) + 5);
   //move(1, pos_place);
 
   // replace le curseur a la 1ere lettre de la dern entree
-  sprintf(pos_c, place, cursor_pos, w1.x_beg + 1);
+  sprintf(pos_c, place_, cursor_pos, w1.x_beg + 1);
   move(1, pos_c);
 }
 
 // print in another tty c program
-void print_attributes_debug(Window *w, Scroll *s, int option, int pos,
+void print_attributes_debug(Window_ *w, Scroll *s, int option, int pos,
     int cursor_pos, Array *a, Attributes *attributes, int fd)
 {
   int len_first = 0;
@@ -1868,7 +1876,7 @@ void print_attributes_debug(Window *w, Scroll *s, int option, int pos,
       attr_first_entry[len_first] = '\0';
     }
 
-    sprintf(position, place, w->y_size - 4, w->x_beg);
+    sprintf(position, place_, w->y_size - 4, w->x_beg);
     move(1, position);
     del_from_cursor(del_in);
     write(1, attr_first_entry, strlen(attr_first_entry));
@@ -1890,7 +1898,7 @@ void print_attributes_debug(Window *w, Scroll *s, int option, int pos,
         strncpy(attr_last_entry, attributes->paths[attributes->n_elements - 1], len_last);
         attr_last_entry[len_last] = '\0';
       }
-      sprintf(position, place, w->y_size - 3, w->x_beg);
+      sprintf(position, place_, w->y_size - 3, w->x_beg);
       move(1, position);
       del_from_cursor(del_in);
       write(1, attr_last_entry, strlen(attr_last_entry));
@@ -1903,7 +1911,7 @@ void print_attributes_debug(Window *w, Scroll *s, int option, int pos,
   if (attr_last_entry != NULL)
     free(attr_last_entry);
 
-  sprintf(position, place, cursor_pos, w1.x_beg + 1);
+  sprintf(position, place_, cursor_pos, w1.x_beg + 1);
   move(1, position);
 }
 /* vim: foldmethod=marker tabstop=2 shiftwidth=2 expandtab

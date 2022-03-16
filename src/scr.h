@@ -17,7 +17,7 @@
 #define save_state    "\033[?1049h\033[2J\033[H"
 #define restore_state "\033[2J\033[H\033[?1049l"
 #define del           "\033[%dX"
-#define place         "\033[%d;%dH"
+#define place_        "\033[%d;%dH"
 #define del_line      "\033[2K"
 #define n_els         "left_box.n_elements: %d"
 
@@ -33,7 +33,7 @@
 
 #define test_text "TEST_TEXT"
 
-#define PLACE_SZ sizeof(place)
+#define PLACE_SZ sizeof(place_)
 #define IN_SZ    sizeof(del)
 
 #define KEY_ESCAPE    0x001b
@@ -154,7 +154,7 @@
 #define search2                "\357\220\242"     // 
 #define adobe                  "\357\220\221"     // 
 #define adobe2                 "\357\234\245"     // 
-#define image                  "\357\220\217"     // 
+#define image1                 "\357\220\217"     // 
 #define image2                 "\357\211\207"     // 
 #define image3                 "\357\200\276"     // 
 #define tar                    "\357\220\220"     // 
@@ -241,7 +241,7 @@ typedef struct {
     int x_size;
     int y_previous;
     int x_previous;
-} Window;
+} Window_;
 
 typedef struct {
     int array_size;
@@ -252,10 +252,15 @@ typedef struct {
     int option_previous;
 } Scroll;
 
+#ifndef TRUE
 #define TRUE  1
+#endif // TRUE
+#ifndef FALSE
 #define FALSE 0
-typedef int bool;
-static bool quit = FALSE;
+#endif // FALSE
+
+//typedef int bool;
+static int quit = FALSE;
 #define PRINT(msg) do {                                          \
   fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__); \
   fprintf(stdout, "%s\n", (msg));                                \

@@ -159,7 +159,7 @@ int free_menu(Menu *menu)
 #define num_info "info.st_mode: %d"
 #define err_str  "Error: %d, %s."
 #define LEN_FN "fn length: %d"
-void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
+void parcours(char *fn, int indent, Array *a, int recursive, Window_ *w)
 {
   DIR *dir;
   struct dirent *entry;
@@ -187,11 +187,11 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
   int counter = 0;
 
   if ((dir = opendir(fn)) == NULL) {
-    sprintf(m_place, place, w->y_size - 2, w->x_beg);
+    sprintf(m_place, place_, w->y_size - 2, w->x_beg);
     move(1, m_place);
     write(1, del_line, sizeof(del_line));
     write(1, open_err, strlen(open_err));
-    sprintf(m_place, place, w->y_size - 1, w->x_beg);
+    sprintf(m_place, place_, w->y_size - 1, w->x_beg);
     move(1, m_place);
     write(1, del_line, sizeof(del_line));
     write(1, fn, strlen(fn));
@@ -221,7 +221,7 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
           // a partir d'un autre thread renvoyer a un autre tty
 
           if (menu.parent != NULL) {
-            sprintf(m_place, place, w->y_size, w->x_beg + 42);
+            sprintf(m_place, place_, w->y_size, w->x_beg + 42);
             move(1, m_place);
             sprintf(del_in, del, 40);
             del_from_cursor(del_in);
@@ -229,31 +229,31 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
             write(1, menu.parent, strlen(menu.parent));
           }
 
-          sprintf(m_place, place, w->y_size - 5, w->x_beg + 2);
+          sprintf(m_place, place_, w->y_size - 5, w->x_beg + 2);
           move(1, m_place);
           write(1, del_line, sizeof(del_line));
           write(1, "menu.name: ", strlen("menu.name: "));
           write(1, menu.name, strlen(menu.name));
 
-          sprintf(m_place, place, w->y_size - 4, w->x_beg + 2);
+          sprintf(m_place, place_, w->y_size - 4, w->x_beg + 2);
           move(1, m_place);
           write(1, del_line, sizeof(del_line));
           write(1, "menu.complete_path: ", strlen("menu.complete_path: "));
           write(1, menu.complete_path, strlen(menu.complete_path));
 
-          sprintf(m_place, place, w->y_size - 3, w->x_beg + 2);
+          sprintf(m_place, place_, w->y_size - 3, w->x_beg + 2);
           move(1, m_place);
           write(1, del_line, sizeof(del_line));
           write(1, "path_name: ", strlen("path_name: "));
           write(1, path_name, strlen(path_name));
 
-          sprintf(m_place, place, w->y_size - 2, w->x_beg + 2);
+          sprintf(m_place, place_, w->y_size - 2, w->x_beg + 2);
           move(1, m_place);
           write(1, del_line, sizeof(del_line));
           write(1, "path: ", strlen("path: "));
           write(1, path, strlen(path));
 
-          sprintf(m_place, place, w->y_size - 1, w->x_beg + 2);
+          sprintf(m_place, place_, w->y_size - 1, w->x_beg + 2);
           move(1, m_place);
           write(1, del_line, sizeof(del_line));
           char num[sizeof(num_info)];
@@ -269,7 +269,7 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
         if (stat(path, &info) != 0) {
           //fprintf(stderr, "Error: %d, %s.\n", errno, strerror(errno));
           sprintf(error_str, err_str, errno, str);
-          sprintf(m_place, place, w->y_size - 1, w->x_beg + 2);
+          sprintf(m_place, place_, w->y_size - 1, w->x_beg + 2);
           move(1, m_place);
           write(1, del_line, sizeof(del_line));
           write(1, error_str, strlen(error_str));
@@ -302,7 +302,7 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window *w)
           }
         }
         if (debug_mode) {
-          sprintf(m_place, place, w->y_size, w->x_beg + 2);
+          sprintf(m_place, place_, w->y_size, w->x_beg + 2);
           move(1, m_place);
           sprintf(del_in, del, 40);
           del_from_cursor(del_in);
