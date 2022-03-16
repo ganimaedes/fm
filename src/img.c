@@ -358,7 +358,8 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img)
   int width = DisplayWidth(foreground_dpy, win->screen);
   int height = DisplayHeight(foreground_dpy, win->screen);
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, x_px, y_px,
-  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + 10, 50,
+  int add_distance = width / 4;
+  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + add_distance - img->new_width / 2, 50,
                                               img->new_width, img->new_height, 0,
                                               BlackPixel(foreground_dpy, win->screen),
                                               WhitePixel(foreground_dpy, win->screen));
