@@ -241,6 +241,8 @@ typedef struct {
     int x_size;
     int y_previous;
     int x_previous;
+    unsigned short y_px_size;
+    unsigned short x_px_size;
 } Window_;
 
 typedef struct {

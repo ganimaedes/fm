@@ -270,7 +270,8 @@ int main(int argc, char **argv)
 //./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, w2.x_beg + w1.x_size, w2.y_beg);
-        set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 0.5, w2.y_beg, w2.x_beg + w1.x_size);
+        set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 0.5, w2.y_px_size, w1.x_px_size);
+        printf("y size in px = %u, x size in px = %u\n", w2.y_px_size, w2.x_px_size);
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, , );
       }
     }
@@ -496,6 +497,8 @@ int window_resize(Window_ *w_main,
   w2->x_size = w1->x_size ;
 //*/
 
+  w2->y_px_size = w_s->ws_ypixel;
+  w2->x_px_size = w_s->ws_xpixel;
 /*
   w2->y_beg = w1->y_beg;
   //w2->y_beg = w1->y_beg + (w_main->y_size / 2);

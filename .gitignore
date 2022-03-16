@@ -74,3 +74,5 @@ src/unused_functions.c
 unused_functions.c
 min.c
 stb*
+find_id.c
+find_id

@@ -355,8 +355,10 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img)
   printf("win->screen = %d\n\t", win->screen);
   printf("x_px = %d | y_px = %d\n\t", x_px, y_px);
 #endif
-
-  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, x_px, y_px,
+  int width = DisplayWidth(foreground_dpy, win->screen);
+  int height = DisplayHeight(foreground_dpy, win->screen);
+  //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, x_px, y_px,
+  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + 10, 20,
                                               img->new_width, img->new_height, 0,
                                               BlackPixel(foreground_dpy, win->screen),
                                               WhitePixel(foreground_dpy, win->screen));
@@ -486,16 +488,23 @@ Window get_focus_window(Display* d)
 }
 
 //int set_img(int argc, char **argv)
-int set_img(int argc, char *prog_name, Window window_in, char *path, double factor_in, int y_pos_in, int x_pos_in)
+int set_img(__attribute__((__unused__)) int argc,
+            __attribute__((__unused__)) char *prog_name,
+            __attribute__((__unused__)) Window window_in,
+            char *path,
+            double factor_in,
+            int y_pos_in, int x_pos_in)
 {
 #if defined(EBUG)
   signal(SIGSEGV, handlern);
 #endif // EBUG
+/*
   if (argc < 6) {
     fprintf(stderr, "Usage: %s -id 0x<window id> <path/to/image>"\
         " <factor> <y_pos>(px) <x_pos>(px)\n", prog_name);
     exit(1);
   }
+*/
   foreground_dpy = NULL;
   if ((foreground_dpy = XOpenDisplay(NULL)) == NULL) {
     fprintf(stderr, "Error XOpenDisplay.\n");
@@ -509,8 +518,9 @@ int set_img(int argc, char *prog_name, Window window_in, char *path, double fact
 
   //int y_px = atoi(argv[6]);
   //int x_px = atoi(argv[5]);
-  int y_px = y_pos_in;
-  int x_px = x_pos_in;
+  //int y_px = y_pos_in;
+  int y_px = 90;
+  int x_px = (x_pos_in / 2) + 10;
 
   // Load image into data variable
   //img.data = stbi_load(argv[3], &(img.width), &(img.height), &(img.n), 4);
@@ -542,17 +552,26 @@ int set_img(int argc, char *prog_name, Window window_in, char *path, double fact
 //  * 0 Image END
 //  *
   Window root = DefaultRootWindow(foreground_dpy);
+  Window term_window = get_focus_window(foreground_dpy); // parent window id
+  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
 
   //tmp_window = select_args(&argc, argv);
-  tmp_window = window_in;
+  //tmp_window = window_in;
+  tmp_window = term_window;
   target_win = get_toplevel_parent(foreground_dpy, tmp_window);
 #if defined(V_DEBUG_POSITION)
   printf("tmp_window = 0x%lx | target_win = 0x%lx\n", tmp_window, target_win);
 #endif // V_DEBUG_POSITION
 
   //Window top_window; // term_window
-  Window term_window = get_focus_window(foreground_dpy);
+  //Window term_window = get_focus_window(foreground_dpy); // parent window id
+#if defined(V_DEBUG_POSITION)
+  printf("term_window = 0x%lx\n", term_window);
+#endif // V_DEBUG_POSITION
   term_window = get_top_window(foreground_dpy, term_window);
+#if defined(V_DEBUG_POSITION)
+  printf("term_window = 0x%lx\n", term_window);
+#endif // V_DEBUG_POSITION
   setup_mapping();
 
   XWindowAttributes xwa_image;
