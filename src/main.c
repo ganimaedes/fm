@@ -268,9 +268,10 @@ int main(int argc, char **argv)
                  match_extension(left_box.menu[pos].name, "jpg") ||
                  match_extension(left_box.menu[pos].name, "png")) {
 //./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
-        //char *arguments = "name 0x200008 ../../../x_min/MIN2/22_.png 0.5 980 50";
-        //set_img(6, &arguments);
-        set_img(6, "fm", 0x200008, "../../../x_min/MIN2/22_.png", 0.5, 50, 980);
+        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
+        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, w2.x_beg + w1.x_size, w2.y_beg);
+        set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 0.5, w2.y_beg, w2.x_beg + w1.x_size);
+        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, , );
       }
     }
 
@@ -488,11 +489,20 @@ int window_resize(Window_ *w_main,
   w1->y_size = w_main->y_size - w1->y_beg - 5;
   w1->x_size = w_main->x_size / 2;
 
+///*
   w2->y_beg = w1->y_beg;
   w2->x_beg = w1->x_size;
   w2->y_size = w1->y_size;
   w2->x_size = w1->x_size ;
+//*/
 
+/*
+  w2->y_beg = w1->y_beg;
+  //w2->y_beg = w1->y_beg + (w_main->y_size / 2);
+  w2->x_beg = w1->x_size + (w1->x_size / 2) + 1;
+  w2->y_size = w1->y_size;
+  w2->x_size = w1->x_size ;
+*/
   sprintf(del_in, del, w1->x_size - 2);
 
   if (w1->y_size > w1->y_previous || w1->x_size > w1->x_previous ||

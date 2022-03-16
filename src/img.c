@@ -568,7 +568,8 @@ int set_img(int argc, char *prog_name, Window window_in, char *path, double fact
 //  *
   Win win = {};
   create_window(&win, &root, x_px, y_px, &img);
-  sleep(1);
+  nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);
+  //sleep(1);
 
 //  *
 //  * 1 Create window END

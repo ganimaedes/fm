@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <sys/select.h>
 #include <stdint.h>
+#include <time.h>
 
 #define MAXSTR      500
 #ifndef MIN
