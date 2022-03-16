@@ -358,8 +358,8 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img)
   int width = DisplayWidth(foreground_dpy, win->screen);
   int height = DisplayHeight(foreground_dpy, win->screen);
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, x_px, y_px,
-  int add_distance = width / 4;
-  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + add_distance - img->new_width / 2, 50,
+  int center_in_second_window_dist = width / 4;
+  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
                                               img->new_width, img->new_height, 0,
                                               BlackPixel(foreground_dpy, win->screen),
                                               WhitePixel(foreground_dpy, win->screen));
@@ -554,7 +554,7 @@ int set_img(__attribute__((__unused__)) int argc,
 //  *
   Window root = DefaultRootWindow(foreground_dpy);
   Window term_window = get_focus_window(foreground_dpy); // parent window id
-  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
 
   //tmp_window = select_args(&argc, argv);
   //tmp_window = window_in;
@@ -622,6 +622,7 @@ int set_img(__attribute__((__unused__)) int argc,
                                 img.bpl * 8, img.bpl * img.new_width);
   img.gc = XCreateGC(foreground_dpy, win.foreground_win, 0, 0);
   XFlush(foreground_dpy);
+  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
