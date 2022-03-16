@@ -423,6 +423,7 @@ void put_image(Win *win, Image *img, int x_px, int y_px)
 
   XMapWindow(foreground_dpy, win->foreground_win);
   img->bpl = 0;
+  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
 
   img->depth = DefaultDepth(foreground_dpy, win->screen);
   switch (img->depth) {
@@ -588,7 +589,7 @@ int set_img(__attribute__((__unused__)) int argc,
 //  *
   Win win = {};
   create_window(&win, &root, x_px, y_px, &img);
-  nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);
+  //nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);
   //sleep(1);
 
 //  *
@@ -620,9 +621,11 @@ int set_img(__attribute__((__unused__)) int argc,
   img.ximage = XCreateImage(foreground_dpy, CopyFromParent, img.depth, ZPixmap,
                                 0, (char *)img.data_resized, img.new_width, img.new_height,
                                 img.bpl * 8, img.bpl * img.new_width);
+  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   img.gc = XCreateGC(foreground_dpy, win.foreground_win, 0, 0);
-  XFlush(foreground_dpy);
   nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  XFlush(foreground_dpy);
+  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
