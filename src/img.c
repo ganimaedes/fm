@@ -623,8 +623,8 @@ int set_img(__attribute__((__unused__)) int argc,
                                 img.bpl * 8, img.bpl * img.new_width);
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   img.gc = XCreateGC(foreground_dpy, win.foreground_win, 0, 0);
-  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
-  XFlush(foreground_dpy);
+  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  //XFlush(foreground_dpy);
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   for (;;) {
     XEvent event = { 0 };
@@ -777,10 +777,10 @@ int set_img(__attribute__((__unused__)) int argc,
 */
     if (event_foreground.xkey.keycode == win.keycode_dn) {
       stop = 1;
-      XUngrabKey(foreground_dpy, win.keycode_dn, 0, win.grab_window);
+      //XUngrabKey(foreground_dpy, win.keycode_dn, 0, win.grab_window);
     } else if (event_foreground.xkey.keycode == win.keycode_up) {
       stop = 1;
-      XUngrabKey(foreground_dpy, win.keycode_up, 0, win.grab_window);
+      //XUngrabKey(foreground_dpy, win.keycode_up, 0, win.grab_window);
     }
 //  *
 //  * 6 Key Code Check END
@@ -966,5 +966,5 @@ int set_img(__attribute__((__unused__)) int argc,
     free(property_formats);
     property_formats = NULL;
   }
-  return 0;
+  return event_foreground.xkey.keycode;
 }
