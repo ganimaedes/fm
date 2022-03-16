@@ -395,15 +395,20 @@ int main(int argc, char **argv)
 
 void print_permissions(Array *a, Scroll *s1, Window *w, int pos)
 {
+/*
+  printf("  %s%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
+      bg_blue, " NORMAL", bg_reset, bg_cyan,
+      fg_blue, r_full_triangle, fg_reset, fg_blue, r_line_triangle, bg_reset, fg_reset, bg_light_blue, " ", bg_reset);
+*/
   // print permissions
-  if (pos < a->n_elements -  1) {
+//  if (pos < a->n_elements -  1) {
     sprintf(position, place, w_main.y_size - 2, w->x_beg + 1);
     move(1, position);
     del_from_cursor(del_in);
     write(1, a->menu[pos].permissions, strlen(a->menu[pos].permissions));
     sprintf(position, place, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
     move(1, position);
-  }
+//  }
 }
 
 void print_n_elements(Array *left_box)
