@@ -221,9 +221,9 @@ static void show_prop2(Atom_Prop *atom_prop, const char *prop, Window *top_win, 
   Properties *properties = break_down_property((const char *)data, (int)length, type, size);
   display_property2(atom_prop, properties, use_dyn);
 #if defined(V_DEBUG)
-  fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-  printf("tmp_window = 0x%lx\n\t", *top_win);
-  printf("atom_prop->status = %s\n", atom_prop->status);
+//  fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+//  printf("tmp_window = 0x%lx\n\t", *top_win);
+//  printf("atom_prop->status = %s\n", atom_prop->status);
 #endif
   XFree(data);
   data = NULL;
@@ -241,9 +241,9 @@ static void show_properties(Atom_Prop *atom_prop, Window *top_win, int use_dyn)
     atoms = XListProperties(foreground_dpy, *top_win, &count);
     for (i = 0; i < count; ++i) {
 #if defined(V_DEBUG)
-      fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-      printf("tmp_window = 0x%lx\n\t", *top_win);
-      printf("atom = %lu\n", atoms[i]);
+//      fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+//      printf("tmp_window = 0x%lx\n\t", *top_win);
+//      printf("atom = %lu\n", atoms[i]);
 #endif
       name = format_atom(atoms[i]);
 #if defined(V_DEBUG)
@@ -625,7 +625,7 @@ int set_img(__attribute__((__unused__)) int argc,
   img.gc = XCreateGC(foreground_dpy, win.foreground_win, 0, 0);
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   //XFlush(foreground_dpy);
-  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
@@ -636,6 +636,7 @@ int set_img(__attribute__((__unused__)) int argc,
 #if defined(V_DEBUG_POSITION)
   printf("img.ximage[0] = %d\n", img.ximage->data[0]);
 #endif
+  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   XPutImage(foreground_dpy, win.foreground_win,
             img.gc, img.ximage,
             0, 0,
@@ -684,9 +685,9 @@ int set_img(__attribute__((__unused__)) int argc,
 
   int window_set_above = 0;
 #if defined(V_DEBUG)
-  fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-  printf("target_win = 0x%lx | tmp_window = 0x%lx | root = 0x%lx | foreground_win = 0x%lx\n",
-      target_win, tmp_window, root, /*foreground_win */ win.foreground_win);
+  //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+  //printf("target_win = 0x%lx | tmp_window = 0x%lx | root = 0x%lx | foreground_win = 0x%lx\n",
+  //    target_win, tmp_window, root, /*foreground_win */ win.foreground_win);
 #endif
 
   while (!stop) {
@@ -777,10 +778,10 @@ int set_img(__attribute__((__unused__)) int argc,
 */
     if (event_foreground.xkey.keycode == win.keycode_dn) {
       stop = 1;
-      //XUngrabKey(foreground_dpy, win.keycode_dn, 0, win.grab_window);
+      XUngrabKey(foreground_dpy, win.keycode_dn, 0, win.grab_window);
     } else if (event_foreground.xkey.keycode == win.keycode_up) {
       stop = 1;
-      //XUngrabKey(foreground_dpy, win.keycode_up, 0, win.grab_window);
+      XUngrabKey(foreground_dpy, win.keycode_up, 0, win.grab_window);
     }
 //  *
 //  * 6 Key Code Check END
@@ -788,23 +789,24 @@ int set_img(__attribute__((__unused__)) int argc,
 
     if (target_win != tmp_window) {
 #if defined(V_DEBUG)
-      fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-      printf("target_win = 0x%lx | tmp_window = 0x%lx\n", target_win, tmp_window);
+      //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+      //printf("target_win = 0x%lx | tmp_window = 0x%lx\n", target_win, tmp_window);
 #endif
-      XSelectInput(foreground_dpy, tmp_window,
-                   KeyPressMask|PropertyChangeMask|StructureNotifyMask);
+//      XSelectInput(foreground_dpy, tmp_window,
+//                   KeyPressMask|PropertyChangeMask|StructureNotifyMask);
     } else {
 #if defined(V_DEBUG)
-      fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-      printf("target_win = 0x%lx | tmp_window = 0x%lx\n", target_win, tmp_window);
+      //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+      //printf("target_win = 0x%lx | tmp_window = 0x%lx\n", target_win, tmp_window);
 #endif
-      XSelectInput(foreground_dpy, target_win,
-                   KeyPressMask|PropertyChangeMask|StructureNotifyMask);
+//      XSelectInput(foreground_dpy, target_win,
+//                   KeyPressMask|PropertyChangeMask|StructureNotifyMask);
     }
     if (event_foreground.type == UnmapNotify) {
 #if defined(V_DEBUG)
       fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
       printf("UnmapNotify\n");
+      sleep(5);
 #endif
     }
     if (event_foreground.type == ConfigureNotify) {
@@ -813,6 +815,7 @@ int set_img(__attribute__((__unused__)) int argc,
 #if defined(V_DEBUG)
       fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
       printf("UnmapNotify\n");
+      sleep(5);
 #endif
         XUnmapWindow(foreground_dpy, win.foreground_win);
 //        sleep(2);
@@ -829,6 +832,7 @@ int set_img(__attribute__((__unused__)) int argc,
         printf("atom_prop.status: %s\n", atom_prop.status);
         printf("formatting_buffer: %s\n", formatting_buffer);
         printf("Map Window\n");
+        sleep(5);
 #endif
         XMapWindow(foreground_dpy, win.foreground_win);
         XFlush(foreground_dpy);
