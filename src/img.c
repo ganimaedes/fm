@@ -489,6 +489,77 @@ Window get_focus_window(Display* d)
   return w;
 }
 
+int process_event(GC *gc,
+                  Window *top_window,
+                  Atom *wmDeleteMessage,
+                  Win *w,
+                  Atom_Prop *atom_prop, Image *img)
+{
+  XEvent xe;
+  XNextEvent(foreground_dpy, &xe);
+  XSelectInput(foreground_dpy, *top_window, KeyPressMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
+
+  show_properties(atom_prop, &tmp_window, 1);
+  if (strstr(atom_prop->status, "HIDDEN")) {
+#if defined(V_DEBUG)
+    fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+    printf("\t\t\t\t\t\t\tHIDDEN\n\n\n\n\n\n");
+#endif
+    XUnmapWindow(foreground_dpy, w->foreground_win);
+    XFlush(foreground_dpy);
+    window_unmapped = 1;
+    window_remapped = 0;
+  } else if (window_unmapped == 1) {
+    XMapWindow(foreground_dpy, w->foreground_win);
+    nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+    XFlush(foreground_dpy);
+#if defined(V_DEBUG_POSITION)
+    printf("img.ximage[0] = %d\n", img.ximage->data[0]);
+#endif
+    nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+    XPutImage(foreground_dpy, w->foreground_win,
+              *gc, img->ximage,
+              0, 0,
+              0, 0,
+              img->new_width, img->new_height);
+    XSync(foreground_dpy, False);
+    XFlush(foreground_dpy);
+    window_remapped = 1;
+    window_unmapped = 0;
+  }
+  if (atom_prop->status) {
+    free(atom_prop->status);
+    atom_prop->status = NULL;
+  }
+  switch (xe.type) {
+    case MapNotify:
+      XSync(foreground_dpy, False);
+      return 1;
+      break;
+    case ClientMessage:
+      if (xe.xclient.message_type == *wmDeleteMessage) {
+        return 0;
+      }
+    case KeyPress:
+#if defined(V_DEBUG)
+      printf("xe.xkey.keycode: %d\n", xe.xkey.keycode);
+#endif // V_DEBUG
+      if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
+        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        return 0;
+      } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
+        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        return 0;
+      } else {
+        XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
+        return 1;
+      }
+    default:
+      return 1;
+  }
+  // set marks for files the same waay vim sets marks for line numbers
+}
+
 //int set_img(int argc, char **argv)
 int set_img(__attribute__((__unused__)) int argc,
             __attribute__((__unused__)) char *prog_name,
@@ -602,6 +673,8 @@ int set_img(__attribute__((__unused__)) int argc,
   XSelectInput(foreground_dpy,target_win,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
 
 //  XSelectInput(foreground_dpy,term_window,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
+  //XSelectInput(foreground_dpy,tmp_window,KeyPressMask|PropertyChangeMask|StructureNotifyMask | ExposureMask);
+  XSelectInput(foreground_dpy,term_window,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
 
 
 //  *
@@ -624,8 +697,9 @@ int set_img(__attribute__((__unused__)) int argc,
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   img.gc = XCreateGC(foreground_dpy, win.foreground_win, 0, 0);
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
-  //XFlush(foreground_dpy);
-  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  XFlush(foreground_dpy);
+  XSync(foreground_dpy, False);
+  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
@@ -659,6 +733,7 @@ int set_img(__attribute__((__unused__)) int argc,
 
   XEvent event_foreground = { 0 };
 
+/*
   fd_set in_fds;
   struct timeval tv;
 
@@ -675,7 +750,7 @@ int set_img(__attribute__((__unused__)) int argc,
   int x_mv            = 0;
   int y_mv            = 0;
   int window_unmapped = 0;
-
+*/
   Atom active_window;
 
   Atom_Prop atom_prop = { 0 };
@@ -690,6 +765,8 @@ int set_img(__attribute__((__unused__)) int argc,
   //    target_win, tmp_window, root, /*foreground_win */ win.foreground_win);
 #endif
 
+  while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img));
+/*
   while (!stop) {
 
     FD_ZERO(&in_fds);
@@ -711,7 +788,7 @@ int set_img(__attribute__((__unused__)) int argc,
       XNextEvent(foreground_dpy, &event_foreground);
     }
 
-///*
+///
     if (target_win != tmp_window) {
       XSelectInput(foreground_dpy, tmp_window,
                    KeyPressMask|PropertyChangeMask|StructureNotifyMask);
@@ -719,13 +796,13 @@ int set_img(__attribute__((__unused__)) int argc,
       XSelectInput(foreground_dpy, target_win,
                    KeyPressMask|PropertyChangeMask|StructureNotifyMask);
     }
-//*/
+//
 
 //    XSelectInput(foreground_dpy, term_window,
 //        KeyPressMask|PropertyChangeMask|StructureNotifyMask);
-//  *
-//  * 5 Set Select Input BEGIN
-//  *
+//  /
+//  / 5 Set Select Input BEGIN
+//  /
       XSelectInput(foreground_dpy, target_win,
                    KeyPressMask|PropertyChangeMask|StructureNotifyMask);
     if (window_unmapped != 1) {
@@ -738,44 +815,44 @@ int set_img(__attribute__((__unused__)) int argc,
 //      XSelectInput(foreground_dpy, term_window,
 //                   KeyPressMask|PropertyChangeMask|StructureNotifyMask);
     }
-//  *
-//  * 5 Set Select Input BEGIN
-//  *
+//  /
+//  / 5 Set Select Input BEGIN
+//  /
 
-// ************************
+// ////////////
     //event_foreground.xkey.keycode = 0;
     XNextEvent(foreground_dpy, &event_foreground);
 
 //    if (window_unmapped != 1) {
 
 //      show_properties(&atom_prop, &term_window, 0);
-///*
+////
       if (target_win != tmp_window) {
         //show_properties(&atom_prop, &tmp_window, 0);
         show_properties(&atom_prop, &tmp_window, 1);
       } else {
         show_properties(&atom_prop, &target_win, 1);
       }
-//*/
+////
 //    }
 
-/*
-    if (!strstr(formatting_buffer, "HIDDEN") && window_unmapped != 1) {
-#if defined(V_DEBUG)
-      printf("formatting_buffer: %s\n", formatting_buffer);
-#endif
-      active_window = XInternAtom(foreground_dpy, "_NET_ACTIVE_WINDOW", True);
-    }
-#if defined(V_DEBUG)
-    printf("event_foreground.xkey.keycode = %u\n", event_foreground.xkey.keycode);
-#endif
-*/
+//
+//    if (!strstr(formatting_buffer, "HIDDEN") && window_unmapped != 1) {
+//#if defined(V_DEBUG)
+//      printf("formatting_buffer: %s\n", formatting_buffer);
+//#endif
+//      active_window = XInternAtom(foreground_dpy, "_NET_ACTIVE_WINDOW", True);
+//    }
+//#if defined(V_DEBUG)
+//    printf("event_foreground.xkey.keycode = %u\n", event_foreground.xkey.keycode);
+//#endif
+//
 
-//  *
-//  * 6 Key Code Check BEGIN
-//  *
-/*
-*/
+//  /
+//  / 6 Key Code Check BEGIN
+//  /
+//
+//
     if (event_foreground.xkey.keycode == win.keycode_dn) {
       stop = 1;
       XUngrabKey(foreground_dpy, win.keycode_dn, 0, win.grab_window);
@@ -783,9 +860,9 @@ int set_img(__attribute__((__unused__)) int argc,
       stop = 1;
       XUngrabKey(foreground_dpy, win.keycode_up, 0, win.grab_window);
     }
-//  *
-//  * 6 Key Code Check END
-//  *
+//  /
+//  / 6 Key Code Check END
+//  /
 
     if (target_win != tmp_window) {
 #if defined(V_DEBUG)
@@ -847,19 +924,19 @@ int set_img(__attribute__((__unused__)) int argc,
           fprintf(stderr, "Error XGetWindowAttributes\n");
         }
       }
-//  *
-//  * 7 WIN BEGIN
-//  *
-/*
-      if (!XGetWindowAttributes(foreground_dpy, win.foreground_win, &xwa_image)) {
-        fprintf(stderr, "Error XGetWindowAttributes xwa_image\n");
-      }
-#if defined(V_DEBUG_POSITION)
-      printf("\txwa.x       = %d, xwa.y       = %d\n", xwa.x, xwa.y);
-      printf("\txwa.width   = %d, xwa.height  = %d\n", xwa.width, xwa.height);
-      printf("\txwa_image.x = %d, xwa_image.y = %d\n", xwa_image.x, xwa_image.y);
-#endif
-*/
+//  /
+//  / 7 WIN BEGIN
+//  /
+//
+//      if (!XGetWindowAttributes(foreground_dpy, win.foreground_win, &xwa_image)) {
+//        fprintf(stderr, "Error XGetWindowAttributes xwa_image\n");
+//      }
+//#if defined(V_DEBUG_POSITION)
+//      printf("\txwa.x       = %d, xwa.y       = %d\n", xwa.x, xwa.y);
+//      printf("\txwa.width   = %d, xwa.height  = %d\n", xwa.width, xwa.height);
+//      printf("\txwa_image.x = %d, xwa_image.y = %d\n", xwa_image.x, xwa_image.y);
+//#endif
+///
 //  *
 //  * 7 WIN END
 //  *
@@ -870,25 +947,25 @@ int set_img(__attribute__((__unused__)) int argc,
       printf("\txwa.width   = %d, xwa.height  = %d\n", xwa.width, xwa.height);
 #endif
 
- /*
-      if (window_unmapped != 1) {
-        XUnmapWindow(foreground_dpy, win.foreground_win);
-        window_unmapped = 1;
-      }
-      if (img.ximage) {
-        XFree(img.ximage);
-      }
-      if (foreground_dpy && img.gc) {
-        XFreeGC(foreground_dpy, img.gc);
-      }
-      if (foreground_dpy && win.foreground_win) {
-        XDestroyWindow(foreground_dpy, win.foreground_win);
-      }
-      if (img.data_resized) {
-        free(img.data_resized);
-        img.data_resized = NULL;
-      }
- */
+//
+//      if (window_unmapped != 1) {
+//        XUnmapWindow(foreground_dpy, win.foreground_win);
+//        window_unmapped = 1;
+//      }
+//      if (img.ximage) {
+//        XFree(img.ximage);
+//      }
+//      if (foreground_dpy && img.gc) {
+//        XFreeGC(foreground_dpy, img.gc);
+//      }
+//      if (foreground_dpy && win.foreground_win) {
+//        XDestroyWindow(foreground_dpy, win.foreground_win);
+//      }
+//      if (img.data_resized) {
+//        free(img.data_resized);
+//        img.data_resized = NULL;
+//      }
+//
       if (xwa_image.x > xwa.x + xwa.width) {
         fprintf(stderr, "Error Image outside of background window width\n");
       }
@@ -916,17 +993,17 @@ int set_img(__attribute__((__unused__)) int argc,
           y_mv = xwa.y + xwa.height - xwa_image.height;
         }
 
-//  *
-//  * 7 WIN BEGIN
-//  *
-/*
-        if (!XMoveWindow(foreground_dpy, win.foreground_win, x_mv, y_mv)) {
-          fprintf(stderr, "Error XMoveWindow foreground_win\n");
-        }
-*/
-//  *
-//  * 7 WIN END
-//  *
+//  /
+//  / 7 WIN BEGIN
+//  /
+//
+//        if (!XMoveWindow(foreground_dpy, win.foreground_win, x_mv, y_mv)) {
+//          fprintf(stderr, "Error XMoveWindow foreground_win\n");
+//        }
+//
+//  /
+//  / 7 WIN END
+//  /
 
       } else if (xwa.width != width_bg_win || xwa.height != height_bg_win) {
         width_bg_win = xwa.width;
@@ -934,6 +1011,7 @@ int set_img(__attribute__((__unused__)) int argc,
       }
     }
   }
+*/
   if (atom_prop.status) {
     free(atom_prop.status);
     atom_prop.status = NULL;

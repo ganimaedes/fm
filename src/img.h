@@ -24,6 +24,8 @@
 #endif
 
 static Display *foreground_dpy = NULL;
+static sig_atomic_t volatile window_unmapped = 0;
+static sig_atomic_t volatile window_remapped = 0;
 
 #ifndef TRUE
 #define TRUE  1
