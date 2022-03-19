@@ -18,6 +18,8 @@
 #define pg_up "pg_up"
 #define pg_dn "pg_dn"
 
+#define NX_CAT(A) #A
+#define CAT(A) NX_CAT(A)
 
 int debug = 0;
 volatile sig_atomic_t file_pasted_signal = 0;
@@ -57,7 +59,7 @@ void highlight2(Array *a, int *pos);
 int update(Window_ *w, Scroll *s, int *pos, int size);
 void print_debug(Window_ *w, Scroll *s, int option, int pos, int cursor_pos, Array *a);
 void move_erase(Window_ *w, int fd, int y, int x);
-void print_entries(Window_ *w, Scroll *s, char **entries, int option, int *c, int *pos, Array *a);
+void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned int *c, int *pos, Array *a);
 void print(Window_ *w, Array *a, int pos_array);
 static void sig_win_ch_handler(int sig);
 void mvwprintw(Window_ *win, Array *a, int y, int x, char *str, int pos);
@@ -82,6 +84,7 @@ int window_resize(Window_ *w_main,
 int del_file(Window_ *w1, Scroll *s, Array *left_box, int *pos, int *option);
 void print_n_elements(Array *left_box);
 void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos);
+void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned int number, int *pos);
 
 int main(int argc, char **argv)
 {
@@ -132,8 +135,8 @@ int main(int argc, char **argv)
     write(2, err1, sizeof(err1));
   }
 
-  int c = 0,
-      option = 0,
+  unsigned int c = 0;
+  int option = 0,
       i,
       initial_loop = 1,
       secondary_loop = 0,
@@ -257,7 +260,10 @@ int main(int argc, char **argv)
           delete_counter = 0;
         }
       }
-      print_entries(&w1, &s, entries, option, &c, &pos, &left_box);
+      char *MSG = "c = ";
+      print_message(&w_main, &s, 4, MSG, c, &pos);
+      if (c == -17) { c = 107;  }
+      print_entries(&w1, &s, entries, option, (unsigned int *)(&c), &pos, &left_box);
       print_permissions(&left_box, &s, &w1, pos);
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
@@ -281,7 +287,6 @@ int main(int argc, char **argv)
         //ai to see deleted pics
         //draw_box for when passing from two windows to three windows
         c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
-
 /*
         snprintf(position, strlen(place_), place_, w_main.y_size - 4, w_main.x_beg + 1);
         move(1, position);
@@ -293,6 +298,10 @@ int main(int argc, char **argv)
         move(1, position);
 */
         image_used = 1;
+        if (c == KEY_BACKSPACE) {
+          enter_backspace = 1;
+          back_pressed = 1;
+        }
         //printf("y size in px = %u, x size in px = %u\n", w2.y_px_size, w2.x_px_size);
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, , );
       }
@@ -342,7 +351,6 @@ int main(int argc, char **argv)
         init(&left_box, right_box.n_elements);
       }
       dupArray2(&right_box, &left_box);
-
 
       n_elements_to_erase = right_box.n_elements;
 
@@ -402,6 +410,7 @@ int main(int argc, char **argv)
     erase_window(&w2, &s);
     initial_loop = 0;
     resized = 0;
+    image_used = 0;
   }
   if (left_box.n_elements != 0 || left_box.capacity != 0) {
     free_array(&left_box);
@@ -423,6 +432,21 @@ int main(int argc, char **argv)
 #endif // EBUG
   restore_config;
   return 0;
+}
+
+void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned int number, int *pos)
+{
+  snprintf(position, strlen(place_), place_, w->y_size - position_from_end_scr, w->x_beg + 1);
+  move(1, position);
+#define value_return "c = %u"
+  //CAT(msg);
+  write(1, CAT(msg), strlen(CAT(msg)));
+  write(1, " = ", strlen(" = "));
+  char val_return[sizeof(value_return)];
+  sprintf(val_return, value_return, number);
+  write(1, val_return, strlen(val_return));
+  snprintf(position, strlen(place_), place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+  move(1, position);
 }
 
 void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos)
@@ -1261,7 +1285,7 @@ void move_erase(Window_ *w, int fd, int y, int x)
 }
 
 void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **entries,
-                   int option, int *c, int *pos, Array *a)
+                   int option, unsigned int *c, int *pos, Array *a)
 {
   int i;
   int y = 0;

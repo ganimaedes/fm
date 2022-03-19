@@ -40,6 +40,7 @@ int kbesc(void)
     switch ((c = getch())) {
       case 'A':
         c = KEY_UP;
+        //c = UP;
         break;
       case 'B':
         c = KEY_DOWN;
@@ -54,7 +55,7 @@ int kbesc(void)
         c = KEY_SUPPR;
         break;
       case 'F':
-      case '4':
+      //case '4':
         c = KEY_END;
         break;
       case 'H':

@@ -1241,6 +1241,7 @@ int set_img(__attribute__((__unused__)) int argc,
     return KEY_HOME;
   } else if (win.keycode_bckspce_pressed) {
     return KEY_BACKSPACE;
+    //return 'h';
   }
   //return event_foreground.xkey.keycode;
   return 0;
