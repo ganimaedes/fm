@@ -336,8 +336,44 @@ void handlern(int sig)
   exit(1);
 }
 
-void create_window(Win *win, Window *root, int x_px, int y_px, Image *img)
+void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char *path)
 {
+  int width = DisplayWidth(foreground_dpy, win->screen);
+  int height = DisplayHeight(foreground_dpy, win->screen);
+  // Load image into data variable
+  //img.data = stbi_load(argv[3], &(img.width), &(img.height), &(img.n), 4);
+  img->data = stbi_load(path, &(img->width), &(img->height), &(img->n), 4);
+
+  //double factor = atof(argv[4]);
+  //double factor = factor_in;
+  double factor = 1.0;
+  if (img->width > (width / 2)) {
+    fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+    printf("width / 2 = %d, img->width = %d\n", width / 2, img->width);
+    double temp_width = (double)(width / 2);
+    factor = temp_width / img->width;
+  }
+  img->new_width = img->width * factor;
+  img->new_height = img->height * factor;
+
+  // Allocate Memory for data_resized variable with new_width & new_height
+  img->data_resized = malloc((img->new_width * img->new_height * 4) * sizeof *img->data_resized);
+  if (img->data_resized == NULL) {
+    fprintf(stderr, "Error malloc data_resized.\n");
+    exit(1);
+  }
+
+  // Resize image from data to data_resized
+  stbir_resize_uint8(img->data, img->width, img->height,
+                     0, img->data_resized, img->new_width, img->new_height, 0, 4);
+
+  int i = 0,
+      len = img->new_width * img->new_height;
+  unsigned int *dp = (unsigned int *)img->data_resized;
+  for (; i < len; ++i) {
+    dp[i] = (dp[i] & 0xFF00FF00) | ((dp[i] >> 16) & 0xFF) | ((dp[i] << 16) & 0xFF0000);
+  }
+
 #if defined(V_DEBUG_POSITION)
   fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
   printf("root = 0x%lx\n\t", *root);
@@ -354,8 +390,6 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img)
   printf("win->screen = %d\n\t", win->screen);
   printf("x_px = %d | y_px = %d\n\t", x_px, y_px);
 #endif
-  int width = DisplayWidth(foreground_dpy, win->screen);
-  int height = DisplayHeight(foreground_dpy, win->screen);
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, x_px, y_px,
   int center_in_second_window_dist = width / 4;
   win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
@@ -594,6 +628,7 @@ int set_img(__attribute__((__unused__)) int argc,
   int y_px = 90;
   int x_px = (x_pos_in / 2) + 10;
 
+/*
   // Load image into data variable
   //img.data = stbi_load(argv[3], &(img.width), &(img.height), &(img.n), 4);
   img.data = stbi_load(path, &(img.width), &(img.height), &(img.n), 4);
@@ -620,6 +655,7 @@ int set_img(__attribute__((__unused__)) int argc,
   for (; i < len; ++i) {
     dp[i] = (dp[i] & 0xFF00FF00) | ((dp[i] >> 16) & 0xFF) | ((dp[i] << 16) & 0xFF0000);
   }
+*/
 //  *
 //  * 0 Image END
 //  *
@@ -658,7 +694,8 @@ int set_img(__attribute__((__unused__)) int argc,
 //  * 1 Create window BEGIN
 //  *
   Win win = {};
-  create_window(&win, &root, x_px, y_px, &img);
+  //create_window(&win, &root, x_px, y_px, &img);
+  create_window(&win, &root, x_px, y_px, &img, path);
   //nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);
   //sleep(1);
 
