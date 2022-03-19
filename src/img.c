@@ -402,9 +402,9 @@ double fix_factor_to_fit_inside_window(Image *img, int width, int height)
   int new_image_width = img->width;
   int new_image_height = img->height;
 
-  if (img->width > (width / 2) - 20) {
-    factor = 1.0 / (((double)img->width) / ((double)(width / 2)));
-    printf("factor = %f  ", factor);
+  if (img->width > (width / 2) - 50) {
+    factor = 1.0 / (((double)img->width) / ((double)((width / 2) - 50)));
+    //printf("factor = %f  ", factor);
     if (factor * img->height < temp_height) {
       //return factor;
     }
