@@ -388,8 +388,8 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
     factor = temp_height / temp_height;
   }
 */
-  //factor = fix_factor_to_fit_inside_window(img, width, height);
-  factor = 0.5;
+  factor = fix_factor_to_fit_inside_window(img, width, height);
+  //factor = 0.5;
   printf("factor = %f  ", factor);
   //img->new_width = (double)img->width * factor;
   //img->new_height = (double)img->height * factor;
