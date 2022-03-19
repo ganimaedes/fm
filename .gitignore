@@ -76,3 +76,5 @@ min.c
 stb*
 find_id.c
 find_id
+get_active_window.c
+get_active_window
