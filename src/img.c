@@ -668,13 +668,14 @@ int process_event(GC *gc,
     window_remapped = 0;
   } else if (window_unmapped == 1) {
     XMapWindow(foreground_dpy, w->foreground_win);
-    XSync(foreground_dpy, False);
-    nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+    //XSync(foreground_dpy, False);
+    //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
     XFlush(foreground_dpy);
+    XSync(foreground_dpy, False);
 #if defined(V_DEBUG_POSITION)
     printf("img.ximage[0] = %d\n", img.ximage->data[0]);
 #endif
-    nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+    //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
     XPutImage(foreground_dpy, w->foreground_win,
               *gc, img->ximage,
               0, 0,
