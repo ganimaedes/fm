@@ -389,12 +389,12 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   }
 */
   factor = fix_factor_to_fit_inside_window(img, width, height);
-  printf("factor = %f\n", factor);
-  img->new_width = img->width * factor;
-  img->new_height = img->height * factor;
-  fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-  //printf("img->width = %d, img->height = %d\n", img->width, img->height);
-  //printf("img->new_width = %f, img->new_height = %f\n", img->new_width, img->new_height);
+  printf("factor = %f  ", factor);
+  img->new_width = (double)img->width * factor;
+  img->new_height = (double)img->height * factor;
+  //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+  printf("img _ width = %d, height = %d  ", img->width, img->height);
+  printf("new_width = %f, new_height = %f\n", img->new_width, img->new_height);
 
   // Allocate Memory for data_resized variable with new_width & new_height
   img->data_resized = malloc((img->new_width * img->new_height * 4) * sizeof *img->data_resized);
