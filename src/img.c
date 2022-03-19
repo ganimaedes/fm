@@ -393,21 +393,21 @@ double loop_fix(Image *img,
 double fix_factor_to_fit_inside_window(Image *img, int width, int height)
 {
   double factor = 1.0;
-  double new_width = width;
-  double new_height = height;
-  double temp_width;
+  //double new_width = width;
+  //double new_height = height;
+  //double temp_width;
   double upper_lower_limit = 190.0;
-  double temp_height = (double)((double)height - upper_lower_limit);
-  int width_taken = 0;
-  int new_image_width = img->width;
-  int new_image_height = img->height;
+  //double temp_height = (double)((double)height - upper_lower_limit);
+  //int width_taken = 0;
+  //int new_image_width = img->width;
+  //int new_image_height = img->height;
 
   if (img->width > (width / 2) - 50) {
     factor = 1.0 / (((double)img->width) / ((double)((width / 2) - 50)));
     //printf("factor = %f  ", factor);
-    if (factor * img->height < temp_height) {
+    //if (factor * img->height < temp_height) {
       //return factor;
-    }
+    //}
     //else {
       //temp_width = (double)(width / 2);
       //factor = temp_width / img->width;
@@ -416,8 +416,9 @@ double fix_factor_to_fit_inside_window(Image *img, int width, int height)
       //*width *= factor;
     //}
   }
-  double value = temp_height / img->height;
-  factor = (value < factor) ? value : factor;
+  //double value = temp_height / img->height;
+  double value = (double)((double)height - upper_lower_limit) / img->height;
+  return (value < factor) ? value : factor;
 /*
   else {
       temp_width = (double)(width / 2);
@@ -438,7 +439,7 @@ double fix_factor_to_fit_inside_window(Image *img, int width, int height)
   }
 */
   //factor = new_width /
-  return factor;
+  //return factor;
 }
 
 void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char *path)
@@ -668,10 +669,10 @@ int process_event(GC *gc,
     window_remapped = 0;
   } else if (window_unmapped == 1) {
     XMapWindow(foreground_dpy, w->foreground_win);
-    //XSync(foreground_dpy, False);
+    XSync(foreground_dpy, False);
     nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
     XFlush(foreground_dpy);
-    XSync(foreground_dpy, False);
+    //XSync(foreground_dpy, False);
 #if defined(V_DEBUG_POSITION)
     printf("img.ximage[0] = %d\n", img.ximage->data[0]);
 #endif
