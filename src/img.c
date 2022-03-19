@@ -367,16 +367,25 @@ double loop_fix(Image *img,
     //*height *= factor;
     *image_height *= factor;
   }
+
+  if (*image_width > (*width / 2)) {
+    factor = 1 / (*image_width / (*width / 2));
+  printf("factor = %f  ", factor);
+
+  }
+
+/*
   if (*width_taken) {
     //if ((double)(img->height) > (double)(*height - upper_lower_limit)) {
     if ((double)(*image_height) > (double)(*height - upper_lower_limit)) {
       temp_height = (double)(*height - upper_lower_limit);
       //factor = temp_height / (double)img->height;
       factor = temp_height / (double)(*image_height);
-      //*height *= factor;
+      // *height *= factor;
       *image_height *= factor;
     }
   }
+  */
 
   return factor;
 }
@@ -393,12 +402,41 @@ double fix_factor_to_fit_inside_window(Image *img, int width, int height)
   int new_image_width = img->width;
   int new_image_height = img->height;
 
+  if (img->width > (width / 2) - 20) {
+    factor = 1.0 / (((double)img->width) / ((double)(width / 2)));
+    printf("factor = %f  ", factor);
+    if (factor * img->height < temp_height) {
+      //return factor;
+    }
+    //else {
+      //temp_width = (double)(width / 2);
+      //factor = temp_width / img->width;
+      //double value = temp_width / img->width;
+      //factor = (value < factor) ? value : factor;
+      double value = temp_height / img->height;
+      factor = (value < factor) ? value : factor;
+      //*width *= factor;
+    //}
+  }
+/*
+  else {
+      temp_width = (double)(width / 2);
+      factor = temp_width / img->width;
+      // *width *= factor;
+    }
+*/
+
+// new_width / 2 = 950 px
   //while (img->width > (new_width / 2) || img->height > new_height - upper_lower_limit) {
+/*
   while (new_image_width > (new_width / 2) || new_image_height > new_height - upper_lower_limit) {
     //factor = loop_fix(img, width, height, temp_width, temp_height, &width_taken, factor, upper_lower_limit);
     //factor = loop_fix(img, &new_width, &new_height, temp_width, temp_height, &width_taken, factor, upper_lower_limit);
     factor = loop_fix(img, &new_width, &new_height, temp_width, temp_height, &width_taken, factor, upper_lower_limit, &new_image_width, &new_image_height);
+
+    //printf("width / 2 = %d, new_image_width = %d\n", width / 2, new_image_width);
   }
+*/
   //factor = new_width /
   return factor;
 }
@@ -429,15 +467,15 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
 */
   factor = fix_factor_to_fit_inside_window(img, width, height);
   //factor = 0.5;
-  printf("factor = %f  ", factor);
+  //printf("factor = %f  ", factor);
   //img->new_width = (double)img->width * factor;
   //img->new_height = (double)img->height * factor;
   img->new_width = img->width * factor;
   img->new_height = img->height * factor;
   //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-  printf("img _ width = %d, height = %d  ", img->width, img->height);
+  //printf("img _ width = %d, height = %d  ", img->width, img->height);
   //printf("new_width = %f, new_height = %f\n", img->new_width, img->new_height);
-  printf("new_width = %d, new_height = %d\n", img->new_width, img->new_height);
+  //printf("new_width = %d, new_height = %d\n", img->new_width, img->new_height);
 
   // Allocate Memory for data_resized variable with new_width & new_height
   //img->data_resized = malloc((img->new_width * img->new_height * 4) * sizeof *img->data_resized);
