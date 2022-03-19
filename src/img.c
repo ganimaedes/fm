@@ -336,7 +336,6 @@ void handlern(int sig)
   exit(1);
 }
 
-
 void create_window(Win *win, Window *root, int x_px, int y_px, Image *img)
 {
 #if defined(V_DEBUG_POSITION)
