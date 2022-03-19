@@ -336,31 +336,70 @@ void handlern(int sig)
   exit(1);
 }
 
+double loop_fix(Image *img,
+                double *width,
+                double *height,
+                double temp_width,
+                double temp_height,
+                int *width_taken,
+                double factor,
+                double upper_lower_limit,
+                int *image_width,
+                int *image_height)
+{
+  //if (img->width > (*width / 2)) {
+  if (*image_width > (*width / 2)) {
+    //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+    //printf("width / 2 = %d, img->width = %d\n", width / 2, img->width);
+    temp_width = (double)(*width / 2);
+    //factor = temp_width / img->width;
+    factor = temp_width / *image_width;
+    //*width *= factor;
+    *image_width *= factor;
+    *width_taken = 1;
+  }
+  //else if ((double)(img->height) > (double)(*height - upper_lower_limit)) {
+  else if ((double)(*image_height) > (double)(*height - upper_lower_limit)) {
+    //temp_height = (double)(height - 100.0);
+    //factor = temp_height / temp_height;
+    //factor = temp_height / (double)img->height;
+    factor = temp_height / (double)(*image_height);
+    //*height *= factor;
+    *image_height *= factor;
+  }
+  if (*width_taken) {
+    //if ((double)(img->height) > (double)(*height - upper_lower_limit)) {
+    if ((double)(*image_height) > (double)(*height - upper_lower_limit)) {
+      temp_height = (double)(*height - upper_lower_limit);
+      //factor = temp_height / (double)img->height;
+      factor = temp_height / (double)(*image_height);
+      //*height *= factor;
+      *image_height *= factor;
+    }
+  }
+
+  return factor;
+}
+
 double fix_factor_to_fit_inside_window(Image *img, int width, int height)
 {
   double factor = 1.0;
+  double new_width = width;
+  double new_height = height;
   double temp_width;
-  double temp_height = (double)((double)height - 190.0);
+  double upper_lower_limit = 190.0;
+  double temp_height = (double)((double)height - upper_lower_limit);
   int width_taken = 0;
-  if (img->width > (width / 2)) {
-    //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-    //printf("width / 2 = %d, img->width = %d\n", width / 2, img->width);
-    temp_width = (double)(width / 2);
-    factor = temp_width / img->width;
-    width_taken = 1;
-  } else if ((double)(img->height) > (double)((double)height - 190.0)) {
-    //temp_height = (double)(height - 100.0);
-    //factor = temp_height / temp_height;
-    factor = temp_height / (double)img->height;
-  }
-  if (width_taken) {
+  int new_image_width = img->width;
+  int new_image_height = img->height;
 
-    if ((double)(img->height) > (double)((double)height - 190.0)) {
-      temp_height = (double)(height - 190.0);
-      factor = temp_height / (double)img->height;
-    }
-
+  //while (img->width > (new_width / 2) || img->height > new_height - upper_lower_limit) {
+  while (new_image_width > (new_width / 2) || new_image_height > new_height - upper_lower_limit) {
+    //factor = loop_fix(img, width, height, temp_width, temp_height, &width_taken, factor, upper_lower_limit);
+    //factor = loop_fix(img, &new_width, &new_height, temp_width, temp_height, &width_taken, factor, upper_lower_limit);
+    factor = loop_fix(img, &new_width, &new_height, temp_width, temp_height, &width_taken, factor, upper_lower_limit, &new_image_width, &new_image_height);
   }
+  //factor = new_width /
   return factor;
 }
 
