@@ -31,6 +31,7 @@ volatile sig_atomic_t resized = 0;
 volatile sig_atomic_t reprint = 0;
 volatile sig_atomic_t back_pressed = 0;
 volatile sig_atomic_t enter_backspace = 1;
+volatile sig_atomic_t image_used = 0;
 
 char position[PLACE_SZ];
 char del_in[IN_SZ];
@@ -173,11 +174,15 @@ int main(int argc, char **argv)
   }
 #endif // EBUG
 
+
+  //int image_used = 0;
+
   for (;;) {
     if (!ioctl(0, TIOCGWINSZ, &w_s)) {
       window_resize(&w_main, &w1, &w2, &w_s, &s, &left_box, &right_box, &option, &pos, &initial_loop, &resized, &i);
     }
 
+    image_used = 0;
     if (left_box.n_elements != 0) {
       if (previous_pos < left_box.n_elements) {
         if (backspace) {
@@ -276,6 +281,17 @@ int main(int argc, char **argv)
         //ai to see deleted pics
         //draw_box for when passing from two windows to three windows
         c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
+
+        snprintf(position, strlen(place_), place_, w_main.y_size - 4, w_main.x_beg + 1);
+        move(1, position);
+#define value_return "c = %d"
+        char val_return[sizeof(value_return)];
+        sprintf(val_return, value_return, c);
+        write(1, val_return, strlen(val_return));
+        snprintf(position, strlen(place_), place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
+        move(1, position);
+
+        image_used = 1;
         //printf("y size in px = %u, x size in px = %u\n", w2.y_px_size, w2.x_px_size);
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, , );
       }
@@ -296,7 +312,7 @@ int main(int argc, char **argv)
       //print_tty(&w3, fd, &attributes);
 #endif // EBUG
 
-    if ((c = kbget()) == KEY_ESCAPE) {
+    if (image_used != 1 && (c = kbget()) == KEY_ESCAPE) {
       break;
     } else if ((c == 'l' || c == KEY_ENTER) &&
                !strcmp(left_box.menu[pos].type, "directory") &&

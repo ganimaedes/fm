@@ -68,6 +68,8 @@ typedef struct _Win {
   Window grab_window;
   KeyCode keycode_dn;
   KeyCode keycode_up;
+  int keycode_dn_pressed;
+  int keycode_up_pressed;
   int screen;
   Window foreground_win;
   Atom window_type;

@@ -705,13 +705,15 @@ int process_event(GC *gc,
       printf("xe.xkey.keycode: %d\n", xe.xkey.keycode);
 #endif // V_DEBUG
       if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
-        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        w->keycode_dn_pressed = 1;
+        //XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
-        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        w->keycode_up_pressed = 1;
         return 0;
       } else {
-        XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
+        //XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
         return 1;
       }
     default:
@@ -1211,5 +1213,11 @@ int set_img(__attribute__((__unused__)) int argc,
     free(property_formats);
     property_formats = NULL;
   }
-  return event_foreground.xkey.keycode;
+  if (win.keycode_dn_pressed) {
+    return 0x006a;
+  } else if (win.keycode_up_pressed) {
+    return 0x006b;
+  }
+  //return event_foreground.xkey.keycode;
+  return 0;
 }
