@@ -1,4 +1,6 @@
 #include "img.h"
+#include "scr.h"
+#include <X11/Xlib.h>
 #include <unistd.h>
 #define STBI_NO_HDR
 #define STBI_NO_LINEAR
@@ -509,6 +511,9 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
 #endif
    win->keycode_dn = XKeysymToKeycode(foreground_dpy, XK_Down); // XK_Down = 0xff54
    win->keycode_up = XKeysymToKeycode(foreground_dpy, XK_Up);
+   win->keycodes[0] = XKeysymToKeycode(foreground_dpy, XK_End);
+   win->keycodes[1] = XKeysymToKeycode(foreground_dpy, XK_Begin);
+   win->keycodes[2] = XKeysymToKeycode(foreground_dpy, XK_BackSpace);
 
   win->screen = DefaultScreen(foreground_dpy);
 #if defined(V_DEBUG_POSITION)
@@ -706,13 +711,26 @@ int process_event(GC *gc,
 #endif // V_DEBUG
       if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
         w->keycode_dn_pressed = 1;
-        //XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
-        //XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
         w->keycode_up_pressed = 1;
         return 0;
-      } else {
+      } else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
+        XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
+        w->keycode_end_pressed = 1;
+        return 0;
+      } else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
+        XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
+        w->keycode_end_pressed = 1;
+        return 0;
+      } else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
+        XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
+        w->keycode_bckspce_pressed = 1;
+        return 0;
+      }
+      else {
         //XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
         return 1;
       }
@@ -1217,6 +1235,12 @@ int set_img(__attribute__((__unused__)) int argc,
     return 0x006a;
   } else if (win.keycode_up_pressed) {
     return 0x006b;
+  } else if (win.keycode_end_pressed) {
+    return KEY_END;
+  } else if (win.keycode_beg_pressed) {
+    return KEY_HOME;
+  } else if (win.keycode_bckspce_pressed) {
+    return KEY_BACKSPACE;
   }
   //return event_foreground.xkey.keycode;
   return 0;

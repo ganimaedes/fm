@@ -282,6 +282,7 @@ int main(int argc, char **argv)
         //draw_box for when passing from two windows to three windows
         c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
 
+/*
         snprintf(position, strlen(place_), place_, w_main.y_size - 4, w_main.x_beg + 1);
         move(1, position);
 #define value_return "c = %d"
@@ -290,7 +291,7 @@ int main(int argc, char **argv)
         write(1, val_return, strlen(val_return));
         snprintf(position, strlen(place_), place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
         move(1, position);
-
+*/
         image_used = 1;
         //printf("y size in px = %u, x size in px = %u\n", w2.y_px_size, w2.x_px_size);
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, , );

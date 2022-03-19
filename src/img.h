@@ -3,6 +3,7 @@
 // xtruss -e events -C ./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
 // xgc --version
 // xdpyinfo
+#include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
@@ -64,10 +65,15 @@ static Window target_win = 0;
 
 Window tmp_window;
 
+
 typedef struct _Win {
   Window grab_window;
   KeyCode keycode_dn;
   KeyCode keycode_up;
+  KeyCode keycodes[10];
+  int keycode_end_pressed;
+  int keycode_beg_pressed;
+  int keycode_bckspce_pressed;
   int keycode_dn_pressed;
   int keycode_up_pressed;
   int screen;
