@@ -570,6 +570,26 @@ void grab_keys(Win *win)
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
 // https://stackoverflow.com/a/29001687 https://stackoverflow.com/a/4037579
+  XGrabKey(foreground_dpy, win->keycodes[0], modifiers, // XK_End
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+/*
+  //XGrabKey(foreground_dpy, win->keycodes[0], Mod2Mask,
+  //         win->grab_window, owner_events, pointer_mode,
+  //         keyboard_mode);
+  XGrabKey(foreground_dpy, win->keycodes[1], modifiers, // XK_Begin
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+  //XGrabKey(foreground_dpy, win->keycodes[1], Mod2Mask,
+  //         win->grab_window, owner_events, pointer_mode,
+  //         keyboard_mode);
+  XGrabKey(foreground_dpy, win->keycodes[2], modifiers, // XK_BackSpace
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+  //XGrabKey(foreground_dpy, win->keycodes[2], Mod2Mask,
+  //         win->grab_window, owner_events, pointer_mode,
+  //         keyboard_mode);
+*/
 }
 
 //void put_image(Win *win, Image *img)
@@ -711,27 +731,27 @@ int process_event(GC *gc,
 #endif // V_DEBUG
       if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
         w->keycode_dn_pressed = 1;
-        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
-        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
         w->keycode_up_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
-        XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
         w->keycode_end_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
-        XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
         w->keycode_end_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
-        XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
         w->keycode_bckspce_pressed = 1;
         return 0;
       }
       else {
-        //XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
+        XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
         return 1;
       }
     default:
@@ -841,6 +861,11 @@ int set_img(__attribute__((__unused__)) int argc,
 //  * 1 Create window BEGIN
 //  *
   Win win = {};
+  win.keycode_beg_pressed = 0;
+  win.keycode_end_pressed = 0;
+  win.keycode_bckspce_pressed = 0;
+  win.keycode_dn_pressed = 0;
+  win.keycode_up_pressed = 0;
   //create_window(&win, &root, x_px, y_px, &img);
   create_window(&win, &root, x_px, y_px, &img, path);
   //nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);

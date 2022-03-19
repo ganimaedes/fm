@@ -55,7 +55,6 @@
 #define KEY_HOME    300
 #define KEY_END     400
 
-
 #define bg_cyan         "\033[46m"
 #define bg_blue         "\033[44m"
 #define bg_light_blue   "\033[104m"

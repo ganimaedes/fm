@@ -45,6 +45,22 @@ char *file_to_be_copied;
 static int previous_pos_copy = 0;
 static int previous_pos_copy_from_attr = 0;
 
+/*
+typedef struct _MsgBool {
+} MsgBool;
+*/
+typedef struct _Message {
+  char *print_msg;
+  char *n_char;
+  int used_char;
+  int n_int;
+  int used_int;
+  unsigned int n_uint;
+  int used_uint;
+  unsigned long n_ulong;
+  int used_ulong;
+} Message;
+
 void print_path(Scroll *s, char *path, int pos, int backspace_pressed);
 int strpos(char *hay, char *needle, int offset);
 int show_tar(pid_t *pid, char *buffer, int *bytes_read, char *tar_name);
@@ -59,7 +75,8 @@ void highlight2(Array *a, int *pos);
 int update(Window_ *w, Scroll *s, int *pos, int size);
 void print_debug(Window_ *w, Scroll *s, int option, int pos, int cursor_pos, Array *a);
 void move_erase(Window_ *w, int fd, int y, int x);
-void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned int *c, int *pos, Array *a);
+//void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned int *c, int *pos, Array *a);
+void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned long *c, int *pos, Array *a);
 void print(Window_ *w, Array *a, int pos_array);
 static void sig_win_ch_handler(int sig);
 void mvwprintw(Window_ *win, Array *a, int y, int x, char *str, int pos);
@@ -84,7 +101,9 @@ int window_resize(Window_ *w_main,
 int del_file(Window_ *w1, Scroll *s, Array *left_box, int *pos, int *option);
 void print_n_elements(Array *left_box);
 void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos);
-void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned int number, int *pos);
+//void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned int number, int *pos);
+void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned long number, int *pos);
+void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int *pos, Message *msg);
 
 int main(int argc, char **argv)
 {
@@ -135,7 +154,7 @@ int main(int argc, char **argv)
     write(2, err1, sizeof(err1));
   }
 
-  unsigned int c = 0;
+  unsigned long c = 0;
   int option = 0,
       i,
       initial_loop = 1,
@@ -176,6 +195,12 @@ int main(int argc, char **argv)
     save_config_fd(fd);
   }
 #endif // EBUG
+
+  Message msg = {};
+  msg.used_int = 0;
+  msg.used_uint = 0;
+  msg.used_ulong = 0;
+  msg.used_char = 0;
 
 
   //int image_used = 0;
@@ -261,9 +286,15 @@ int main(int argc, char **argv)
         }
       }
       char *MSG = "c = ";
-      print_message(&w_main, &s, 4, MSG, c, &pos);
-      if (c == -17) { c = 107;  }
-      print_entries(&w1, &s, entries, option, (unsigned int *)(&c), &pos, &left_box);
+      if (c > 400) { c = 107; }
+      //print_message(&w_main, &s, 4, MSG, c, &pos);
+      msg.n_ulong = c;
+      msg.used_ulong = 1;
+      print_message2(&w_main, &s, 4, &pos, &msg);
+
+      if (c > 400) { c = 107; pos = 0; sleep(5); }
+      //if (c == -17) { c = 107; }
+      print_entries(&w1, &s, entries, option, &c, &pos, &left_box);
       print_permissions(&left_box, &s, &w1, pos);
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
@@ -302,6 +333,7 @@ int main(int argc, char **argv)
           enter_backspace = 1;
           back_pressed = 1;
         }
+        if (c >= 262) { c = 107; }
         //printf("y size in px = %u, x size in px = %u\n", w2.y_px_size, w2.x_px_size);
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, , );
       }
@@ -322,7 +354,7 @@ int main(int argc, char **argv)
       //print_tty(&w3, fd, &attributes);
 #endif // EBUG
 
-    if (image_used != 1 && (c = kbget()) == KEY_ESCAPE) {
+    if (image_used == 0 && (c = kbget()) == KEY_ESCAPE) {
       break;
     } else if ((c == 'l' || c == KEY_ENTER) &&
                !strcmp(left_box.menu[pos].type, "directory") &&
@@ -434,17 +466,67 @@ int main(int argc, char **argv)
   return 0;
 }
 
-void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned int number, int *pos)
+void init_msg_struct(Message *msg)
+{
+
+}
+
+void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned long number, int *pos)
 {
   snprintf(position, strlen(place_), place_, w->y_size - position_from_end_scr, w->x_beg + 1);
   move(1, position);
-#define value_return "c = %u"
+#define value_return "c = %lu"
   //CAT(msg);
-  write(1, CAT(msg), strlen(CAT(msg)));
-  write(1, " = ", strlen(" = "));
+  //write(1, CAT(msg), strlen(CAT(msg)));
+  //write(1, " = ", strlen(" = "));
   char val_return[sizeof(value_return)];
   sprintf(val_return, value_return, number);
   write(1, val_return, strlen(val_return));
+  snprintf(position, strlen(place_), place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+  move(1, position);
+}
+
+//void print_in_char(char *defined_value, ...)
+void print_in_char(char *msg, ...)
+{
+  va_list args = { 0 };
+  va_start(args, msg);
+  vfprintf(stderr, msg, args);
+  //write(1, val_return, strlen(val_return));
+  va_end(args);
+  //char val_return[sizeof(defined_value)];
+  //sprintf(val_return, value_return, number);
+  //write(1, val_return, strlen(val_return));
+}
+
+void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int *pos, Message *msg)
+{
+  snprintf(position, strlen(place_), place_, w->y_size - position_from_end_scr, w->x_beg + 1);
+  move(1, position);
+  if (msg->used_ulong) {
+#ifndef value_return
+#define value_return "c = %lu"
+#endif
+  print_in_char(value_return, msg->n_ulong);
+  } else if (msg->used_int) {
+#ifndef value_return
+#define value_return "c = %d"
+#endif
+  print_in_char(value_return, msg->n_int);
+  } else if (msg->used_uint) {
+#ifndef value_return
+#define value_return "c = %u"
+#endif
+  print_in_char(value_return, msg->n_uint);
+  } else if (msg->used_char) {
+#ifndef value_return
+#define value_return "c: %s"
+#endif
+  print_in_char(value_return, msg->n_char);
+  }
+  //char val_return[sizeof(value_return)];
+  //sprintf(val_return, value_return, number);
+  //write(1, val_return, strlen(val_return));
   snprintf(position, strlen(place_), place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
   move(1, position);
 }
@@ -1284,8 +1366,10 @@ void move_erase(Window_ *w, int fd, int y, int x)
   move(fd, position);
 }
 
+//void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **entries,
+//                   int option, unsigned int *c, int *pos, Array *a)
 void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **entries,
-                   int option, unsigned int *c, int *pos, Array *a)
+                   int option, unsigned long *c, int *pos, Array *a)
 {
   int i;
   int y = 0;
