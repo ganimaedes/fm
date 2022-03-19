@@ -79,8 +79,8 @@ typedef struct _Image {
   int bpl;
   int width;
   int height;
-  int new_width;
-  int new_height;
+  double new_width;
+  double new_height;
   int n;
   GC gc;
   uint8_t *data_resized;

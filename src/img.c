@@ -336,6 +336,33 @@ void handlern(int sig)
   exit(1);
 }
 
+double fix_factor_to_fit_inside_window(Image *img, int width, int height)
+{
+  double factor = 1.0;
+  double temp_width;
+  double temp_height;
+  int width_taken = 0;
+  if (img->width > (width / 2)) {
+    //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+    //printf("width / 2 = %d, img->width = %d\n", width / 2, img->width);
+    temp_width = (double)(width / 2);
+    factor = temp_width / img->width;
+    width_taken = 1;
+  } else if ((double)(img->height) > (double)((double)height - 100.0)) {
+    temp_height = (double)(height - 100.0);
+    factor = temp_height / temp_height;
+  }
+  if (width_taken) {
+
+    if ((double)(img->height) > (double)((double)height - 100.0)) {
+      temp_height = (double)(height - 100.0);
+      factor = temp_height / img->height;
+    }
+
+  }
+  return factor;
+}
+
 void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char *path)
 {
   int width = DisplayWidth(foreground_dpy, win->screen);
@@ -347,14 +374,26 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   //double factor = atof(argv[4]);
   //double factor = factor_in;
   double factor = 1.0;
+/*
+  double temp_width;
+  double temp_height;
   if (img->width > (width / 2)) {
     fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-    printf("width / 2 = %d, img->width = %d\n", width / 2, img->width);
-    double temp_width = (double)(width / 2);
+    //printf("width / 2 = %d, img->width = %d\n", width / 2, img->width);
+    temp_width = (double)(width / 2);
     factor = temp_width / img->width;
+  } else if ((double)(img->height) > (double)((double)height - 100.0)) {
+    temp_height = (double)(height - 100.0);
+    factor = temp_height / temp_height;
   }
+*/
+  factor = fix_factor_to_fit_inside_window(img, width, height);
+  printf("factor = %f\n", factor);
   img->new_width = img->width * factor;
   img->new_height = img->height * factor;
+  fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+  //printf("img->width = %d, img->height = %d\n", img->width, img->height);
+  //printf("img->new_width = %f, img->new_height = %f\n", img->new_width, img->new_height);
 
   // Allocate Memory for data_resized variable with new_width & new_height
   img->data_resized = malloc((img->new_width * img->new_height * 4) * sizeof *img->data_resized);
