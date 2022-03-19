@@ -340,7 +340,7 @@ double fix_factor_to_fit_inside_window(Image *img, int width, int height)
 {
   double factor = 1.0;
   double temp_width;
-  double temp_height = (double)((double)height - 100.0);
+  double temp_height = (double)((double)height - 150.0);
   int width_taken = 0;
   if (img->width > (width / 2)) {
     //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
@@ -348,15 +348,15 @@ double fix_factor_to_fit_inside_window(Image *img, int width, int height)
     temp_width = (double)(width / 2);
     factor = temp_width / img->width;
     width_taken = 1;
-  } else if ((double)(img->height) > (double)((double)height - 100.0)) {
+  } else if ((double)(img->height) > (double)((double)height - 150.0)) {
     //temp_height = (double)(height - 100.0);
     //factor = temp_height / temp_height;
     factor = temp_height / (double)img->height;
   }
   if (width_taken) {
 
-    if ((double)(img->height) > (double)((double)height - 100.0)) {
-      temp_height = (double)(height - 100.0);
+    if ((double)(img->height) > (double)((double)height - 150.0)) {
+      temp_height = (double)(height - 150.0);
       factor = temp_height / (double)img->height;
     }
 
