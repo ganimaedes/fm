@@ -413,11 +413,11 @@ double fix_factor_to_fit_inside_window(Image *img, int width, int height)
       //factor = temp_width / img->width;
       //double value = temp_width / img->width;
       //factor = (value < factor) ? value : factor;
-      double value = temp_height / img->height;
-      factor = (value < factor) ? value : factor;
       //*width *= factor;
     //}
   }
+  double value = temp_height / img->height;
+  factor = (value < factor) ? value : factor;
 /*
   else {
       temp_width = (double)(width / 2);
