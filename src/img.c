@@ -680,8 +680,8 @@ int process_event(GC *gc,
               0, 0,
               0, 0,
               img->new_width, img->new_height);
-    XSync(foreground_dpy, False);
     XFlush(foreground_dpy);
+    XSync(foreground_dpy, False);
     window_remapped = 1;
     window_unmapped = 0;
   }
