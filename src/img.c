@@ -778,18 +778,18 @@ int process_event(GC *gc,
         return 0;
       }
       else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
-        XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
         w->keycode_end_pressed = 1;
         return 0;
       }
       else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
-        XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
         w->keycode_end_pressed = 1;
         return 0;
       }
 
       else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
-        XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
         w->keycode_bckspce_pressed = 1;
         return 0;
       }
@@ -797,7 +797,8 @@ int process_event(GC *gc,
       else {
         XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
         //w->keycode_bckspce_pressed = 1;
-        return 1;
+        //return 1;
+        return 0;
       }
     default:
       return 1;

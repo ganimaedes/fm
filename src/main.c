@@ -216,17 +216,22 @@ int main(int argc, char **argv)
     }
 
     if (image_used) {
-      c = second_previous_c;
-      c = 1;
+      //c = second_previous_c;
+      //c = 1;
     }
     image_used = 0;
+    //char *pos_str = "pos = ";
+    msg.print_msg = "pos = ";
+    msg.n_ulong = previous_pos;
+    msg.used_ulong = 1;
+    print_message2(&w_main, &s, 1, pos, &msg);
     if (left_box.n_elements != 0) {
-      if (previous_pos < left_box.n_elements) {
+      //if (previous_pos < left_box.n_elements) {
         if (backspace) {
           pos = previous_pos;
           backspace = 0;
         }
-      }
+      //}
 
       if (!left_allocation || secondary_loop) {
         reprint = 1;
@@ -307,6 +312,7 @@ int main(int argc, char **argv)
       print_permissions(&left_box, &s, &w1, pos);
       //print_message2(&w_main, &s, 4, &pos, &msg);
       print_message2(&w1, &s, 0, pos, &msg);
+      msg.used_ulong = 0;
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
         directory_placement(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
@@ -516,6 +522,32 @@ void print_in_char(char *msg, ...)
   //write(1, val_return, strlen(val_return));
 }
 
+#define CONCAT(a, b) CONCAT(a, b)
+#define CONCAT_(a, b) a ## b
+
+
+/*
+ * Concatenate preprocessor tokens A and B without expanding macro definitions
+ * (however, if invoked from a macro, macro arguments are expanded).
+ */
+#define PPCAT_NX(A, B) A ## B
+
+/*
+ * Concatenate preprocessor tokens A and B after macro-expanding them.
+ */
+#define PPCAT(A, B) PPCAT_NX(A, B)
+/*
+ * Turn A into a string literal without expanding macro definitions
+ * (however, if invoked from a macro, macro arguments are expanded).
+ */
+#define STRINGIZE_NX(A) #A
+
+/*
+ * Turn A into a string literal after macro-expanding it.
+ */
+#define STRINGIZE(A) STRINGIZE_NX(A)
+
+
 //void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int *pos, Message *msg)
 void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, Message *msg)
 {
@@ -524,9 +556,18 @@ void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, M
   del_from_cursor(del_in);
   if (msg->used_ulong) {
 #ifndef value_return
-#define value_return "c = %lu"
+#define value_return " %lu"
+
 #endif
-  print_in_char(value_return, msg->n_ulong);
+  //char value_str[sizeof(CONCAT(msg->print_msg, value_return))];
+  //char *nth = CONCAT(msg->print_msg, value_return);
+  //sprintf(, value_str, msg->print_msg);
+  char value_str[sizeof(STRINGIZE(PPCAT_NX(msg->print_msg, value_return)))];
+  char *nth = STRINGIZE(PPCAT_NX(msg->print_msg, value_return));
+  sprintf(nth, value_str, msg->n_ulong);
+  //print_in_char(value_return, msg->n_ulong);
+  //print_in_char(value_return, CAT(msg->n_ulong));
+  print_in_char(nth);
   msg->used_ulong = 0;
   } else if (msg->used_int) {
 #ifndef value_return
