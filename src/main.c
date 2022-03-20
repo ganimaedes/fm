@@ -34,6 +34,7 @@ volatile sig_atomic_t reprint = 0;
 volatile sig_atomic_t back_pressed = 0;
 volatile sig_atomic_t enter_backspace = 1;
 volatile sig_atomic_t image_used = 0;
+volatile sig_atomic_t modify_pos_bc_image_used = 0;
 
 char position[PLACE_SZ];
 char del_in[IN_SZ];
@@ -219,9 +220,9 @@ int main(int argc, char **argv)
       //c = second_previous_c;
       //c = 1;
     }
-    image_used = 0;
+    //image_used = 0;
     //char *pos_str = "pos = ";
-    msg.print_msg = "pos = ";
+    msg.print_msg = "previous_pos = ";
     msg.n_ulong = previous_pos;
     msg.used_ulong = 1;
     print_message2(&w_main, &s, 1, pos, &msg);
@@ -299,20 +300,33 @@ int main(int argc, char **argv)
           delete_counter = 0;
         }
       }
-      char *MSG = "c = ";
+      //char *MSG = "c = ";
       //if (c > 400) { c = 107; }
       //print_message(&w_main, &s, 4, MSG, c, &pos);
       msg.n_ulong = c;
       msg.used_ulong = 1;
+      msg.print_msg = "keypress = ";
       // mettre une autre struct enregistrant les keypresses
 
       //if (c > 400) { c = 107; pos = 0; sleep(5); }
       //if (c == -17) { c = 107; }
+
+      if (image_used) {
+        pos = previous_pos;
+      }
       print_entries(&w1, &s, entries, option, (int)c, &pos, &left_box);
+      image_used = 0;
       print_permissions(&left_box, &s, &w1, pos);
       //print_message2(&w_main, &s, 4, &pos, &msg);
       print_message2(&w1, &s, 0, pos, &msg);
       msg.used_ulong = 0;
+
+/*
+      msg.print_msg = "pos = ";
+      msg.n_ulong = pos;
+      msg.used_ulong = 1;
+      print_message2(&w1, &s, 6, pos, &msg);
+*/
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
         directory_placement(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
@@ -337,6 +351,11 @@ int main(int argc, char **argv)
         //ai to see deleted pics
         //draw_box for when passing from two windows to three windows
         c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
+/*
+        if (c == KEY_END) {
+          ungetc(c, stdin);
+        }
+*/
 /*
         snprintf(position, strlen(place_), place_, w_main.y_size - 4, w_main.x_beg + 1);
         move(1, position);
@@ -465,7 +484,10 @@ int main(int argc, char **argv)
     erase_window(&w2, &s);
     initial_loop = 0;
     resized = 0;
-    image_used = 0;
+    if (image_used) {
+      modify_pos_bc_image_used = 1;
+      image_used = 0;
+    }
   }
   if (left_box.n_elements != 0 || left_box.capacity != 0) {
     free_array(&left_box);
@@ -568,7 +590,17 @@ void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, M
   //print_in_char(value_return, msg->n_ulong);
   //print_in_char(value_return, CAT(msg->n_ulong));
   //print_in_char(nth);
-  print_in_char(STRINGIZE(PPCAT_NX(msg->print_msg, STRINGIZE_NX(value_return))), msg->n_ulong);
+  //char *nth = STRINGIZE_NX(value_return);
+  //char *nth = "%s ";
+  char *nth = STRINGIZE(msg->print_msg);
+  char *mth = STRINGIZE_NX(value_return);
+  //print_in_char(STRINGIZE(PPCAT_NX(msg->print_msg, STRINGIZE_NX(value_return))), msg->n_ulong);
+  //print_in_char(STRINGIZE_NX(msg->print_msg), STRINGIZE(PPCAT_NX(nth, STRINGIZE_NX(value_return))), msg->n_ulong);
+  write(1, msg->print_msg, strlen(msg->print_msg));
+  write(1, " ", strlen(" ")),
+  print_in_char(STRINGIZE(PPCAT_NX(nth, STRINGIZE_NX(value_return))), msg->n_ulong);
+  //print_in_char(STRINGIZE(PPCAT_NX(msg->print_msg, value_return)), msg->n_ulong);
+  //print_in_char(STRINGIZE(PPCAT_NX(msg->print_msg, nth)), msg->n_ulong);
   msg->used_ulong = 0;
   } else if (msg->used_int) {
 #ifndef value_return
@@ -1445,12 +1477,24 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
   int y = 0;
   char in[strlen(del)];
   sprintf(del_in, del, w->x_size - 2);
+  int previous_position_before_backspace = *pos;
+  Message msg = {};
+  msg.print_msg = "pos print_entries = ";
+  msg.n_ulong = *pos;
+  msg.used_ulong = 1;
+  print_message2(w, s, 6, *pos, &msg);
 
   switch (c) {
     case KEY_UP:
     case UP:
       if (*pos > 0) {
         --*pos;
+/*
+      if (modify_pos_bc_image_used) {
+        *pos = previous_position_before_backspace;
+        modify_pos_bc_image_used = 0;
+      }
+*/
         resized = 0;
         if (*pos >= s->pos_upper_t && *pos < s->pos_lower_t) {
           y = *pos - s->pos_upper_t + w->y_beg + 1;
@@ -1478,6 +1522,11 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
         }
         if (*pos >= s->pos_lower_t) {
           *pos = s->pos_lower_t;
+
+      if (modify_pos_bc_image_used) {
+        *pos = previous_position_before_backspace;
+        modify_pos_bc_image_used = 0;
+      }
           if (*pos < s->array_size - 1) {
 
             move_erase(w, 1, *pos + w->y_beg - s->pos_upper_t + 1, w->x_beg + 1);
@@ -1495,6 +1544,13 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
     case DN:
       if (*pos < s->array_size - 1) {
         ++*pos;
+
+/*
+      if (modify_pos_bc_image_used) {
+        *pos = previous_position_before_backspace;
+        modify_pos_bc_image_used = 0;
+      }
+*/
         resized = 0;
         if (*pos > s->pos_upper_t && *pos <= s->pos_lower_t) {
           y = *pos - s->pos_upper_t + w->y_beg;
@@ -1728,6 +1784,12 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
     case KEY_END:
       s->pos_upper_t = s->array_size - s->n_to_print;
       *pos = s->array_size - 1;
+// and backspace used
+      if (modify_pos_bc_image_used && back_pressed) {
+        *pos = previous_position_before_backspace;
+        modify_pos_bc_image_used = 0;
+      }
+//
       s->pos_lower_t = *pos;
       s->n_lower_t = 0;
       for (i = 0; i < s->n_to_print; ++i) {
@@ -1742,6 +1804,10 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
       break;
     default:
       break;
+  }
+
+  if (image_used) {
+    *pos = previous_position_before_backspace;
   }
 
   if (*pos == 0) {
