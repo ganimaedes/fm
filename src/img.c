@@ -713,7 +713,9 @@ int process_event(GC *gc,
                   Window *top_window,
                   Atom *wmDeleteMessage,
                   Win *w,
-                  Atom_Prop *atom_prop, Image *img){
+                  Atom_Prop *atom_prop,
+                  Image *img,
+                  KeyCode *key) {
   XEvent xe;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
@@ -784,7 +786,7 @@ int process_event(GC *gc,
       }
       else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
         //XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
-        w->keycode_end_pressed = 1;
+        w->keycode_beg_pressed = 1;
         return 0;
       }
 
@@ -795,6 +797,7 @@ int process_event(GC *gc,
       }
 
       else {
+        *key = xe.xkey.keycode;
         XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
         //w->keycode_bckspce_pressed = 1;
         //return 1;
@@ -1021,7 +1024,8 @@ unsigned long set_img(__attribute__((__unused__)) int argc,
   //    target_win, tmp_window, root, /*foreground_win */ win.foreground_win);
 #endif
 
-  while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img));
+  KeyCode key = 0;
+  while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key));
   //while (process_event(&img.gc, &win.foreground_win, &wmDeleteMessage, &win, &atom_prop, &img));
   //while (process_event(&img.gc, &target_win, &wmDeleteMessage, &win, &atom_prop, &img));
 /*
@@ -1320,6 +1324,8 @@ unsigned long set_img(__attribute__((__unused__)) int argc,
     return BACKSPACE;
     //return KEY_BACKSPACE;
     //return 'h';
+  } else {
+    return key;
   }
   //return event_foreground.xkey.keycode;
   return 0;

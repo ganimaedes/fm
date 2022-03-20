@@ -216,10 +216,10 @@ int main(int argc, char **argv)
       window_resize(&w_main, &w1, &w2, &w_s, &s, &left_box, &right_box, &option, &pos, &initial_loop, &resized, &i);
     }
 
-    if (image_used) {
+    //if (image_used) {
       //c = second_previous_c;
       //c = 1;
-    }
+    //}
     //image_used = 0;
     //char *pos_str = "pos = ";
     msg.print_msg = "previous_pos = ";
@@ -1767,6 +1767,7 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
       }
       break;
     case KEY_HOME:
+    case KEY_ALL_UP:
       *pos = 0;
       s->pos_upper_t = 0;
       s->pos_lower_t = s->n_to_print - 1;
