@@ -562,12 +562,13 @@ void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, M
   //char value_str[sizeof(CONCAT(msg->print_msg, value_return))];
   //char *nth = CONCAT(msg->print_msg, value_return);
   //sprintf(, value_str, msg->print_msg);
-  char value_str[sizeof(STRINGIZE(PPCAT_NX(msg->print_msg, value_return)))];
-  char *nth = STRINGIZE(PPCAT_NX(msg->print_msg, value_return));
-  sprintf(nth, value_str, msg->n_ulong);
+  //char value_str[sizeof(STRINGIZE(PPCAT_NX(msg->print_msg, value_return)))];
+  //char *nth = STRINGIZE(PPCAT_NX(msg->print_msg, value_return));
+  //sprintf(nth, value_str, msg->n_ulong);
   //print_in_char(value_return, msg->n_ulong);
   //print_in_char(value_return, CAT(msg->n_ulong));
-  print_in_char(nth);
+  //print_in_char(nth);
+  print_in_char(STRINGIZE(PPCAT_NX(msg->print_msg, STRINGIZE_NX(value_return))), msg->n_ulong);
   msg->used_ulong = 0;
   } else if (msg->used_int) {
 #ifndef value_return
