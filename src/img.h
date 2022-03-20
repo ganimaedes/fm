@@ -78,6 +78,7 @@ typedef struct _Win {
   int keycode_up_pressed;
   int screen;
   Window foreground_win;
+  Window background_win;
   Atom window_type;
   long value;
 } Win;
@@ -118,6 +119,7 @@ void put_image(Win *win, Image *img, int x_px, int y_px);
 Window get_top_window(Display* d, Window start);
 Window get_focus_window(Display* d);
 //int set_img(int argc, char **argv);
-int set_img(int argc, char *prog_name, Window window_in, char *path, double factor_in, int y_pos_in, int x_pos_in);
+//int set_img(int argc, char *prog_name, Window window_in, char *path, double factor_in, int y_pos_in, int x_pos_in);
+unsigned long set_img(int argc, char *prog_name, Window window_in, char *path, double factor_in, int y_pos_in, int x_pos_in);
 
 #endif // IMG_H

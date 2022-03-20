@@ -446,6 +446,7 @@ double fix_factor_to_fit_inside_window(Image *img, int width, int height)
 
 void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char *path)
 {
+
   int width = DisplayWidth(foreground_dpy, win->screen);
   int height = DisplayHeight(foreground_dpy, win->screen);
   // Load image into data variable
@@ -468,7 +469,16 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
     factor = temp_height / temp_height;
   }
 */
-  factor = fix_factor_to_fit_inside_window(img, width, height);
+
+  XWindowAttributes xwa_image;
+  xwa_image.override_redirect = TRUE;
+  XWindowAttributes xwa;
+  if (!XGetWindowAttributes(foreground_dpy, win->background_win, &xwa)) {
+  //if (!XGetWindowAttributes(foreground_dpy, term_window, &xwa)) {
+    fprintf(stderr, "Error XGetWindowAttributes\n");
+  }
+  //factor = fix_factor_to_fit_inside_window(img, width, height);
+  factor = fix_factor_to_fit_inside_window(img, xwa.width, xwa.height);
   //factor = 0.5;
   //printf("factor = %f  ", factor);
   //img->new_width = (double)img->width * factor;
@@ -521,8 +531,15 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   printf("x_px = %d | y_px = %d\n\t", x_px, y_px);
 #endif
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, x_px, y_px,
-  int center_in_second_window_dist = width / 4;
-  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
+  //int center_in_second_window_dist = width / 4;
+  //int center_in_second_window_dist = xwa.width / 4;
+  int x_dist = 100;
+  //int center_in_second_window_dist = (xwa.width + xwa.x + x_dist) / 4;
+  int center_in_second_window_dist = (xwa.width) / 4;
+  //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
+  //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (xwa.width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
+  //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, ((xwa.width + xwa.x + x_dist) / 2) + center_in_second_window_dist - img->new_width / 2, 49,
+  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, ((xwa.width) / 2) + xwa.x + center_in_second_window_dist - img->new_width / 2, 49,
                                               img->new_width, img->new_height, 0,
                                               BlackPixel(foreground_dpy, win->screen),
                                               WhitePixel(foreground_dpy, win->screen));
@@ -573,19 +590,19 @@ void grab_keys(Win *win)
   XGrabKey(foreground_dpy, win->keycodes[0], modifiers, // XK_End
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
-/*
   //XGrabKey(foreground_dpy, win->keycodes[0], Mod2Mask,
   //         win->grab_window, owner_events, pointer_mode,
   //         keyboard_mode);
-  XGrabKey(foreground_dpy, win->keycodes[1], modifiers, // XK_Begin
-           win->grab_window, owner_events, pointer_mode,
-           keyboard_mode);
+  //XGrabKey(foreground_dpy, win->keycodes[1], modifiers, // XK_Begin
+  //         win->grab_window, owner_events, pointer_mode,
+  //         keyboard_mode);
   //XGrabKey(foreground_dpy, win->keycodes[1], Mod2Mask,
   //         win->grab_window, owner_events, pointer_mode,
   //         keyboard_mode);
   XGrabKey(foreground_dpy, win->keycodes[2], modifiers, // XK_BackSpace
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
+/*
   //XGrabKey(foreground_dpy, win->keycodes[2], Mod2Mask,
   //         win->grab_window, owner_events, pointer_mode,
   //         keyboard_mode);
@@ -672,12 +689,30 @@ Window get_focus_window(Display* d)
   return w;
 }
 
+int x_error_handler( Display* dpy, XErrorEvent* pErr )
+{
+    printf("X Error Handler called, values: %d/%lu/%d/%d/%d\n",
+        pErr->type,
+        pErr->serial,
+        pErr->error_code,
+        pErr->request_code,
+        pErr->minor_code );
+    if (pErr->request_code == 33){  // 33 (X_GrabKey)
+        if(pErr->error_code == BadAccess){
+            printf("ERROR: A client attempts to grab a key/button combination already\n"
+                   "        grabbed by another client. Ignoring.\n");
+            return 0;
+        }
+    }
+    exit(1);  // exit the application for all unhandled errors.
+    return 0;
+}
+
 int process_event(GC *gc,
                   Window *top_window,
                   Atom *wmDeleteMessage,
                   Win *w,
-                  Atom_Prop *atom_prop, Image *img)
-{
+                  Atom_Prop *atom_prop, Image *img){
   XEvent xe;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
@@ -731,22 +766,25 @@ int process_event(GC *gc,
 #endif // V_DEBUG
       if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
         w->keycode_dn_pressed = 1;
-        //XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
-        //XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
         w->keycode_up_pressed = 1;
         return 0;
-      } else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
-        //XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
+      }
+      /*else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
+        XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
         w->keycode_end_pressed = 1;
         return 0;
-      } else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
-        //XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
+      }*/
+      else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
+        XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
         w->keycode_end_pressed = 1;
         return 0;
-      } else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
-        //XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
+      }
+      else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
+        XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
         w->keycode_bckspce_pressed = 1;
         return 0;
       }
@@ -761,7 +799,7 @@ int process_event(GC *gc,
 }
 
 //int set_img(int argc, char **argv)
-int set_img(__attribute__((__unused__)) int argc,
+unsigned long set_img(__attribute__((__unused__)) int argc,
             __attribute__((__unused__)) char *prog_name,
             __attribute__((__unused__)) Window window_in,
             char *path,
@@ -771,6 +809,7 @@ int set_img(__attribute__((__unused__)) int argc,
 #if defined(EBUG)
   signal(SIGSEGV, handlern);
 #endif // EBUG
+  XSetErrorHandler(x_error_handler);
 /*
   if (argc < 6) {
     fprintf(stderr, "Usage: %s -id 0x<window id> <path/to/image>"\
@@ -867,6 +906,7 @@ int set_img(__attribute__((__unused__)) int argc,
   win.keycode_dn_pressed = 0;
   win.keycode_up_pressed = 0;
   //create_window(&win, &root, x_px, y_px, &img);
+  win.background_win = term_window;
   create_window(&win, &root, x_px, y_px, &img, path);
   //nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);
   //sleep(1);
@@ -974,6 +1014,8 @@ int set_img(__attribute__((__unused__)) int argc,
 #endif
 
   while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img));
+  //while (process_event(&img.gc, &win.foreground_win, &wmDeleteMessage, &win, &atom_prop, &img));
+  //while (process_event(&img.gc, &target_win, &wmDeleteMessage, &win, &atom_prop, &img));
 /*
   while (!stop) {
 
@@ -1257,9 +1299,11 @@ int set_img(__attribute__((__unused__)) int argc,
     property_formats = NULL;
   }
   if (win.keycode_dn_pressed) {
-    return 0x006a;
+    //return 0x006a;
+    return KEY_DOWN;
   } else if (win.keycode_up_pressed) {
-    return 0x006b;
+    //return 0x006b;
+    return KEY_UP;
   } else if (win.keycode_end_pressed) {
     return KEY_END;
   } else if (win.keycode_beg_pressed) {

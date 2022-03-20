@@ -76,7 +76,9 @@ int update(Window_ *w, Scroll *s, int *pos, int size);
 void print_debug(Window_ *w, Scroll *s, int option, int pos, int cursor_pos, Array *a);
 void move_erase(Window_ *w, int fd, int y, int x);
 //void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned int *c, int *pos, Array *a);
-void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned long *c, int *pos, Array *a);
+//void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned long *c, int *pos, Array *a);
+//void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned long c, int *pos, Array *a);
+void print_entries(Window_ *w, Scroll *s, char **entries, int option, int c, int *pos, Array *a);
 void print(Window_ *w, Array *a, int pos_array);
 static void sig_win_ch_handler(int sig);
 void mvwprintw(Window_ *win, Array *a, int y, int x, char *str, int pos);
@@ -103,7 +105,8 @@ void print_n_elements(Array *left_box);
 void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos);
 //void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned int number, int *pos);
 void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned long number, int *pos);
-void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int *pos, Message *msg);
+//void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int *pos, Message *msg);
+void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, Message *msg);
 
 int main(int argc, char **argv)
 {
@@ -155,6 +158,8 @@ int main(int argc, char **argv)
   }
 
   unsigned long c = 0;
+  int previous_pos_c = 0;
+  int second_previous_c = 0;
   int option = 0,
       i,
       initial_loop = 1,
@@ -210,6 +215,10 @@ int main(int argc, char **argv)
       window_resize(&w_main, &w1, &w2, &w_s, &s, &left_box, &right_box, &option, &pos, &initial_loop, &resized, &i);
     }
 
+    if (image_used) {
+      c = second_previous_c;
+      c = 1;
+    }
     image_used = 0;
     if (left_box.n_elements != 0) {
       if (previous_pos < left_box.n_elements) {
@@ -224,7 +233,7 @@ int main(int argc, char **argv)
         secondary_loop = 0;
       }
 
-      if (c == KEY_ENTER || c == KEY_BACKSPACE || resized) {
+      if (c == KEY_ENTER || c == KEY_BACKSPACE || resized || c == ENTER || c == BACKSPACE) {
 
         previous_pos_copy = previous_pos;
         if (attributes.n_elements > 0) {
@@ -286,16 +295,18 @@ int main(int argc, char **argv)
         }
       }
       char *MSG = "c = ";
-      if (c > 400) { c = 107; }
+      //if (c > 400) { c = 107; }
       //print_message(&w_main, &s, 4, MSG, c, &pos);
       msg.n_ulong = c;
       msg.used_ulong = 1;
-      print_message2(&w_main, &s, 4, &pos, &msg);
+      // mettre une autre struct enregistrant les keypresses
 
-      if (c > 400) { c = 107; pos = 0; sleep(5); }
+      //if (c > 400) { c = 107; pos = 0; sleep(5); }
       //if (c == -17) { c = 107; }
-      print_entries(&w1, &s, entries, option, &c, &pos, &left_box);
+      print_entries(&w1, &s, entries, option, (int)c, &pos, &left_box);
       print_permissions(&left_box, &s, &w1, pos);
+      //print_message2(&w_main, &s, 4, &pos, &msg);
+      print_message2(&w1, &s, 0, pos, &msg);
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
         directory_placement(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
@@ -329,11 +340,11 @@ int main(int argc, char **argv)
         move(1, position);
 */
         image_used = 1;
-        if (c == KEY_BACKSPACE) {
-          enter_backspace = 1;
-          back_pressed = 1;
-        }
-        if (c >= 262) { c = 107; }
+        //if (c == KEY_BACKSPACE) {
+        //  enter_backspace = 1;
+        //  back_pressed = 1;
+        //}
+        //if (c >= 262) { c = 107; }
         //printf("y size in px = %u, x size in px = %u\n", w2.y_px_size, w2.x_px_size);
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, , );
       }
@@ -354,9 +365,10 @@ int main(int argc, char **argv)
       //print_tty(&w3, fd, &attributes);
 #endif // EBUG
 
+
     if (image_used == 0 && (c = kbget()) == KEY_ESCAPE) {
       break;
-    } else if ((c == 'l' || c == KEY_ENTER) &&
+    } else if ((c == 'l' || c == KEY_ENTER || c == ENTER) &&
                !strcmp(left_box.menu[pos].type, "directory") &&
                right_box.n_elements != 0) {
       if (position_before_copying_sig) {
@@ -403,9 +415,11 @@ int main(int argc, char **argv)
 #endif // EBUG
 
 
-    } else if (c == 'h' || c == KEY_BACKSPACE) {
+    } else if (c == 'h' || c == KEY_BACKSPACE || c == BACKSPACE) {
 
       n_elements_to_erase = left_box.n_elements;
+
+      second_previous_c = previous_pos_c;
 
       erase_window(&w1, &s);
       --enter_backspace;
@@ -438,6 +452,7 @@ int main(int argc, char **argv)
 #endif // EBUG
 
     }
+    previous_pos_c = c;
 
     erase_window(&w2, &s);
     initial_loop = 0;
@@ -499,35 +514,42 @@ void print_in_char(char *msg, ...)
   //write(1, val_return, strlen(val_return));
 }
 
-void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int *pos, Message *msg)
+//void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int *pos, Message *msg)
+void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, Message *msg)
 {
   snprintf(position, strlen(place_), place_, w->y_size - position_from_end_scr, w->x_beg + 1);
   move(1, position);
+  del_from_cursor(del_in);
   if (msg->used_ulong) {
 #ifndef value_return
 #define value_return "c = %lu"
 #endif
   print_in_char(value_return, msg->n_ulong);
+  msg->used_ulong = 0;
   } else if (msg->used_int) {
 #ifndef value_return
 #define value_return "c = %d"
 #endif
   print_in_char(value_return, msg->n_int);
+  msg->used_int = 0;
   } else if (msg->used_uint) {
 #ifndef value_return
 #define value_return "c = %u"
 #endif
   print_in_char(value_return, msg->n_uint);
+  msg->used_uint = 0;
   } else if (msg->used_char) {
 #ifndef value_return
 #define value_return "c: %s"
 #endif
   print_in_char(value_return, msg->n_char);
+  msg->used_char = 0;
   }
+#undef value_return
   //char val_return[sizeof(value_return)];
   //sprintf(val_return, value_return, number);
   //write(1, val_return, strlen(val_return));
-  snprintf(position, strlen(place_), place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+  snprintf(position, strlen(place_), place_, pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
   move(1, position);
 }
 
@@ -1368,15 +1390,19 @@ void move_erase(Window_ *w, int fd, int y, int x)
 
 //void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **entries,
 //                   int option, unsigned int *c, int *pos, Array *a)
+//void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **entries,
+//                   int option, unsigned long *c, int *pos, Array *a)
+//void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **entries,
+//                   int option, unsigned long c, int *pos, Array *a)
 void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **entries,
-                   int option, unsigned long *c, int *pos, Array *a)
+                   int option, int c, int *pos, Array *a)
 {
   int i;
   int y = 0;
   char in[strlen(del)];
   sprintf(del_in, del, w->x_size - 2);
 
-  switch (*c) {
+  switch (c) {
     case KEY_UP:
     case UP:
       if (*pos > 0) {

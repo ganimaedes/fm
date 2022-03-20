@@ -36,6 +36,7 @@
 #define PLACE_SZ sizeof(place_)
 #define IN_SZ    sizeof(del)
 
+/*
 #define KEY_ESCAPE    0x001b
 #define KEY_ENTER     0x000a
 #define KEY_UP        0x0105
@@ -52,8 +53,30 @@
 
 #define KEY_PAGE_UP 100
 #define KEY_PAGE_DN 200
-#define KEY_HOME    300
-#define KEY_END     400
+#define KEY_HOME    0x0300
+#define KEY_END     0x0400
+*/
+                             // DECIMAL
+#define KEY_ESCAPE    0x001b // 27
+#define KEY_ENTER     0x000c // 13
+#define KEY_UP        0x0103 // 259
+#define KEY_DOWN      0x0102 // 258
+#define KEY_LEFT      0x0104 // 260
+#define KEY_RIGHT     0x0105 // 261
+#define KEY_SUPPR     0x014a // 330
+#define KEY_BACKSPACE 0x0008 // 8
+#define KEY_PAGE_UP   0x0153 // 339
+#define KEY_PAGE_DN   0x0152 // 338
+#define KEY_HOME      0x0106 // 262
+#define KEY_END       0x0168 // 360
+
+#define DN            0x006a
+#define UP            0x006b
+#define RIGHT         0x006c
+#define LEFT          0x0068
+//#define ENTER         0x000d
+#define ENTER         0x000a
+#define BACKSPACE     0x007f
 
 #define bg_cyan         "\033[46m"
 #define bg_blue         "\033[44m"

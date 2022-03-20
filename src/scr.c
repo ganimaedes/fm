@@ -1,4 +1,5 @@
 #include "scr.h"
+#include <stdio.h>
 
 int getch(void)
 {
@@ -36,6 +37,7 @@ int kbesc(void)
 
   if (!kbhit()) { return KEY_ESCAPE; }
   c = getch();
+  if (c == BACKSPACE) { ungetc(c, stdin); return c; }
   if (c == '[') {
     switch ((c = getch())) {
       case 'A':
@@ -55,7 +57,7 @@ int kbesc(void)
         c = KEY_SUPPR;
         break;
       case 'F':
-      //case '4':
+      case '4':
         c = KEY_END;
         break;
       case 'H':
