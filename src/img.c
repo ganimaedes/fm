@@ -588,18 +588,18 @@ void grab_keys(Win *win)
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
 // https://stackoverflow.com/a/29001687 https://stackoverflow.com/a/4037579
-  XGrabKey(foreground_dpy, win->keycodes[0], modifiers, // XK_End
-           win->grab_window, owner_events, pointer_mode,
-           keyboard_mode);
-  //XGrabKey(foreground_dpy, win->keycodes[0], Mod2Mask,
-  //         win->grab_window, owner_events, pointer_mode,
-  //         keyboard_mode);
-  //XGrabKey(foreground_dpy, win->keycodes[1], modifiers, // XK_Begin
-  //         win->grab_window, owner_events, pointer_mode,
-  //         keyboard_mode);
-  //XGrabKey(foreground_dpy, win->keycodes[1], Mod2Mask,
-  //         win->grab_window, owner_events, pointer_mode,
-  //         keyboard_mode);
+//  XGrabKey(foreground_dpy, win->keycodes[0], modifiers, // XK_End
+//           win->grab_window, owner_events, pointer_mode,
+//           keyboard_mode);
+//  XGrabKey(foreground_dpy, win->keycodes[0], Mod2Mask,
+//           win->grab_window, owner_events, pointer_mode,
+//           keyboard_mode);
+//  XGrabKey(foreground_dpy, win->keycodes[1], modifiers, // XK_Begin
+//           win->grab_window, owner_events, pointer_mode,
+//           keyboard_mode);
+//  XGrabKey(foreground_dpy, win->keycodes[1], Mod2Mask,
+//           win->grab_window, owner_events, pointer_mode,
+//           keyboard_mode);
   XGrabKey(foreground_dpy, win->keycodes[2], modifiers, // XK_BackSpace
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
@@ -717,7 +717,7 @@ int process_event(GC *gc,
   XEvent xe;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
-/*
+///*
   show_properties(atom_prop, &tmp_window, 1);
   if (strstr(atom_prop->status, "HIDDEN")) {
 #if defined(V_DEBUG)
@@ -748,7 +748,7 @@ int process_event(GC *gc,
     window_remapped = 1;
     window_unmapped = 0;
   }
-*/
+//*/
   if (atom_prop->status) {
     free(atom_prop->status);
     atom_prop->status = NULL;
@@ -777,11 +777,11 @@ int process_event(GC *gc,
         w->keycode_up_pressed = 1;
         return 0;
       }
-      /*else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
+      else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
         XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
         w->keycode_end_pressed = 1;
         return 0;
-      }*/
+      }
       else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
         XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
         w->keycode_end_pressed = 1;

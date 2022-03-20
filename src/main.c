@@ -320,6 +320,8 @@ int main(int argc, char **argv)
       } else if (match_extension(left_box.menu[pos].name, "jpeg") ||
                  match_extension(left_box.menu[pos].name, "jpg") ||
                  match_extension(left_box.menu[pos].name, "png")) {
+        //while (!kbhit());
+        // soit kbhit is trying to get char at the same time as XGet or XGrabKey error
 //./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, w2.x_beg + w1.x_size, w2.y_beg);
