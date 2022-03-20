@@ -1,5 +1,6 @@
 #include "img.h"
 #include "scr.h"
+#include <X11/X.h>
 #include <X11/Xlib.h>
 #include <unistd.h>
 #define STBI_NO_HDR
@@ -602,11 +603,11 @@ void grab_keys(Win *win)
   XGrabKey(foreground_dpy, win->keycodes[2], modifiers, // XK_BackSpace
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
-/*
-  //XGrabKey(foreground_dpy, win->keycodes[2], Mod2Mask,
-  //         win->grab_window, owner_events, pointer_mode,
-  //         keyboard_mode);
-*/
+///*
+  XGrabKey(foreground_dpy, win->keycodes[2], Mod2Mask,
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+//*/
 }
 
 //void put_image(Win *win, Image *img)
@@ -689,23 +690,23 @@ Window get_focus_window(Display* d)
   return w;
 }
 
-int x_error_handler( Display* dpy, XErrorEvent* pErr )
+int x_error_handler(Display* dpy, XErrorEvent* pErr)
 {
-    printf("X Error Handler called, values: %d/%lu/%d/%d/%d\n",
-        pErr->type,
-        pErr->serial,
-        pErr->error_code,
-        pErr->request_code,
-        pErr->minor_code );
-    if (pErr->request_code == 33){  // 33 (X_GrabKey)
-        if(pErr->error_code == BadAccess){
-            printf("ERROR: A client attempts to grab a key/button combination already\n"
-                   "        grabbed by another client. Ignoring.\n");
-            return 0;
-        }
+  printf("X Error Handler called, values: %d/%lu/%d/%d/%d\n",
+         pErr->type,
+         pErr->serial,
+         pErr->error_code,
+         pErr->request_code,
+         pErr->minor_code );
+  if (pErr->request_code == 33) {  // 33 (X_GrabKey)
+    if(pErr->error_code == BadAccess) {
+      printf("ERROR: A client attempts to grab a key/button combination already\n"
+          "        grabbed by another client. Ignoring.\n");
+      return 0;
     }
-    exit(1);  // exit the application for all unhandled errors.
-    return 0;
+  }
+  exit(1);  // exit the application for all unhandled errors.
+  return 0;
 }
 
 int process_event(GC *gc,
@@ -715,8 +716,8 @@ int process_event(GC *gc,
                   Atom_Prop *atom_prop, Image *img){
   XEvent xe;
   XNextEvent(foreground_dpy, &xe);
-  XSelectInput(foreground_dpy, *top_window, KeyPressMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
-
+  XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
+/*
   show_properties(atom_prop, &tmp_window, 1);
   if (strstr(atom_prop->status, "HIDDEN")) {
 #if defined(V_DEBUG)
@@ -747,6 +748,7 @@ int process_event(GC *gc,
     window_remapped = 1;
     window_unmapped = 0;
   }
+*/
   if (atom_prop->status) {
     free(atom_prop->status);
     atom_prop->status = NULL;
@@ -760,7 +762,9 @@ int process_event(GC *gc,
       if (xe.xclient.message_type == *wmDeleteMessage) {
         return 0;
       }
-    case KeyPress:
+    //case KeyPress:
+    case KeyRelease:
+
 #if defined(V_DEBUG)
       printf("xe.xkey.keycode: %d\n", xe.xkey.keycode);
 #endif // V_DEBUG
@@ -783,13 +787,16 @@ int process_event(GC *gc,
         w->keycode_end_pressed = 1;
         return 0;
       }
+
       else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
         XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
         w->keycode_bckspce_pressed = 1;
         return 0;
       }
+
       else {
         XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
+        //w->keycode_bckspce_pressed = 1;
         return 1;
       }
     default:
@@ -1309,7 +1316,8 @@ unsigned long set_img(__attribute__((__unused__)) int argc,
   } else if (win.keycode_beg_pressed) {
     return KEY_HOME;
   } else if (win.keycode_bckspce_pressed) {
-    return KEY_BACKSPACE;
+    return BACKSPACE;
+    //return KEY_BACKSPACE;
     //return 'h';
   }
   //return event_foreground.xkey.keycode;
