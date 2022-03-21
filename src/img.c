@@ -709,13 +709,26 @@ int x_error_handler(Display* dpy, XErrorEvent* pErr)
   return 0;
 }
 
+// https://blog.robertelder.org/detect-keyup-event-linux-terminal
+int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_type)
+{
+  /*  Holding down a key will cause 'autorepeat' to send fake keyup/keydown events, but we want to ignore these: '*/
+  if(event->type == current_type && XEventsQueued(d, QueuedAfterReading)){
+    XEvent nev;
+    XPeekEvent(d, &nev);
+    return (nev.type == next_type && nev.xkey.time == event->xkey.time && nev.xkey.keycode == event->xkey.keycode);
+  }
+  return FALSE;
+}
+
 int process_event(GC *gc,
                   Window *top_window,
                   Atom *wmDeleteMessage,
                   Win *w,
                   Atom_Prop *atom_prop,
                   Image *img,
-                  KeyCode *key) {
+                  KeyCode *key)
+{
   XEvent xe;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
@@ -764,8 +777,9 @@ int process_event(GC *gc,
       if (xe.xclient.message_type == *wmDeleteMessage) {
         return 0;
       }
-    //case KeyPress:
-    case KeyRelease:
+    case KeyPress:
+/*
+      {
 
 #if defined(V_DEBUG)
       printf("xe.xkey.keycode: %d\n", xe.xkey.keycode);
@@ -780,18 +794,18 @@ int process_event(GC *gc,
         return 0;
       }
       else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
-        //XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
         w->keycode_end_pressed = 1;
         return 0;
       }
       else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
-        //XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
         w->keycode_beg_pressed = 1;
         return 0;
       }
 
       else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
-        //XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
         w->keycode_bckspce_pressed = 1;
         return 0;
       }
@@ -803,6 +817,124 @@ int process_event(GC *gc,
         //return 1;
         return 0;
       }
+      break;
+    }
+*/
+    case KeyRelease: {
+
+      // https://opensource.apple.com/source/X11libs/X11libs-60/mesa/Mesa-7.8.2/src/glut/glx/glut_event.c.auto.html
+	  // If we are ignoring auto repeated keys for this window,
+	  // check if the next event in the X event queue is a KeyPress
+	  // for the exact same key (and at the exact same time) as the
+	  // key being released.  The X11 protocol will send auto
+	  // repeated keys as such KeyRelease/KeyPress pairs. */
+/*
+	  if (window->ignoreKeyRepeat) {
+	    if (XEventsQueued(__glutDisplay, QueuedAfterReading)) {
+	      XPeekEvent(__glutDisplay, &ahead);
+	      if (ahead.type == KeyPress
+	        && ahead.xkey.window == event.xkey.window
+	        && ahead.xkey.keycode == event.xkey.keycode
+	        && ahead.xkey.time == event.xkey.time) {
+		// Pop off the repeated KeyPress and ignore
+		//   the auto repeated KeyRelease/KeyPress pair.
+	        XNextEvent(__glutDisplay, &event);
+	        break;
+	      }
+	    }
+	  }
+*/
+    // https://stackoverflow.com/questions/2100654/ignore-auto-repeat-in-x11-applications
+     unsigned short is_retriggered = 0;
+
+     if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
+         XEvent nev;
+         XPeekEvent(foreground_dpy, &nev);
+
+     // https://stackoverflow.com/questions/2150291/how-do-i-measure-a-time-interval-in-c
+       struct timeval t1, t2;
+    //double elapsedTime;
+
+    // start timer
+    gettimeofday(&t1, NULL);
+
+    // do something
+    // ..
+
+
+//         if (nev.type == KeyPress && nev.xkey.time == xe.xkey.time &&
+//             nev.xkey.keycode == xe.xkey.keycode) {
+
+         if (nev.type == KeyPress && elapsedTime > 0.0 && pastElapsedTime - elapsedTime < 100000.0) {
+             fprintf (stdout, "key #%ld was retriggered.\n",
+               (long) XLookupKeysym (&nev.xkey, 0));
+             printf("%f ms.\n", pastElapsedTime - elapsedTime);
+
+
+             // delete retriggered KeyPress event
+             XNextEvent (foreground_dpy, &xe);
+             is_retriggered = 1;
+           }
+
+    // stop timer
+    gettimeofday(&t2, NULL);
+
+    // compute and print the elapsed time in millisec
+    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+    //printf("%f ms.\n", elapsedTime);
+       }
+
+     if (!is_retriggered) {
+       pastElapsedTime = elapsedTime;
+       fprintf (stdout, "key #%ld was released.\n",
+         (long) XLookupKeysym (&xe.xkey, 0));
+       return 1;
+     }
+/*
+      if (was_it_auto_repeat(foreground_dpy, &xe, KeyRelease, KeyPress)) {
+        XNextEvent(foreground_dpy, &xe); // Consume the extra event so we can ignore it.
+      }
+*/
+///*
+#if defined(V_DEBUG)
+      printf("xe.xkey.keycode: %d\n", xe.xkey.keycode);
+#endif // V_DEBUG
+      if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
+        w->keycode_dn_pressed = 1;
+        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        return 0;
+      } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
+        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        w->keycode_up_pressed = 1;
+        return 0;
+      }
+      else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
+        XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
+        w->keycode_end_pressed = 1;
+        return 0;
+      }
+      else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
+        XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
+        w->keycode_beg_pressed = 1;
+        return 0;
+      }
+
+      else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
+        XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
+        w->keycode_bckspce_pressed = 1;
+        return 0;
+      }
+
+      else {
+        *key = xe.xkey.keycode;
+        XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
+        //w->keycode_bckspce_pressed = 1;
+        //return 1;
+        return 0;
+      }
+//*/
+    }
     default:
       return 1;
   }
@@ -1024,6 +1156,7 @@ unsigned long set_img(__attribute__((__unused__)) int argc,
   //    target_win, tmp_window, root, /*foreground_win */ win.foreground_win);
 #endif
 
+  elapsedTime = 0.0;
   KeyCode key = 0;
   while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key));
   //while (process_event(&img.gc, &win.foreground_win, &wmDeleteMessage, &win, &atom_prop, &img));
@@ -1319,7 +1452,9 @@ unsigned long set_img(__attribute__((__unused__)) int argc,
   } else if (win.keycode_end_pressed) {
     return KEY_END;
   } else if (win.keycode_beg_pressed) {
-    return KEY_HOME;
+    //printf("KEY HOME PRESSED\n");
+    return KEY_ALL_UP;
+    //return KEY_HOME;
   } else if (win.keycode_bckspce_pressed) {
     return BACKSPACE;
     //return KEY_BACKSPACE;

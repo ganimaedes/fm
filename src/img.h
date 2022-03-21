@@ -3,6 +3,7 @@
 // xtruss -e events -C ./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
 // xgc --version
 // xdpyinfo
+#include "scr.h"
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -18,6 +19,7 @@
 #include <sys/select.h>
 #include <stdint.h>
 #include <time.h>
+#include <sys/time.h>
 
 #define MAXSTR      500
 #ifndef MIN
@@ -37,6 +39,9 @@ static sig_atomic_t volatile window_remapped = 0;
 static Bool xerror = FALSE;
 
 #define ATOM(a) XInternAtom(foreground_dpy, #a, False)
+
+//static double elapsedTime;
+//static double pastElapsedTime;
 
 typedef struct _Properties {
   int         n_elements;
@@ -125,6 +130,7 @@ int x_error_handler(Display* dpy, XErrorEvent* pErr);
 //                  Win *w,
 //                  Atom_Prop *atom_prop, Image *img);
 
+int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_type);
 int process_event(GC *gc,
                   Window *top_window,
                   Atom *wmDeleteMessage,

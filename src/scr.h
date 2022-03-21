@@ -284,6 +284,10 @@ typedef struct {
 #define FALSE 0
 #endif // FALSE
 
+
+static double elapsedTime;
+static double pastElapsedTime;
+
 //typedef int bool;
 static int quit = FALSE;
 #define PRINT(msg) do {                                          \

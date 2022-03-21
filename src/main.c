@@ -35,6 +35,7 @@ volatile sig_atomic_t back_pressed = 0;
 volatile sig_atomic_t enter_backspace = 1;
 volatile sig_atomic_t image_used = 0;
 volatile sig_atomic_t modify_pos_bc_image_used = 0;
+volatile sig_atomic_t previous_position_before_backspace = 0;
 
 char position[PLACE_SZ];
 char del_in[IN_SZ];
@@ -222,10 +223,13 @@ int main(int argc, char **argv)
     //}
     //image_used = 0;
     //char *pos_str = "pos = ";
+
+#if defined(EBUG)
     msg.print_msg = "previous_pos = ";
     msg.n_ulong = previous_pos;
     msg.used_ulong = 1;
     print_message2(&w_main, &s, 1, pos, &msg);
+#endif // EBUG
     if (left_box.n_elements != 0) {
       //if (previous_pos < left_box.n_elements) {
         if (backspace) {
@@ -303,29 +307,36 @@ int main(int argc, char **argv)
       //char *MSG = "c = ";
       //if (c > 400) { c = 107; }
       //print_message(&w_main, &s, 4, MSG, c, &pos);
-      msg.n_ulong = c;
-      msg.used_ulong = 1;
-      msg.print_msg = "keypress = ";
       // mettre une autre struct enregistrant les keypresses
 
       //if (c > 400) { c = 107; pos = 0; sleep(5); }
       //if (c == -17) { c = 107; }
 
-      if (image_used) {
-        pos = previous_pos;
-      }
+      //if (image_used) {
+      //  pos = previous_pos;
+      //}
       print_entries(&w1, &s, entries, option, (int)c, &pos, &left_box);
       image_used = 0;
       print_permissions(&left_box, &s, &w1, pos);
-      //print_message2(&w_main, &s, 4, &pos, &msg);
+
+#if defined(EBUG)
+      msg.n_ulong = c;
+      msg.used_ulong = 1;
+      msg.print_msg = "keypress = ";
       print_message2(&w1, &s, 0, pos, &msg);
-      msg.used_ulong = 0;
+      //msg.used_ulong = 0;
+#endif // EBUG
 
 /*
       msg.print_msg = "pos = ";
       msg.n_ulong = pos;
       msg.used_ulong = 1;
       print_message2(&w1, &s, 6, pos, &msg);
+      if (modify_pos_bc_image_used && back_pressed) {
+        pos = previous_position_before_backspace;
+        modify_pos_bc_image_used = 0;
+      }
+
 */
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
@@ -351,6 +362,10 @@ int main(int argc, char **argv)
         //ai to see deleted pics
         //draw_box for when passing from two windows to three windows
         c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
+        if (c == KEY_ALL_UP) {
+          //sleep(10);
+        }
+        //if (c == XKEY)
 /*
         if (c == KEY_END) {
           ungetc(c, stdin);
@@ -1477,12 +1492,15 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
   int y = 0;
   char in[strlen(del)];
   sprintf(del_in, del, w->x_size - 2);
-  int previous_position_before_backspace = *pos;
+  previous_position_before_backspace = *pos;
+
+#if defined(EBUG)
   Message msg = {};
   msg.print_msg = "pos print_entries = ";
   msg.n_ulong = *pos;
   msg.used_ulong = 1;
   print_message2(w, s, 6, *pos, &msg);
+#endif // EBUG
 
   switch (c) {
     case KEY_UP:
@@ -1769,6 +1787,15 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
     case KEY_HOME:
     case KEY_ALL_UP:
       *pos = 0;
+// and backspace used
+// replaces the highlighted elements at where they were before entering the folder
+// seems that x11 can't 'ungrab' key home and key end keys
+/*
+      if (modify_pos_bc_image_used && back_pressed) {
+        *pos = previous_position_before_backspace;
+        modify_pos_bc_image_used = 0;
+      }
+*/
       s->pos_upper_t = 0;
       s->pos_lower_t = s->n_to_print - 1;
       s->n_lower_t = s->array_size - s->n_to_print;
@@ -1785,7 +1812,8 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
     case KEY_END:
       s->pos_upper_t = s->array_size - s->n_to_print;
       *pos = s->array_size - 1;
-// and backspace used
+// replaces the highlighted elements at where they were before entering the folder
+// seems that x11 can't 'ungrab' key home and key end keys
       if (modify_pos_bc_image_used && back_pressed) {
         *pos = previous_position_before_backspace;
         modify_pos_bc_image_used = 0;
@@ -1807,9 +1835,9 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
       break;
   }
 
-  if (image_used) {
-    *pos = previous_position_before_backspace;
-  }
+  //if (image_used) {
+  //  *pos = previous_position_before_backspace;
+  //}
 
   if (*pos == 0) {
     sprintf(position, place_, w->y_beg + 1, w->x_beg + 1);
