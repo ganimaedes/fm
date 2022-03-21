@@ -31,6 +31,20 @@ int kbhit(void)
   return c != -1 ? 1 : 0;
 }
 
+/*
+Public Boolean tick = false;
+private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+{
+tick = !tick;
+    label1.Text = "Key Pressed: " + e.KeyChar;
+   //animate(sender, e);
+if(tick)
+    timer1.Start();
+else
+    timer1.Stop();
+}
+*/
+
 int kbesc(void)
 {
   int c = 0;
@@ -44,9 +58,24 @@ int kbesc(void)
         c = KEY_UP;
         //c = UP;
         break;
-      case 'B':
+      case 'B': {
+        is_retriggered = !is_retriggered;
+        if (is_retriggered && elapsedTime < 0.1) {
+          // start timer
+          gettimeofday(&t1, NULL);
+          printf("reprint\n");
+          elapsedTime = 0;
+          sleep(5);
+        } else {
+          // stop timer
+          gettimeofday(&t2, NULL);
+          // compute and print the elapsed time in millisec
+          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+          elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+        }
         c = KEY_DOWN;
         break;
+      }
       case 'C':
         c = KEY_LEFT;
         break;

@@ -43,6 +43,12 @@ static Bool xerror = FALSE;
 //static double elapsedTime;
 //static double pastElapsedTime;
 
+//static struct timeval t1, t2;
+//static volatile sig_atomic_t is_retriggered = 0;
+//static unsigned short is_retriggered = 0;
+    //double elapsedTime;
+
+
 typedef struct _Properties {
   int         n_elements;
   int         capacity;

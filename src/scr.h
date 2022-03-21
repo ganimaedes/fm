@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <locale.h>
 #include <sys/wait.h>
+#include <sys/time.h>
 //#include <wchar.h>
 
 
@@ -287,6 +288,8 @@ typedef struct {
 
 static double elapsedTime;
 static double pastElapsedTime;
+static struct timeval t1, t2;
+static volatile sig_atomic_t is_retriggered = 0;
 
 //typedef int bool;
 static int quit = FALSE;
