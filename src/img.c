@@ -540,7 +540,8 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (xwa.width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, ((xwa.width + xwa.x + x_dist) / 2) + center_in_second_window_dist - img->new_width / 2, 49,
-  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, ((xwa.width) / 2) + xwa.x + center_in_second_window_dist - img->new_width / 2, 49,
+  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, ((xwa.width) / 2) + xwa.x + center_in_second_window_dist - img->new_width / 2,
+                                              xwa.y + 49,
                                               img->new_width, img->new_height, 0,
                                               BlackPixel(foreground_dpy, win->screen),
                                               WhitePixel(foreground_dpy, win->screen));
@@ -1210,43 +1211,8 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 //  *
   Image img = {};
 
-  //int y_px = atoi(argv[6]);
-  //int x_px = atoi(argv[5]);
-  //int y_px = y_pos_in;
   int y_px = 90;
-  //int x_px = (x_pos_in / 2) + 10;
 
-/*
-  // Load image into data variable
-  //img.data = stbi_load(argv[3], &(img.width), &(img.height), &(img.n), 4);
-  img.data = stbi_load(path, &(img.width), &(img.height), &(img.n), 4);
-
-  //double factor = atof(argv[4]);
-  double factor = factor_in;
-  img.new_width = img.width * factor;
-  img.new_height = img.height * factor;
-
-  // Allocate Memory for data_resized variable with new_width & new_height
-  img.data_resized = malloc((img.new_width * img.new_height * 4) * sizeof *img.data_resized);
-  if (img.data_resized == NULL) {
-    fprintf(stderr, "Error malloc data_resized.\n");
-    exit(1);
-  }
-
-  // Resize image from data to data_resized
-  stbir_resize_uint8(img.data, img.width, img.height,
-                     0, img.data_resized, img.new_width, img.new_height, 0, 4);
-
-  int i = 0,
-      len = img.new_width * img.new_height;
-  unsigned int *dp = (unsigned int *)img.data_resized;
-  for (; i < len; ++i) {
-    dp[i] = (dp[i] & 0xFF00FF00) | ((dp[i] >> 16) & 0xFF) | ((dp[i] << 16) & 0xFF0000);
-  }
-*/
-//  *
-//  * 0 Image END
-//  *
   Window root = DefaultRootWindow(foreground_dpy);
   Window term_window = get_focus_window(foreground_dpy); // parent window id
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
@@ -1287,12 +1253,9 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   win.keycode_bckspce_pressed = 0;
   win.keycode_dn_pressed = 0;
   win.keycode_up_pressed = 0;
-  //create_window(&win, &root, x_px, y_px, &img);
   win.background_win = term_window;
-  //create_window(&win, &root, x_px, y_px, &img, path);
   create_window(&win, &root, 0, y_px, &img, path);
   //nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);
-  //sleep(1);
 
 //  *
 //  * 1 Create window END
@@ -1320,24 +1283,13 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 //  *
 //  * 3 Put Image BEGIN
 //  *
-  //put_image(&win, &img);
-  //put_image(&win, &img, x_px, y_px);
   Atom active_window;
 
   Atom_Prop atom_prop = { 0 };
   Atom_Prop child_win = { 0 };
 
-  //if (check_if_key_press(info, &tmp_window, &win) == 0) {
 
   int result_key_press = 0;
-/*
-  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
-  //while ((result_key_press = check_if_key_press2(info, &tmp_window, &win))) {
-    if (result_key_press == 0) {
-      goto finish;
-    }
-  }
-*/
   int window_maximized = 0;
   put_image(&win, &img, 0, y_px);
 
@@ -1358,103 +1310,12 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   XFlush(foreground_dpy);
   XSync(foreground_dpy, False);
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
-/*
-  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
-    if (result_key_press == 0) {
-      goto finish;
-    }
-  }
-*/
   for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
     if (event.type == MapNotify) {
       break;
     }
-/*
-    else if (event.type == KeyPress) {
-      XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, tmp_window);
-      //goto finish;
-
-      //printf("        KEYGRAB         ");
-      //sleep(5);
-      //continue;
-
-      if (event.xkey.keycode == win.keycode_dn) { // X_KEY_DN
-        win.keycode_dn_pressed = 1;
-        XUngrabKey(foreground_dpy, win.keycode_dn, 0, tmp_window);
-        goto finish;
-        //return KEY_DOWN;
-        //return 0;
-      } else if (event.xkey.keycode == win.keycode_up) { // X_KEY_UP
-        XUngrabKey(foreground_dpy, win.keycode_up, 0, tmp_window);
-        win.keycode_up_pressed = 1;
-        goto finish;
-        //return KEY_UP;
-        //return 0;
-      }
-      else if (event.xkey.keycode == win.keycodes[0]) { // XK_End
-        XUngrabKey(foreground_dpy, win.keycodes[0], 0, tmp_window);
-        win.keycode_end_pressed = 1;
-        goto finish;
-        //return KEY_END;
-        //return 0;
-      }
-      else if (event.xkey.keycode == win.keycodes[1]) { // XK_Begin
-        XUngrabKey(foreground_dpy, win.keycodes[1], 0, tmp_window);
-        win.keycode_beg_pressed = 1;
-        goto finish;
-        //return KEY_ALL_UP;
-        //return 0;
-      }
-
-      else if (event.xkey.keycode == win.keycodes[2]) { // XK_BackSpace
-        XUngrabKey(foreground_dpy, win.keycodes[2], 0, tmp_window);
-        win.keycode_bckspce_pressed = 1;
-        goto finish;
-        //return BACKSPACE;
-        //return 0;
-      }
-
-      else {
-        // *key = xe.xkey.keycode;
-        XUngrabKey(foreground_dpy, event.xkey.keycode, 0, tmp_window);
-        //w->keycode_bckspce_pressed = 1;
-        //return 1;
-        goto finish;
-        //return 0;
-      }
-//  *
-//  * 8 WIN BEGIN
-//  *
-      if (img.data_resized) {
-        free(img.data_resized);
-        img.data_resized = NULL;
-      }
-      if (img.data) {
-        stbi_image_free(img.data);
-        img.data = NULL;
-      }
-      if (img.ximage) {
-        XFree(img.ximage);
-      }
-      if (foreground_dpy && img.gc) {
-        XFreeGC(foreground_dpy, img.gc);
-      }
-      if (foreground_dpy && win.foreground_win) {
-        XDestroyWindow(foreground_dpy, win.foreground_win);
-      }
-      //  *
-      //  * 8 WIN END
-      //  *
-      close_display();
-      if (property_formats) {
-        free(property_formats);
-        property_formats = NULL;
-      }
-      return 1;
-    }
-  */
   }
 #if defined(V_DEBUG_POSITION)
   printf("img.ximage[0] = %d\n", img.ximage->data[0]);
@@ -1487,24 +1348,6 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 
   XEvent event_foreground = { 0 };
 
-/*
-  fd_set in_fds;
-  struct timeval tv;
-
-  int fd_background = 0;
-  int fd_foreground = 0;
-  int num_fds       = 0;
-  fd_foreground     = ConnectionNumber(foreground_dpy);
-
-  int x_pos         = xwa.x;
-  int y_pos         = xwa.y;
-  int width_bg_win  = xwa.width;
-  int height_bg_win = xwa.height;
-
-  int x_mv            = 0;
-  int y_mv            = 0;
-  int window_unmapped = 0;
-*/
 
   int window_set_above = 0;
 #if defined(V_DEBUG)
@@ -1517,17 +1360,9 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   pastElapsedTime = 0.0;
   KeyCode key = 0;
   while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key, info)) {
-    // stop timer
-    //gettimeofday(&t2, NULL);
-    // compute and print the elapsed time in millisec
-    //elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
-    //elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
-    //printf("%f ms.\n", elapsedTime);
     pastElapsedTime = elapsedTime;
 
   }
-  //while (process_event(&img.gc, &win.foreground_win, &wmDeleteMessage, &win, &atom_prop, &img));
-  //while (process_event(&img.gc, &target_win, &wmDeleteMessage, &win, &atom_prop, &img));
 /*
   while (!stop) {
 
