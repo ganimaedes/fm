@@ -1173,6 +1173,12 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
     XNextEvent(foreground_dpy, &event);
     if (event.type == MapNotify) {
       break;
+    } else if (event.type == KeyPress) {
+      //XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, tmp_window);
+      printf("        KEYGRAB         ");
+      sleep(5);
+      continue;
+      //return 1;
     }
   }
 #if defined(V_DEBUG_POSITION)
