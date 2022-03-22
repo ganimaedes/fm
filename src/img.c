@@ -912,8 +912,9 @@ else
           //    (long) XLookupKeysym (&xe.xkey, 0));
           // start timer
           gettimeofday(&t1, NULL);
+          ++n_times_keypressed_copy;
           if (n_times_keypressed >= 1) {
-            n_times_keypressed = 0;
+            //n_times_keypressed = 0;
           }
 
           /*
@@ -930,6 +931,7 @@ else
           //return 0;
           return 1;
         } else {
+          ++n_times_keypressed_copy;
           // stop timer
           gettimeofday(&t2, NULL);
           elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
@@ -940,8 +942,8 @@ else
         if (n_times_keypressed_copy > 1) {
           info->n_times_pressed = n_times_keypressed_copy;
           info->keypress_value = (long)XLookupKeysym(&nev.xkey, 0);
+          sleep(10);
         }
-        sleep(10);
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up || nev.xkey.keycode == w->keycode_up) { // X_KEY_UP
         XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
