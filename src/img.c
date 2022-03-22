@@ -1029,7 +1029,10 @@ int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
     //    XEvent nev;
     //    XPeekEvent(foreground_dpy, &nev);
 
-            sleep(10);
+            //sleep(10);
+            
+  switch (ahead.type) {
+    case KeyPress:
 	    if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
 	      XPeekEvent(foreground_dpy, &ahead);
 	      if (ahead.type == KeyPress
@@ -1043,6 +1046,7 @@ int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
 	        //break;
 	      }
 	    }
+  }
 
 /*
     if (event.type == KeyPress) {
@@ -1324,8 +1328,12 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   Atom_Prop child_win = { 0 };
 
   //if (check_if_key_press(info, &tmp_window, &win) == 0) {
-  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
-    goto finish;
+  //if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+  int result_key_press = 0;
+  while ((result_key_press = check_if_key_press2(info, &tmp_window, &win))) {
+    if (result_key_press == 0) {
+      goto finish;
+    }
   }
 
   int window_maximized = 0;
