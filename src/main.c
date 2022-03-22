@@ -366,6 +366,9 @@ int main(int argc, char **argv)
         //draw_box for when passing from two windows to three windows
         //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
         c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
+        if (info_key_presses.n_times_pressed > 1) {
+          sleep(5);
+        }
         if (c == KEY_ALL_UP) {
           //sleep(10);
         }

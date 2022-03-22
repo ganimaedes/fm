@@ -937,6 +937,11 @@ else
       if (xe.xkey.keycode == w->keycode_dn || nev.xkey.keycode == w->keycode_dn) { // X_KEY_DN
         w->keycode_dn_pressed = 1;
         XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        if (n_times_keypressed_copy > 1) {
+          info->n_times_pressed = n_times_keypressed_copy;
+          info->keypress_value = (long)XLookupKeysym(&nev.xkey, 0);
+        }
+        sleep(10);
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up || nev.xkey.keycode == w->keycode_up) { // X_KEY_UP
         XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
