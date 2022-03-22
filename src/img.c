@@ -451,25 +451,9 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   int width = DisplayWidth(foreground_dpy, win->screen);
   int height = DisplayHeight(foreground_dpy, win->screen);
   // Load image into data variable
-  //img.data = stbi_load(argv[3], &(img.width), &(img.height), &(img.n), 4);
   img->data = stbi_load(path, &(img->width), &(img->height), &(img->n), 4);
 
-  //double factor = atof(argv[4]);
-  //double factor = factor_in;
   double factor = 1.0;
-/*
-  double temp_width;
-  double temp_height;
-  if (img->width > (width / 2)) {
-    fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-    //printf("width / 2 = %d, img->width = %d\n", width / 2, img->width);
-    temp_width = (double)(width / 2);
-    factor = temp_width / img->width;
-  } else if ((double)(img->height) > (double)((double)height - 100.0)) {
-    temp_height = (double)(height - 100.0);
-    factor = temp_height / temp_height;
-  }
-*/
 
   XWindowAttributes xwa_image;
   xwa_image.override_redirect = TRUE;
@@ -492,7 +476,6 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   //printf("new_width = %d, new_height = %d\n", img->new_width, img->new_height);
 
   // Allocate Memory for data_resized variable with new_width & new_height
-  //img->data_resized = malloc((img->new_width * img->new_height * 4) * sizeof *img->data_resized);
   int new_width = (int)img->new_width;
   int new_height = (int)img->new_height;
   img->data_resized = malloc((new_width * new_height * 4) * sizeof *img->data_resized);
@@ -952,11 +935,13 @@ else
         if (n_times_keypressed_copy > 1) {
           info->n_times_pressed = n_times_keypressed_copy;
           info->keypress_value = (long)XLookupKeysym(&nev.xkey, 0);
+          info->ascii_value = KEY_DOWN;
+          //info->keypress_value = KEY_DOWN;
           //sleep(10);
         }
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up || nev.xkey.keycode == w->keycode_up) { // X_KEY_UP
-        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
         w->keycode_up_pressed = 1;
         return 0;
       }

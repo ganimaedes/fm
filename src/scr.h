@@ -282,6 +282,7 @@ typedef struct {
 
 typedef struct {
   long keypress_value;
+  unsigned long ascii_value;
   int n_times_pressed;
 } InfoKeyPresses;
 

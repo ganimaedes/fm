@@ -1,5 +1,6 @@
 #include "array.h"
 #include "scr.h"
+#include <stdio.h>
 #include <unistd.h>
 #define _XOPEN_SOURCE
 
@@ -364,9 +365,19 @@ int main(int argc, char **argv)
         //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
         //ai to see deleted pics
         //draw_box for when passing from two windows to three windows
+        // ssh function
         //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
         ttymode_reset(ECHO, 0);
         c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
+        // ungetc for n_times_pressed
+        // always keep above parent window but below others
+        if (info_key_presses.n_times_pressed > 1) {
+          size_t n;
+          for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
+            //ungetc(info_key_presses.keypress_value, stdin);
+            ungetc(info_key_presses.ascii_value, stdin);
+          }
+        }
         if (info_key_presses.n_times_pressed > 1) {
           msg.print_msg = "n_times_pressed = ";
           msg.n_ulong = info_key_presses.n_times_pressed;
@@ -421,7 +432,6 @@ int main(int argc, char **argv)
       }
       //print_tty(&w3, fd, &attributes);
 #endif // EBUG
-
 
     if (image_used == 0 && (c = kbget()) == KEY_ESCAPE) {
       break;
