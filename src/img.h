@@ -137,15 +137,25 @@ int x_error_handler(Display* dpy, XErrorEvent* pErr);
 //                  Atom_Prop *atom_prop, Image *img);
 
 int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_type);
+//int process_event(GC *gc,
+//                  Window *top_window,
+//                  Atom *wmDeleteMessage,
+//                  Win *w,
+//                  Atom_Prop *atom_prop,
+//                  Image *img,
+//                  KeyCode *key);
+
 int process_event(GC *gc,
                   Window *top_window,
                   Atom *wmDeleteMessage,
                   Win *w,
                   Atom_Prop *atom_prop,
                   Image *img,
-                  KeyCode *key);
+                  KeyCode *key,
+                  InfoKeyPresses *info);
 //int set_img(int argc, char **argv);
 //int set_img(int argc, char *prog_name, Window window_in, char *path, double factor_in, int y_pos_in, int x_pos_in);
-unsigned long set_img(int argc, char *prog_name, Window window_in, char *path, double factor_in, int y_pos_in, int x_pos_in);
+//unsigned long set_img(int argc, char *prog_name, Window window_in, char *path, double factor_in, int y_pos_in, int x_pos_in);
+unsigned long set_img(char *path, InfoKeyPresses *info);
 
 #endif // IMG_H

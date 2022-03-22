@@ -1,6 +1,7 @@
 #ifndef SCR_H
 #define SCR_H
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -278,6 +279,13 @@ typedef struct {
     int option_previous;
 } Scroll;
 
+typedef struct {
+  unsigned long keypress_value;
+  int n_times_pressed;
+} InfoKeyPresses;
+
+static InfoKeyPresses info_key_presses;
+
 #ifndef TRUE
 #define TRUE  1
 #endif // TRUE
@@ -290,6 +298,8 @@ static double elapsedTime;
 static double pastElapsedTime;
 static struct timeval t1, t2;
 static volatile sig_atomic_t is_retriggered = 0;
+static volatile sig_atomic_t n_times_keypressed = 0;
+static volatile sig_atomic_t n_times_keypressed_copy = 0;
 
 //typedef int bool;
 static int quit = FALSE;

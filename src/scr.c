@@ -59,6 +59,7 @@ int kbesc(void)
         //c = UP;
         break;
       case 'B': {
+/*
         is_retriggered = !is_retriggered;
         if (is_retriggered && elapsedTime < 0.1) {
           // start timer
@@ -73,6 +74,7 @@ int kbesc(void)
           elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
           elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
         }
+*/
         c = KEY_DOWN;
         break;
       }

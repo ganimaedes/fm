@@ -720,7 +720,7 @@ int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_t
   }
   return FALSE;
 }
-
+/*
 int process_event(GC *gc,
                   Window *top_window,
                   Atom *wmDeleteMessage,
@@ -728,8 +728,17 @@ int process_event(GC *gc,
                   Atom_Prop *atom_prop,
                   Image *img,
                   KeyCode *key)
+*/
+int process_event(GC *gc,
+                  Window *top_window,
+                  Atom *wmDeleteMessage,
+                  Win *w,
+                  Atom_Prop *atom_prop,
+                  Image *img,
+                  KeyCode *key,
+                  InfoKeyPresses *info)
 {
-  gettimeofday(&t1, NULL);
+  //gettimeofday(&t1, NULL);
   XEvent xe;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
@@ -880,9 +889,12 @@ else
 //             nev.xkey.keycode == xe.xkey.keycode)
              //printf("%f ms.\n", pastElapsedTime);
 
-             if (nev.type == KeyPress /* &&  pastElapsedTime  < 1000.99800 */ && elapsedTime < 0.09) {
+             if (nev.type == KeyPress /* &&  pastElapsedTime  < 1000.99800 */ && elapsedTime < 1.04 && n_times_keypressed == 0) {
                //fprintf (stdout, "key #%ld was retriggered.\n", (long) XLookupKeysym (&nev.xkey, 0));
                //printf("%f ms.\n", pastElapsedTime);
+               ++n_times_keypressed;
+               ++n_times_keypressed_copy;
+
 
 
         //       XUngrabKey(foreground_dpy, int, unsigned int, Window);
@@ -894,11 +906,15 @@ else
                //elapsedTime = 0;
              }
 
+// retourner la derniere position du left box precedent
         if (!is_retriggered) {
-          fprintf (stdout, "key #%ld was released.\n",
-              (long) XLookupKeysym (&xe.xkey, 0));
+          //fprintf (stdout, "key #%ld was released.\n",
+          //    (long) XLookupKeysym (&xe.xkey, 0));
           // start timer
           gettimeofday(&t1, NULL);
+          if (n_times_keypressed >= 1) {
+            n_times_keypressed = 0;
+          }
 
           /*
           // stop timer
@@ -910,10 +926,25 @@ else
                                                                //printf("%f ms.\n", elapsedTime);
                                                                pastElapsedTime = elapsedTime;
                                                                */
+          //XUngrabKey(foreground_dpy, (long) XLookupKeysym(&nev.xkey, 0), 0, *top_window);
+          //return 0;
           return 1;
         } else {
           // stop timer
           gettimeofday(&t2, NULL);
+          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+          elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+      if (xe.xkey.keycode == w->keycode_dn || nev.xkey.keycode == w->keycode_dn) { // X_KEY_DN
+        w->keycode_dn_pressed = 1;
+        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        return 0;
+      } else if (xe.xkey.keycode == w->keycode_up || nev.xkey.keycode == w->keycode_up) { // X_KEY_UP
+        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        w->keycode_up_pressed = 1;
+        return 0;
+      }
+          return 0;
+          //return 1;
           XUngrabKey(foreground_dpy, (long) XLookupKeysym(&nev.xkey, 0), 0, *top_window);
           elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
           elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
@@ -973,12 +1004,13 @@ else
 }
 
 //int set_img(int argc, char **argv)
-unsigned long set_img(__attribute__((__unused__)) int argc,
-            __attribute__((__unused__)) char *prog_name,
-            __attribute__((__unused__)) Window window_in,
-            char *path,
-            double factor_in,
-            int y_pos_in, int x_pos_in)
+//unsigned long set_img(__attribute__((__unused__)) int argc,
+//            __attribute__((__unused__)) char *prog_name,
+//            __attribute__((__unused__)) Window window_in,
+//            char *path,
+//            double factor_in,
+//            int y_pos_in, int x_pos_in)
+unsigned long set_img(char *path, InfoKeyPresses *info)
 {
 
 #if defined(EBUG)
@@ -1007,7 +1039,7 @@ unsigned long set_img(__attribute__((__unused__)) int argc,
   //int x_px = atoi(argv[5]);
   //int y_px = y_pos_in;
   int y_px = 90;
-  int x_px = (x_pos_in / 2) + 10;
+  //int x_px = (x_pos_in / 2) + 10;
 
 /*
   // Load image into data variable
@@ -1082,7 +1114,8 @@ unsigned long set_img(__attribute__((__unused__)) int argc,
   win.keycode_up_pressed = 0;
   //create_window(&win, &root, x_px, y_px, &img);
   win.background_win = term_window;
-  create_window(&win, &root, x_px, y_px, &img, path);
+  //create_window(&win, &root, x_px, y_px, &img, path);
+  create_window(&win, &root, 0, y_px, &img, path);
   //nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);
   //sleep(1);
 
@@ -1113,7 +1146,8 @@ unsigned long set_img(__attribute__((__unused__)) int argc,
 //  * 3 Put Image BEGIN
 //  *
   //put_image(&win, &img);
-  put_image(&win, &img, x_px, y_px);
+  //put_image(&win, &img, x_px, y_px);
+  put_image(&win, &img, 0, y_px);
   img.ximage = XCreateImage(foreground_dpy, CopyFromParent, img.depth, ZPixmap,
                                 0, (char *)img.data_resized, img.new_width, img.new_height,
                                 img.bpl * 8, img.bpl * img.new_width);
@@ -1191,12 +1225,12 @@ unsigned long set_img(__attribute__((__unused__)) int argc,
   elapsedTime = 0.0;
   pastElapsedTime = 0.0;
   KeyCode key = 0;
-  while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key)) {
+  while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key, info)) {
     // stop timer
-    gettimeofday(&t2, NULL);
+    //gettimeofday(&t2, NULL);
     // compute and print the elapsed time in millisec
-    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
-    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+    //elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+    //elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
     //printf("%f ms.\n", elapsedTime);
     pastElapsedTime = elapsedTime;
 

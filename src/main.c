@@ -212,6 +212,9 @@ int main(int argc, char **argv)
 
   //int image_used = 0;
 
+  info_key_presses.keypress_value = 0;
+  info_key_presses.n_times_pressed = 0;
+
   for (;;) {
     if (!ioctl(0, TIOCGWINSZ, &w_s)) {
       window_resize(&w_main, &w1, &w2, &w_s, &s, &left_box, &right_box, &option, &pos, &initial_loop, &resized, &i);
@@ -361,7 +364,8 @@ int main(int argc, char **argv)
         //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
         //ai to see deleted pics
         //draw_box for when passing from two windows to three windows
-        c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
+        //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
+        c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
         if (c == KEY_ALL_UP) {
           //sleep(10);
         }
@@ -692,7 +696,7 @@ int del_file(Window_ *w1, Scroll *s, Array *left_box, int *pos, int *option)
   memcpy(_parent, left_box->menu[*pos].complete_path, _i);
   _parent[_i] = '\0';
 
-  unlink(left_box->menu[*pos].complete_path);
+  //unlink(left_box->menu[*pos].complete_path);
 
   if (left_box->n_elements != 0) {
     free_array(left_box);
