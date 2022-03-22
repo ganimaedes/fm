@@ -280,7 +280,7 @@ typedef struct {
 } Scroll;
 
 typedef struct {
-  unsigned long keypress_value;
+  long keypress_value;
   int n_times_pressed;
 } InfoKeyPresses;
 

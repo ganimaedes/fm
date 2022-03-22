@@ -371,6 +371,9 @@ int main(int argc, char **argv)
           msg.n_ulong = info_key_presses.n_times_pressed;
           msg.used_ulong = 1;
           print_message2(&w_main, &s, 1, pos, &msg);
+          info_key_presses.n_times_pressed = 0;
+          n_times_keypressed = 0;
+          n_times_keypressed_copy = 0;
           //sleep(5);
         }
         if (c == KEY_ALL_UP) {

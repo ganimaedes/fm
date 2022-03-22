@@ -889,7 +889,8 @@ else
 //             nev.xkey.keycode == xe.xkey.keycode)
              //printf("%f ms.\n", pastElapsedTime);
 
-             if (nev.type == KeyPress /* &&  pastElapsedTime  < 1000.99800 */ && elapsedTime < 1.04 && n_times_keypressed == 0) {
+             if (nev.type == KeyPress /* &&  pastElapsedTime  < 1000.99800 */
+               && nev.xkey.time == xe.xkey.time && nev.xkey.keycode == xe.xkey.keycode && elapsedTime < 2.74 /* && n_times_keypressed == 0 */) {
                //fprintf (stdout, "key #%ld was retriggered.\n", (long) XLookupKeysym (&nev.xkey, 0));
                //printf("%f ms.\n", pastElapsedTime);
                ++n_times_keypressed;
@@ -916,6 +917,9 @@ else
           if (n_times_keypressed >= 1) {
             //n_times_keypressed = 0;
           }
+          elapsedTime = 0;
+          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+          elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
 
           /*
           // stop timer
@@ -938,11 +942,11 @@ else
           elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
       if (xe.xkey.keycode == w->keycode_dn || nev.xkey.keycode == w->keycode_dn) { // X_KEY_DN
         w->keycode_dn_pressed = 1;
-        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
         if (n_times_keypressed_copy > 1) {
           info->n_times_pressed = n_times_keypressed_copy;
           info->keypress_value = (long)XLookupKeysym(&nev.xkey, 0);
-          sleep(10);
+          //sleep(10);
         }
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up || nev.xkey.keycode == w->keycode_up) { // X_KEY_UP
@@ -1490,6 +1494,13 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
     }
   }
 */
+  if (info->n_times_pressed > 1) {
+    for (size_t i = 0; i < info->n_times_pressed; ++i) {
+      //XUngrabKey(foreground_dpy, int, unsigned int, top_window);
+      XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, tmp_window);
+    }
+    info->n_times_pressed = 0;
+  }
   if (atom_prop.status) {
     free(atom_prop.status);
     atom_prop.status = NULL;
