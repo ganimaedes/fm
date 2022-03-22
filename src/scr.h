@@ -13,6 +13,7 @@
 #include <locale.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <errno.h>
 //#include <wchar.h>
 
 
@@ -341,10 +342,13 @@ static int quit = FALSE;
 
 struct termios term, oterm;
 
+
+
 int getch(void);
 int kbhit(void);
 int kbesc(void);
 int kbget(void);
+void ttymode_reset(int mode, int imode);
 
 int get_cursor_position(int ifd, int ofd, int *rows, int *cols);
 int get_window_size(int ifd, int ofd, int *rows, int *cols);

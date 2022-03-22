@@ -894,8 +894,8 @@ else
 //             nev.xkey.keycode == xe.xkey.keycode)
              //printf("%f ms.\n", pastElapsedTime);
 
-             if (nev.type == KeyPress /* &&  pastElapsedTime  < 1000.99800 */
-               && nev.xkey.time == xe.xkey.time && nev.xkey.keycode == xe.xkey.keycode && elapsedTime < 2.74 /* && n_times_keypressed == 0 */) {
+             if (nev.type == KeyPress /* &&  pastElapsedTime  < 1000.99800 */ && nev.xkey.keycode == xe.xkey.keycode
+               && nev.xkey.time == xe.xkey.time && nev.xkey.keycode == xe.xkey.keycode && elapsedTime < 4.74 /* && n_times_keypressed == 0 */) {
                //fprintf (stdout, "key #%ld was retriggered.\n", (long) XLookupKeysym (&nev.xkey, 0));
                //printf("%f ms.\n", pastElapsedTime);
                ++n_times_keypressed;
@@ -1328,9 +1328,9 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   Atom_Prop child_win = { 0 };
 
   //if (check_if_key_press(info, &tmp_window, &win) == 0) {
-  //if (check_if_key_press2(info, &tmp_window, &win) == 0) {
   int result_key_press = 0;
-  while ((result_key_press = check_if_key_press2(info, &tmp_window, &win))) {
+  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+  //while ((result_key_press = check_if_key_press2(info, &tmp_window, &win))) {
     if (result_key_press == 0) {
       goto finish;
     }
@@ -1338,6 +1338,15 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 
   int window_maximized = 0;
   put_image(&win, &img, 0, y_px);
+
+
+  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+    if (result_key_press == 0) {
+      goto finish;
+    }
+  }
+
+
   img.ximage = XCreateImage(foreground_dpy, CopyFromParent, img.depth, ZPixmap,
                                 0, (char *)img.data_resized, img.new_width, img.new_height,
                                 img.bpl * 8, img.bpl * img.new_width);
@@ -1347,13 +1356,19 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   XFlush(foreground_dpy);
   XSync(foreground_dpy, False);
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+    if (result_key_press == 0) {
+      goto finish;
+    }
+  }
+
+/*
   for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
     if (event.type == MapNotify) {
       break;
     }
-/*
     else if (event.type == KeyPress) {
       XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, tmp_window);
       //goto finish;
@@ -1436,8 +1451,8 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
       }
       return 1;
     }
-  */
   }
+  */
 #if defined(V_DEBUG_POSITION)
   printf("img.ximage[0] = %d\n", img.ximage->data[0]);
 #endif
@@ -1448,6 +1463,11 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
             0, 0,
             img.new_width, img.new_height);
   XFlush(foreground_dpy);
+  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+    if (result_key_press == 0) {
+      goto finish;
+    }
+  }
 //  *
 //  * 3 Put Image END
 //  *
@@ -1769,6 +1789,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 //  *
 //  * 8 WIN BEGIN
 //  *
+finish:
   if (img.data_resized) {
     free(img.data_resized);
     img.data_resized = NULL;
@@ -1794,7 +1815,6 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
     free(property_formats);
     property_formats = NULL;
   }
-finish:
   if (win.keycode_dn_pressed) {
     //return 0x006a;
     return KEY_DOWN;

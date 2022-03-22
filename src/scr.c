@@ -1,5 +1,6 @@
 #include "scr.h"
 #include <stdio.h>
+#include <unistd.h>
 
 int getch(void)
 {
@@ -29,6 +30,32 @@ int kbhit(void)
   tcsetattr(STDIN_FILENO, TCSANOW, &oterm);
   if (c != -1) { ungetc(c, stdin); }
   return c != -1 ? 1 : 0;
+}
+
+static int tty;
+
+void ttymode_reset(int mode, int imode)
+{
+  int fd = 1;
+  struct termios ioval;
+//typedef struct termios TerminalMode;
+  //TerminalGet(tty, &ioval);
+  tcgetattr(STDIN_FILENO, &ioval);
+  //MODEFLAG(ioval) &= ~mode;
+  ((ioval).c_lflag) &= ~mode;
+#ifndef HAVE_SGTTY_H
+  //IMODEFLAG(ioval) &= ~imode;
+#endif				/* not HAVE_SGTTY_H */
+
+  //while (TerminalSet(tty, &ioval) == -1) {
+
+  while (tcsetattr(fd, TCSANOW, &ioval) == -1) {
+    //
+    //if (errno == EINTR || errno == EAGAIN)
+    //  continue;
+    printf("Error occured while reset %x: errno=%d\n", mode, errno);
+    //reset_error_exit(SIGNAL_ARGLIST);
+  }
 }
 
 /*
