@@ -860,6 +860,11 @@ int process_event(GC *gc,
         XEvent nev;
         XPeekEvent(foreground_dpy, &nev);
 
+
+
+
+
+
         // https://stackoverflow.com/questions/2150291/how-do-i-measure-a-time-interval-in-c
         //   struct timeval t1, t2;
         //double elapsedTime;
@@ -1014,6 +1019,159 @@ else
   // set marks for files the same waay vim sets marks for line numbers
 }
 
+int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
+{
+    XEvent event = { 0 };
+    XEvent ahead = { 0 };
+    XNextEvent(foreground_dpy, &event);
+    //  if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
+    //    XEvent nev;
+    //    XPeekEvent(foreground_dpy, &nev);
+
+	    if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
+	      XPeekEvent(foreground_dpy, &ahead);
+	      if (ahead.type == KeyPress
+	        && ahead.xkey.window == event.xkey.window
+	        && ahead.xkey.keycode == event.xkey.keycode
+	        && ahead.xkey.time == event.xkey.time) {
+		// Pop off the repeated KeyPress and ignore
+		//   the auto repeated KeyRelease/KeyPress pair.
+	        XNextEvent(foreground_dpy, &event);
+            return 0;
+	        //break;
+	      }
+	    }
+
+/*
+    if (event.type == KeyPress) {
+      //XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, *tmp_window);
+      //goto finish;
+
+      //printf("        KEYGRAB         ");
+      //sleep(5);
+      //continue;
+
+      if (event.xkey.keycode == win->keycode_dn) { // X_KEY_DN
+        win->keycode_dn_pressed = 1;
+        XUngrabKey(foreground_dpy, win->keycode_dn, 0, *tmp_window);
+        //goto finish;
+        //return KEY_DOWN;
+        return 0;
+      } else if (event.xkey.keycode == win->keycode_up) { // X_KEY_UP
+        XUngrabKey(foreground_dpy, win->keycode_up, 0, *tmp_window);
+        win->keycode_up_pressed = 1;
+        //goto finish;
+        //return KEY_UP;
+        return 0;
+      }
+      else if (event.xkey.keycode == win->keycodes[0]) { // XK_End
+        XUngrabKey(foreground_dpy, win->keycodes[0], 0, *tmp_window);
+        win->keycode_end_pressed = 1;
+        //goto finish;
+        //return KEY_END;
+        return 0;
+      }
+      else if (event.xkey.keycode == win->keycodes[1]) { // XK_Begin
+        XUngrabKey(foreground_dpy, win->keycodes[1], 0, *tmp_window);
+        win->keycode_beg_pressed = 1;
+        //goto finish;
+        //return KEY_ALL_UP;
+        return 0;
+      }
+
+      else if (event.xkey.keycode == win->keycodes[2]) { // XK_BackSpace
+        XUngrabKey(foreground_dpy, win->keycodes[2], 0, *tmp_window);
+        win->keycode_bckspce_pressed = 1;
+        //goto finish;
+        //return BACKSPACE;
+        return 0;
+      }
+
+      else {
+        // *key = xe.xkey.keycode;
+        XUngrabKey(foreground_dpy, event.xkey.keycode, 0, *tmp_window);
+        //w->keycode_bckspce_pressed = 1;
+        //return 1;
+        //goto finish;
+        return 0;
+      }
+      return 1;
+    }
+  return 1;
+*/
+  return 1;
+}
+
+
+int check_if_key_press(InfoKeyPresses *info, Window *tmp_window, Win *win)
+{
+  //for (;;) {
+    XEvent event = { 0 };
+    XNextEvent(foreground_dpy, &event);
+    if (event.type == MapNotify) {
+      //break;
+      return 0;
+    } else if (event.type == KeyPress) {
+      //XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, *tmp_window);
+      //goto finish;
+
+      //printf("        KEYGRAB         ");
+      //sleep(5);
+      //continue;
+
+      if (event.xkey.keycode == win->keycode_dn) { // X_KEY_DN
+        win->keycode_dn_pressed = 1;
+        XUngrabKey(foreground_dpy, win->keycode_dn, 0, *tmp_window);
+        //goto finish;
+        //return KEY_DOWN;
+        return 0;
+      } else if (event.xkey.keycode == win->keycode_up) { // X_KEY_UP
+        XUngrabKey(foreground_dpy, win->keycode_up, 0, *tmp_window);
+        win->keycode_up_pressed = 1;
+        //goto finish;
+        //return KEY_UP;
+        return 0;
+      }
+      else if (event.xkey.keycode == win->keycodes[0]) { // XK_End
+        XUngrabKey(foreground_dpy, win->keycodes[0], 0, *tmp_window);
+        win->keycode_end_pressed = 1;
+        //goto finish;
+        //return KEY_END;
+        return 0;
+      }
+      else if (event.xkey.keycode == win->keycodes[1]) { // XK_Begin
+        XUngrabKey(foreground_dpy, win->keycodes[1], 0, *tmp_window);
+        win->keycode_beg_pressed = 1;
+        //goto finish;
+        //return KEY_ALL_UP;
+        return 0;
+      }
+
+      else if (event.xkey.keycode == win->keycodes[2]) { // XK_BackSpace
+        XUngrabKey(foreground_dpy, win->keycodes[2], 0, *tmp_window);
+        win->keycode_bckspce_pressed = 1;
+        //goto finish;
+        //return BACKSPACE;
+        return 0;
+      }
+
+      else {
+        //*key = xe.xkey.keycode;
+        XUngrabKey(foreground_dpy, event.xkey.keycode, 0, *tmp_window);
+        //w->keycode_bckspce_pressed = 1;
+        //return 1;
+        //goto finish;
+        return 0;
+      }
+//  *
+//  * 8 WIN BEGIN
+//  *
+      return 1;
+    }
+  //}
+  return 1;
+}
+
 //int set_img(int argc, char **argv)
 //unsigned long set_img(__attribute__((__unused__)) int argc,
 //            __attribute__((__unused__)) char *prog_name,
@@ -1158,6 +1316,17 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 //  *
   //put_image(&win, &img);
   //put_image(&win, &img, x_px, y_px);
+  Atom active_window;
+
+  Atom_Prop atom_prop = { 0 };
+  Atom_Prop child_win = { 0 };
+
+  //if (check_if_key_press(info, &tmp_window, &win) == 0) {
+  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+    goto finish;
+  }
+
+  int window_maximized = 0;
   put_image(&win, &img, 0, y_px);
   img.ximage = XCreateImage(foreground_dpy, CopyFromParent, img.depth, ZPixmap,
                                 0, (char *)img.data_resized, img.new_width, img.new_height,
@@ -1173,13 +1342,91 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
     XNextEvent(foreground_dpy, &event);
     if (event.type == MapNotify) {
       break;
-    } else if (event.type == KeyPress) {
-      //XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, tmp_window);
-      printf("        KEYGRAB         ");
-      sleep(5);
-      continue;
-      //return 1;
     }
+/*
+    else if (event.type == KeyPress) {
+      XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, tmp_window);
+      //goto finish;
+
+      //printf("        KEYGRAB         ");
+      //sleep(5);
+      //continue;
+
+      if (event.xkey.keycode == win.keycode_dn) { // X_KEY_DN
+        win.keycode_dn_pressed = 1;
+        XUngrabKey(foreground_dpy, win.keycode_dn, 0, tmp_window);
+        goto finish;
+        //return KEY_DOWN;
+        //return 0;
+      } else if (event.xkey.keycode == win.keycode_up) { // X_KEY_UP
+        XUngrabKey(foreground_dpy, win.keycode_up, 0, tmp_window);
+        win.keycode_up_pressed = 1;
+        goto finish;
+        //return KEY_UP;
+        //return 0;
+      }
+      else if (event.xkey.keycode == win.keycodes[0]) { // XK_End
+        XUngrabKey(foreground_dpy, win.keycodes[0], 0, tmp_window);
+        win.keycode_end_pressed = 1;
+        goto finish;
+        //return KEY_END;
+        //return 0;
+      }
+      else if (event.xkey.keycode == win.keycodes[1]) { // XK_Begin
+        XUngrabKey(foreground_dpy, win.keycodes[1], 0, tmp_window);
+        win.keycode_beg_pressed = 1;
+        goto finish;
+        //return KEY_ALL_UP;
+        //return 0;
+      }
+
+      else if (event.xkey.keycode == win.keycodes[2]) { // XK_BackSpace
+        XUngrabKey(foreground_dpy, win.keycodes[2], 0, tmp_window);
+        win.keycode_bckspce_pressed = 1;
+        goto finish;
+        //return BACKSPACE;
+        //return 0;
+      }
+
+      else {
+        // *key = xe.xkey.keycode;
+        XUngrabKey(foreground_dpy, event.xkey.keycode, 0, tmp_window);
+        //w->keycode_bckspce_pressed = 1;
+        //return 1;
+        goto finish;
+        //return 0;
+      }
+//  *
+//  * 8 WIN BEGIN
+//  *
+      if (img.data_resized) {
+        free(img.data_resized);
+        img.data_resized = NULL;
+      }
+      if (img.data) {
+        stbi_image_free(img.data);
+        img.data = NULL;
+      }
+      if (img.ximage) {
+        XFree(img.ximage);
+      }
+      if (foreground_dpy && img.gc) {
+        XFreeGC(foreground_dpy, img.gc);
+      }
+      if (foreground_dpy && win.foreground_win) {
+        XDestroyWindow(foreground_dpy, win.foreground_win);
+      }
+      //  *
+      //  * 8 WIN END
+      //  *
+      close_display();
+      if (property_formats) {
+        free(property_formats);
+        property_formats = NULL;
+      }
+      return 1;
+    }
+  */
   }
 #if defined(V_DEBUG_POSITION)
   printf("img.ximage[0] = %d\n", img.ximage->data[0]);
@@ -1225,12 +1472,6 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   int y_mv            = 0;
   int window_unmapped = 0;
 */
-  Atom active_window;
-
-  Atom_Prop atom_prop = { 0 };
-  Atom_Prop child_win = { 0 };
-
-  int window_maximized = 0;
 
   int window_set_above = 0;
 #if defined(V_DEBUG)
@@ -1543,6 +1784,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
     free(property_formats);
     property_formats = NULL;
   }
+finish:
   if (win.keycode_dn_pressed) {
     //return 0x006a;
     return KEY_DOWN;
