@@ -367,7 +367,11 @@ int main(int argc, char **argv)
         //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
         c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
         if (info_key_presses.n_times_pressed > 1) {
-          sleep(5);
+          msg.print_msg = "n_times_pressed = ";
+          msg.n_ulong = info_key_presses.n_times_pressed;
+          msg.used_ulong = 1;
+          print_message2(&w_main, &s, 1, pos, &msg);
+          //sleep(5);
         }
         if (c == KEY_ALL_UP) {
           //sleep(10);
