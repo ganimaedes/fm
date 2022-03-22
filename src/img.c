@@ -1328,14 +1328,16 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   Atom_Prop child_win = { 0 };
 
   //if (check_if_key_press(info, &tmp_window, &win) == 0) {
+
   int result_key_press = 0;
+/*
   if (check_if_key_press2(info, &tmp_window, &win) == 0) {
   //while ((result_key_press = check_if_key_press2(info, &tmp_window, &win))) {
     if (result_key_press == 0) {
       goto finish;
     }
   }
-
+*/
   int window_maximized = 0;
   put_image(&win, &img, 0, y_px);
 
@@ -1356,19 +1358,20 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   XFlush(foreground_dpy);
   XSync(foreground_dpy, False);
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+/*
   if (check_if_key_press2(info, &tmp_window, &win) == 0) {
     if (result_key_press == 0) {
       goto finish;
     }
   }
-
-/*
+*/
   for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
     if (event.type == MapNotify) {
       break;
     }
+/*
     else if (event.type == KeyPress) {
       XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, tmp_window);
       //goto finish;
@@ -1451,8 +1454,8 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
       }
       return 1;
     }
-  }
   */
+  }
 #if defined(V_DEBUG_POSITION)
   printf("img.ximage[0] = %d\n", img.ximage->data[0]);
 #endif
