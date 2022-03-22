@@ -1037,6 +1037,7 @@ int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
 		// Pop off the repeated KeyPress and ignore
 		//   the auto repeated KeyRelease/KeyPress pair.
 	        XNextEvent(foreground_dpy, &event);
+            sleep(10);
             return 0;
 	        //break;
 	      }
