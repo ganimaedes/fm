@@ -350,99 +350,32 @@ double loop_fix(Image *img,
                 int *image_width,
                 int *image_height)
 {
-  //if (img->width > (*width / 2)) {
   if (*image_width > (*width / 2)) {
-    //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-    //printf("width / 2 = %d, img->width = %d\n", width / 2, img->width);
     temp_width = (double)(*width / 2);
-    //factor = temp_width / img->width;
     factor = temp_width / *image_width;
-    //*width *= factor;
     *image_width *= factor;
     *width_taken = 1;
-  }
-  //else if ((double)(img->height) > (double)(*height - upper_lower_limit)) {
-  else if ((double)(*image_height) > (double)(*height - upper_lower_limit)) {
-    //temp_height = (double)(height - 100.0);
-    //factor = temp_height / temp_height;
-    //factor = temp_height / (double)img->height;
+  } else if ((double)(*image_height) > (double)(*height - upper_lower_limit)) {
     factor = temp_height / (double)(*image_height);
-    //*height *= factor;
     *image_height *= factor;
   }
 
   if (*image_width > (*width / 2)) {
     factor = 1 / (*image_width / (*width / 2));
-  printf("factor = %f  ", factor);
-
+    printf("factor = %f  ", factor);
   }
-
-/*
-  if (*width_taken) {
-    //if ((double)(img->height) > (double)(*height - upper_lower_limit)) {
-    if ((double)(*image_height) > (double)(*height - upper_lower_limit)) {
-      temp_height = (double)(*height - upper_lower_limit);
-      //factor = temp_height / (double)img->height;
-      factor = temp_height / (double)(*image_height);
-      // *height *= factor;
-      *image_height *= factor;
-    }
-  }
-  */
-
   return factor;
 }
 
 double fix_factor_to_fit_inside_window(Image *img, int width, int height)
 {
   double factor = 1.0;
-  //double new_width = width;
-  //double new_height = height;
-  //double temp_width;
   double upper_lower_limit = 190.0;
-  //double temp_height = (double)((double)height - upper_lower_limit);
-  //int width_taken = 0;
-  //int new_image_width = img->width;
-  //int new_image_height = img->height;
-
   if (img->width > (width / 2) - 50) {
     factor = 1.0 / (((double)img->width) / ((double)((width / 2) - 50)));
-    //printf("factor = %f  ", factor);
-    //if (factor * img->height < temp_height) {
-      //return factor;
-    //}
-    //else {
-      //temp_width = (double)(width / 2);
-      //factor = temp_width / img->width;
-      //double value = temp_width / img->width;
-      //factor = (value < factor) ? value : factor;
-      //*width *= factor;
-    //}
   }
-  //double value = temp_height / img->height;
   double value = (double)((double)height - upper_lower_limit) / img->height;
   return (value < factor) ? value : factor;
-/*
-  else {
-      temp_width = (double)(width / 2);
-      factor = temp_width / img->width;
-      // *width *= factor;
-    }
-*/
-
-// new_width / 2 = 950 px
-  //while (img->width > (new_width / 2) || img->height > new_height - upper_lower_limit) {
-/*
-  while (new_image_width > (new_width / 2) || new_image_height > new_height - upper_lower_limit) {
-    //factor = loop_fix(img, width, height, temp_width, temp_height, &width_taken, factor, upper_lower_limit);
-    //factor = loop_fix(img, &new_width, &new_height, temp_width, temp_height, &width_taken, factor, upper_lower_limit);
-    factor = loop_fix(img, &new_width, &new_height, temp_width, temp_height, &width_taken, factor, upper_lower_limit, &new_image_width, &new_image_height);
-
-    //printf("width / 2 = %d, new_image_width = %d\n", width / 2, new_image_width);
-  }
-*/
-  //factor = new_width /
-  //return factor;
 }
 
 void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char *path)
@@ -462,18 +395,11 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   //if (!XGetWindowAttributes(foreground_dpy, term_window, &xwa)) {
     fprintf(stderr, "Error XGetWindowAttributes\n");
   }
-  //factor = fix_factor_to_fit_inside_window(img, width, height);
   factor = fix_factor_to_fit_inside_window(img, xwa.width, xwa.height);
-  //factor = 0.5;
-  //printf("factor = %f  ", factor);
   //img->new_width = (double)img->width * factor;
   //img->new_height = (double)img->height * factor;
   img->new_width = img->width * factor;
   img->new_height = img->height * factor;
-  //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-  //printf("img _ width = %d, height = %d  ", img->width, img->height);
-  //printf("new_width = %f, new_height = %f\n", img->new_width, img->new_height);
-  //printf("new_width = %d, new_height = %d\n", img->new_width, img->new_height);
 
   // Allocate Memory for data_resized variable with new_width & new_height
   int new_width = (int)img->new_width;
@@ -515,10 +441,7 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   printf("x_px = %d | y_px = %d\n\t", x_px, y_px);
 #endif
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, x_px, y_px,
-  //int center_in_second_window_dist = width / 4;
-  //int center_in_second_window_dist = xwa.width / 4;
   int x_dist = 100;
-  //int center_in_second_window_dist = (xwa.width + xwa.x + x_dist) / 4;
   int center_in_second_window_dist = (xwa.width) / 4;
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (xwa.width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
@@ -594,7 +517,6 @@ void grab_keys(Win *win)
 //*/
 }
 
-//void put_image(Win *win, Image *img)
 void put_image(Win *win, Image *img, int x_px, int y_px)
 {
   // https://stackoverflow.com/questions/11069666/cannot-get-xcreatesimplewindow-to-open-window-at-the-right-position
@@ -869,12 +791,13 @@ else
 //             nev.xkey.keycode == xe.xkey.keycode)
              //printf("%f ms.\n", pastElapsedTime);
 
-             if (nev.type == KeyPress /* &&  pastElapsedTime  < 1000.99800 */ && nev.xkey.keycode == xe.xkey.keycode
-               && nev.xkey.time == xe.xkey.time && nev.xkey.keycode == xe.xkey.keycode && elapsedTime < 4.74 /* && n_times_keypressed == 0 */) {
+             if (nev.type == KeyPress /* &&  pastElapsedTime  < 1000.99800 */
+               /*&& nev.xkey.time == xe.xkey.time*/ && nev.xkey.keycode == xe.xkey.keycode && elapsedTime < 4.74 /* && n_times_keypressed == 0 */) {
                //fprintf (stdout, "key #%ld was retriggered.\n", (long) XLookupKeysym (&nev.xkey, 0));
                //printf("%f ms.\n", pastElapsedTime);
                ++n_times_keypressed;
                ++n_times_keypressed_copy;
+               info->n_times_pressed = n_times_keypressed_copy;
 
 
 
@@ -894,6 +817,7 @@ else
           // start timer
           gettimeofday(&t1, NULL);
           ++n_times_keypressed_copy;
+          info->n_times_pressed = n_times_keypressed_copy;
           if (n_times_keypressed >= 1) {
             //n_times_keypressed = 0;
           }
@@ -1155,7 +1079,6 @@ int check_if_key_press(InfoKeyPresses *info, Window *tmp_window, Win *win)
 
 unsigned long set_img(char *path, InfoKeyPresses *info)
 {
-
 #if defined(EBUG)
   signal(SIGSEGV, handlern);
 #endif // EBUG
@@ -1317,8 +1240,10 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   pastElapsedTime = 0.0;
   KeyCode key = 0;
   while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key, info)) {
+    elapsedTime = 0;
+    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
     pastElapsedTime = elapsedTime;
-
   }
 /*
   while (!stop) {
@@ -1621,14 +1546,10 @@ finish:
   } else if (win.keycode_beg_pressed) {
     //printf("KEY HOME PRESSED\n");
     return KEY_ALL_UP;
-    //return KEY_HOME;
   } else if (win.keycode_bckspce_pressed) {
     return BACKSPACE;
-    //return KEY_BACKSPACE;
-    //return 'h';
   } else {
     return key;
   }
-  //return event_foreground.xkey.keycode;
   return 0;
 }

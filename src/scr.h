@@ -284,6 +284,7 @@ typedef struct {
   long keypress_value;
   unsigned long ascii_value;
   int n_times_pressed;
+  int last_position_array;
 } InfoKeyPresses;
 
 static InfoKeyPresses info_key_presses;
@@ -333,17 +334,14 @@ static int quit = FALSE;
   memcpy((*(dest)), (src), (len)); \
   (*(dest))[(len)] = '\0';         \
 } while (0)
-
 #define combine(dest, src_one, src_two, len_one, len_two) do { \
-  MALLOC((dest), (len_one) + (len_two) + 1);                \
-  memcpy((*dest), (src_one), (len_one));                    \
-  memcpy(&((*dest)[len_one]), (src_two), len_two);          \
-  (*dest)[(len_one) + (len_two)] = '\0';                    \
+  MALLOC((dest), (len_one) + (len_two) + 1);                   \
+  memcpy((*dest), (src_one), (len_one));                       \
+  memcpy(&((*dest)[len_one]), (src_two), len_two);             \
+  (*dest)[(len_one) + (len_two)] = '\0';                       \
 } while(0)
 
 struct termios term, oterm;
-
-
 
 int getch(void);
 int kbhit(void);

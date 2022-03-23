@@ -36,6 +36,7 @@ volatile sig_atomic_t back_pressed = 0;
 volatile sig_atomic_t enter_backspace = 1;
 volatile sig_atomic_t image_used = 0;
 volatile sig_atomic_t modify_pos_bc_image_used = 0;
+volatile sig_atomic_t image_appeared = 0;
 volatile sig_atomic_t previous_position_before_backspace = 0;
 
 char position[PLACE_SZ];
@@ -106,9 +107,7 @@ int window_resize(Window_ *w_main,
 int del_file(Window_ *w1, Scroll *s, Array *left_box, int *pos, int *option);
 void print_n_elements(Array *left_box);
 void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos);
-//void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned int number, int *pos);
 void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned long number, int *pos);
-//void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int *pos, Message *msg);
 void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, Message *msg);
 
 int main(int argc, char **argv)
@@ -309,6 +308,15 @@ int main(int argc, char **argv)
       //if (image_used) {
       //  pos = previous_pos;
       //}
+      if (image_used) {
+        pos = info_key_presses.last_position_array;
+      }
+
+      if (info_key_presses.n_times_pressed > 0) {
+        sleep(5);
+        ungetc(info_key_presses.ascii_value, stdin);
+        --info_key_presses.n_times_pressed;
+      }
       print_entries(&w1, &s, entries, option, (int)c, &pos, &left_box);
       image_used = 0;
       print_permissions(&left_box, &s, &w1, pos);
@@ -343,8 +351,12 @@ int main(int argc, char **argv)
         //draw_box for when passing from two windows to three windows
         // ssh function
         //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
+        //image_appeared = 1;
+        info_key_presses.last_position_array = pos;
         ttymode_reset(ECHO, 0);
+        //modify_pos_bc_image_used = 1;
         c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
+        //image_appeared = 0;
         // ungetc for n_times_pressed
         // bookmarks et retour ou on etait avant bookmark
         // always keep above parent window but below others
@@ -352,7 +364,10 @@ int main(int argc, char **argv)
           size_t n;
           for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
             //ungetc(info_key_presses.keypress_value, stdin);
-            ungetc(info_key_presses.ascii_value, stdin);
+            //ungetc(info_key_presses.ascii_value, stdin);
+            if (n == info_key_presses.n_times_pressed - 1) {
+              //pos = info_key_presses.last_position_array;
+            }
           }
         }
         if (info_key_presses.n_times_pressed > 1) {
@@ -360,7 +375,7 @@ int main(int argc, char **argv)
           msg.n_ulong = info_key_presses.n_times_pressed;
           msg.used_ulong = 1;
           print_message2(&w_main, &s, 1, pos, &msg);
-          info_key_presses.n_times_pressed = 0;
+          //info_key_presses.n_times_pressed = 0;
           n_times_keypressed = 0;
           n_times_keypressed_copy = 0;
           //sleep(5);
@@ -430,7 +445,6 @@ int main(int argc, char **argv)
       secondary_loop = 1;
       back_pressed = 0;
 
-
 #if defined(EBUG)
       print_n_elements(&left_box);
 #endif // EBUG
@@ -479,7 +493,7 @@ int main(int argc, char **argv)
     initial_loop = 0;
     resized = 0;
     if (image_used) {
-      modify_pos_bc_image_used = 1;
+      //modify_pos_bc_image_used = 1;
       image_used = 0;
     }
   }
@@ -1519,11 +1533,12 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
         }
         if (*pos >= s->pos_lower_t) {
           *pos = s->pos_lower_t;
-
+/*
       if (modify_pos_bc_image_used) {
         *pos = previous_position_before_backspace;
         modify_pos_bc_image_used = 0;
       }
+*/
           if (*pos < s->array_size - 1) {
 
             move_erase(w, 1, *pos + w->y_beg - s->pos_upper_t + 1, w->x_beg + 1);
@@ -1552,6 +1567,12 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
         if (*pos > s->pos_upper_t && *pos <= s->pos_lower_t) {
           y = *pos - s->pos_upper_t + w->y_beg;
           move_erase(w, 1, y, w->x_beg + 1);
+/*
+          if (image_appeared && back_pressed) {
+            *pos = info_key_presses.last_position_array;
+            image_appeared = 0;
+          }
+*/
           if (*pos - 1 < s->array_size) {
 
             print(w, a, *pos - 1);
