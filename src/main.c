@@ -312,11 +312,13 @@ int main(int argc, char **argv)
         pos = info_key_presses.last_position_array;
       }
 
-      if (info_key_presses.n_times_pressed > 0) {
-        //sleep(5);
-        ungetc(info_key_presses.ascii_value, stdin);
+      if (info_key_presses.n_times_pressed > 0 && image_appeared && back_pressed) {
+        sleep(5);
+        //ungetc(info_key_presses.ascii_value, stdin);
         --pos;
         --info_key_presses.n_times_pressed;
+      } else if (info_key_presses.n_times_pressed == 0) {
+        image_appeared = 0;
       }
       print_entries(&w1, &s, entries, option, (int)c, &pos, &left_box);
       image_used = 0;
@@ -357,6 +359,7 @@ int main(int argc, char **argv)
         ttymode_reset(ECHO, 0);
         //modify_pos_bc_image_used = 1;
         c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
+        image_appeared = 1;
         //image_appeared = 0;
         // ungetc for n_times_pressed
         // bookmarks et retour ou on etait avant bookmark
@@ -365,7 +368,7 @@ int main(int argc, char **argv)
           size_t n;
           for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
             //ungetc(info_key_presses.keypress_value, stdin);
-            //ungetc(info_key_presses.ascii_value, stdin);
+            ungetc(info_key_presses.ascii_value, stdin);
             if (n == info_key_presses.n_times_pressed - 1) {
               //pos = info_key_presses.last_position_array;
             }
