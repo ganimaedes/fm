@@ -210,9 +210,6 @@ int main(int argc, char **argv)
   msg.used_ulong = 0;
   msg.used_char = 0;
 
-
-  //int image_used = 0;
-
   info_key_presses.keypress_value = 0;
   info_key_presses.n_times_pressed = 0;
 
@@ -220,13 +217,6 @@ int main(int argc, char **argv)
     if (!ioctl(0, TIOCGWINSZ, &w_s)) {
       window_resize(&w_main, &w1, &w2, &w_s, &s, &left_box, &right_box, &option, &pos, &initial_loop, &resized, &i);
     }
-
-    //if (image_used) {
-      //c = second_previous_c;
-      //c = 1;
-    //}
-    //image_used = 0;
-    //char *pos_str = "pos = ";
 
 #if defined(EBUG)
     msg.print_msg = "previous_pos = ";
@@ -328,20 +318,7 @@ int main(int argc, char **argv)
       msg.used_ulong = 1;
       msg.print_msg = "keypress = ";
       print_message2(&w1, &s, 0, pos, &msg);
-      //msg.used_ulong = 0;
 #endif // EBUG
-
-/*
-      msg.print_msg = "pos = ";
-      msg.n_ulong = pos;
-      msg.used_ulong = 1;
-      print_message2(&w1, &s, 6, pos, &msg);
-      if (modify_pos_bc_image_used && back_pressed) {
-        pos = previous_position_before_backspace;
-        modify_pos_bc_image_used = 0;
-      }
-
-*/
 
       if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
         directory_placement(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
@@ -355,7 +332,6 @@ int main(int argc, char **argv)
       } else if (match_extension(left_box.menu[pos].name, "jpeg") ||
                  match_extension(left_box.menu[pos].name, "jpg") ||
                  match_extension(left_box.menu[pos].name, "png")) {
-        //while (!kbhit());
         // soit kbhit is trying to get char at the same time as XGet or XGrabKey error
 //./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
@@ -370,6 +346,7 @@ int main(int argc, char **argv)
         ttymode_reset(ECHO, 0);
         c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
         // ungetc for n_times_pressed
+        // bookmarks et retour ou on etait avant bookmark
         // always keep above parent window but below others
         if (info_key_presses.n_times_pressed > 1) {
           size_t n;
@@ -391,30 +368,7 @@ int main(int argc, char **argv)
         if (c == KEY_ALL_UP) {
           //sleep(10);
         }
-        //if (c == XKEY)
-/*
-        if (c == KEY_END) {
-          ungetc(c, stdin);
-        }
-*/
-/*
-        snprintf(position, strlen(place_), place_, w_main.y_size - 4, w_main.x_beg + 1);
-        move(1, position);
-#define value_return "c = %d"
-        char val_return[sizeof(value_return)];
-        sprintf(val_return, value_return, c);
-        write(1, val_return, strlen(val_return));
-        snprintf(position, strlen(place_), place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
-        move(1, position);
-*/
         image_used = 1;
-        //if (c == KEY_BACKSPACE) {
-        //  enter_backspace = 1;
-        //  back_pressed = 1;
-        //}
-        //if (c >= 262) { c = 107; }
-        //printf("y size in px = %u, x size in px = %u\n", w2.y_px_size, w2.x_px_size);
-        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, , );
       }
     }
 

@@ -704,15 +704,7 @@ int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_t
   }
   return FALSE;
 }
-/*
-int process_event(GC *gc,
-                  Window *top_window,
-                  Atom *wmDeleteMessage,
-                  Win *w,
-                  Atom_Prop *atom_prop,
-                  Image *img,
-                  KeyCode *key)
-*/
+
 int process_event(GC *gc,
                   Window *top_window,
                   Atom *wmDeleteMessage,
@@ -722,7 +714,6 @@ int process_event(GC *gc,
                   KeyCode *key,
                   InfoKeyPresses *info)
 {
-  //gettimeofday(&t1, NULL);
   XEvent xe;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
@@ -931,7 +922,7 @@ else
           elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
       if (xe.xkey.keycode == w->keycode_dn || nev.xkey.keycode == w->keycode_dn) { // X_KEY_DN
         w->keycode_dn_pressed = 1;
-        //XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
         if (n_times_keypressed_copy > 1) {
           info->n_times_pressed = n_times_keypressed_copy;
           info->keypress_value = (long)XLookupKeysym(&nev.xkey, 0);
@@ -1097,7 +1088,6 @@ int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
 
 int check_if_key_press(InfoKeyPresses *info, Window *tmp_window, Win *win)
 {
-  //for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
     if (event.type == MapNotify) {
@@ -1160,17 +1150,9 @@ int check_if_key_press(InfoKeyPresses *info, Window *tmp_window, Win *win)
 //  *
       return 1;
     }
-  //}
   return 1;
 }
 
-//int set_img(int argc, char **argv)
-//unsigned long set_img(__attribute__((__unused__)) int argc,
-//            __attribute__((__unused__)) char *prog_name,
-//            __attribute__((__unused__)) Window window_in,
-//            char *path,
-//            double factor_in,
-//            int y_pos_in, int x_pos_in)
 unsigned long set_img(char *path, InfoKeyPresses *info)
 {
 
@@ -1178,13 +1160,6 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   signal(SIGSEGV, handlern);
 #endif // EBUG
   XSetErrorHandler(x_error_handler);
-/*
-  if (argc < 6) {
-    fprintf(stderr, "Usage: %s -id 0x<window id> <path/to/image>"\
-        " <factor> <y_pos>(px) <x_pos>(px)\n", prog_name);
-    exit(1);
-  }
-*/
   foreground_dpy = NULL;
   if ((foreground_dpy = XOpenDisplay(NULL)) == NULL) {
     fprintf(stderr, "Error XOpenDisplay.\n");
@@ -1210,8 +1185,6 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   printf("tmp_window = 0x%lx | target_win = 0x%lx\n", tmp_window, target_win);
 #endif // V_DEBUG_POSITION
 
-  //Window top_window; // term_window
-  //Window term_window = get_focus_window(foreground_dpy); // parent window id
 #if defined(V_DEBUG_POSITION)
   printf("term_window = 0x%lx\n", term_window);
 #endif // V_DEBUG_POSITION
@@ -1225,7 +1198,6 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   xwa_image.override_redirect = TRUE;
   XWindowAttributes xwa;
   if (!XGetWindowAttributes(foreground_dpy, target_win, &xwa)) {
-  //if (!XGetWindowAttributes(foreground_dpy, term_window, &xwa)) {
     fprintf(stderr, "Error XGetWindowAttributes\n");
   }
 
@@ -1294,7 +1266,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   XFlush(foreground_dpy);
   XSync(foreground_dpy, False);
-  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
