@@ -312,14 +312,16 @@ int main(int argc, char **argv)
         pos = info_key_presses.last_position_array;
       }
 
+/*
       if (info_key_presses.n_times_pressed > 0 && image_appeared && back_pressed) {
-        sleep(5);
+        //sleep(5);
         //ungetc(info_key_presses.ascii_value, stdin);
         --pos;
         --info_key_presses.n_times_pressed;
       } else if (info_key_presses.n_times_pressed == 0) {
         image_appeared = 0;
       }
+*/
       print_entries(&w1, &s, entries, option, (int)c, &pos, &left_box);
       image_used = 0;
       print_permissions(&left_box, &s, &w1, pos);
@@ -1560,6 +1562,35 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
     case DN:
       if (*pos < s->array_size - 1) {
         ++*pos;
+
+      if (info_key_presses.n_times_pressed > 0 && image_appeared && back_pressed) {
+        //sleep(5);
+        ungetc(info_key_presses.ascii_value, stdin);
+        size_t n;
+        for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
+          --*pos;
+          if (n == info_key_presses.n_times_pressed - 1) {
+            image_appeared = 0;
+            info_key_presses.n_times_pressed = 0;
+            if (*pos - 1 >= s->pos_lower_t) {
+              --s->pos_upper_t;
+              ++s->n_lower_t;
+              --s->pos_lower_t;
+            }
+            image_appeared = 0;
+          }
+        }
+        //--info_key_presses.n_times_pressed;
+/*
+        if (*pos - 1 >= s->pos_lower_t) {
+          --s->pos_upper_t;
+          ++s->n_lower_t;
+          --s->pos_lower_t;
+        }
+*/
+      } else if (info_key_presses.n_times_pressed == 0) {
+        image_appeared = 0;
+      }
 
 /*
       if (modify_pos_bc_image_used) {
