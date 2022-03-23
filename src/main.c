@@ -313,8 +313,9 @@ int main(int argc, char **argv)
       }
 
       if (info_key_presses.n_times_pressed > 0) {
-        sleep(5);
+        //sleep(5);
         ungetc(info_key_presses.ascii_value, stdin);
+        --pos;
         --info_key_presses.n_times_pressed;
       }
       print_entries(&w1, &s, entries, option, (int)c, &pos, &left_box);

@@ -1491,6 +1491,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
     }
   }
 */
+/*
   if (info->n_times_pressed > 1) {
     for (size_t i = 0; i < info->n_times_pressed; ++i) {
       //XUngrabKey(foreground_dpy, int, unsigned int, top_window);
@@ -1498,6 +1499,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
     }
     info->n_times_pressed = 0;
   }
+*/
   if (atom_prop.status) {
     free(atom_prop.status);
     atom_prop.status = NULL;
