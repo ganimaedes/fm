@@ -78,3 +78,8 @@ find_id.c
 find_id
 get_active_window.c
 get_active_window
+numbers
+img_copy1.c
+img_copy1.h
+img_copy2.c
+img_copy2.h
