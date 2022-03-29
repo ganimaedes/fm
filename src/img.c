@@ -637,8 +637,14 @@ int process_event(GC *gc,
                   InfoKeyPresses *info)
 {
   XEvent xe;
+
+  XConfigureEvent cEvent;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
+  XWindowAttributes xwa;
+  if (!XGetWindowAttributes(foreground_dpy, *top_window, &xwa)) {
+    fprintf(stderr, "Error XGetWindowAttributes\n");
+  }
 ///*
   show_properties(atom_prop, &tmp_window, 1);
   if (strstr(atom_prop->status, "HIDDEN")) {
@@ -684,6 +690,18 @@ int process_event(GC *gc,
       if (xe.xclient.message_type == *wmDeleteMessage) {
         return 0;
       }
+    case ConfigureNotify:
+        cEvent = xe.xconfigure;
+        if ((cEvent.width != xwa.width) || (cEvent.height != xwa.height)) {
+          printf("Window resized to be %d X %d\n", xwa.width, xwa.height);
+/*
+          WINDOW_WIDTH = cEvent.width;
+          WINDOW_HEIGHT = cEvent.height;
+          printf("Window resized to be %d X %d\n", WINDOW_WIDTH, WINDOW_HEIGHT);
+          redraw(display, win, gc);
+*/
+        }
+      break;
     case KeyPress:
 /*
       {
