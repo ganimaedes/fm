@@ -693,7 +693,7 @@ int process_event(GC *gc,
     case ConfigureNotify:
         cEvent = xe.xconfigure;
         if ((cEvent.width != xwa.width) || (cEvent.height != xwa.height)) {
-          printf("Window resized to be %d X %d\n", xwa.width, xwa.height);
+          //printf("Window resized to be %d X %d\n", xwa.width, xwa.height);
 /*
           WINDOW_WIDTH = cEvent.width;
           WINDOW_HEIGHT = cEvent.height;

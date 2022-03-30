@@ -390,7 +390,46 @@ int main(int argc, char **argv)
           //sleep(10);
         }
         image_used = 1;
+      } else if (match_extension(left_box.menu[pos].name, "c") ||
+                 match_extension(left_box.menu[pos].name, "cpp")) {
+
+        FILE * fp;
+        char *read_line = NULL;
+        size_t len = 0;
+        ssize_t read;
+
+        fp = fopen(left_box.menu[pos].complete_path, "r");
+        if (fp == NULL) {
+          PRINT("read file error");
+        }
+
+        int n_lines = 0;
+        while ((read = getline(&read_line, &len, fp)) != -1) {
+          //printf("%s", line);
+          if (n_lines < w2.y_size) {
+            int len = strlen(read_line);
+            sprintf(position, place_, w2.y_beg + 1, w2.x_beg + 1);
+            move(1, position);
+            del_from_cursor(del_in);
+            sprintf(position, place_, w2.y_beg + n_lines, w2.x_beg + 1);
+            move(1, position);
+            del_from_cursor(del_in);
+            move(1, position);
+            write(1, read_line, len);
+            ++n_lines;
+          }
+        }
+
+        fclose(fp);
+        if (read_line) {
+          free(read_line);
+          read_line = NULL;
+        }
+
+
+
       }
+
     }
 
     if (enter_backspace == 1 && attributes.n_elements != 0 && back_pressed == 1 && initial_loop != 1) {
@@ -454,7 +493,6 @@ int main(int argc, char **argv)
 #if defined(EBUG)
       print_n_elements(&left_box);
 #endif // EBUG
-
 
     } else if (c == 'h' || c == KEY_BACKSPACE || c == BACKSPACE) {
 
