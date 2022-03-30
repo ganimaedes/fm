@@ -415,6 +415,9 @@ int main(int argc, char **argv)
             move(1, position);
             del_from_cursor(del_in);
             move(1, position);
+            if (len > (w2.x_size) - 2) {
+              len = (w2.x_size) - 2;
+            }
             write(1, read_line, len);
             ++n_lines;
           }
