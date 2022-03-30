@@ -40,15 +40,6 @@ static Bool xerror = FALSE;
 
 #define ATOM(a) XInternAtom(foreground_dpy, #a, False)
 
-//static double elapsedTime;
-//static double pastElapsedTime;
-
-//static struct timeval t1, t2;
-//static volatile sig_atomic_t is_retriggered = 0;
-//static unsigned short is_retriggered = 0;
-    //double elapsedTime;
-
-
 typedef struct _Properties {
   int         n_elements;
   int         capacity;
@@ -75,7 +66,6 @@ typedef struct _Atom_Prop {
 static Window target_win = 0;
 
 Window tmp_window;
-
 
 typedef struct _Win {
   Window grab_window;
@@ -123,7 +113,6 @@ Window select_args(int *rargc, char **argv);
 Window get_child_window(Display *display, Window window);
 Window get_toplevel_parent(Display * display, Window window);
 void handlern(int sig);
-//void create_window(Win *win, Window *root, int x_px, int y_px, Image *img);
 void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char *path);
 void grab_keys(Win *win);
 void put_image(Win *win, Image *img, int x_px, int y_px);
@@ -132,20 +121,8 @@ Window get_focus_window(Display* d);
 int x_error_handler(Display* dpy, XErrorEvent* pErr);
 int check_if_key_press(InfoKeyPresses *info, Window *tmp_window, Win *win);
 int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win);
-//int process_event(GC *gc,
-//                  Window *top_window,
-//                  Atom *wmDeleteMessage,
-//                  Win *w,
-//                  Atom_Prop *atom_prop, Image *img);
 
 int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_type);
-//int process_event(GC *gc,
-//                  Window *top_window,
-//                  Atom *wmDeleteMessage,
-//                  Win *w,
-//                  Atom_Prop *atom_prop,
-//                  Image *img,
-//                  KeyCode *key);
 
 int process_event(GC *gc,
                   Window *top_window,
@@ -155,9 +132,6 @@ int process_event(GC *gc,
                   Image *img,
                   KeyCode *key,
                   InfoKeyPresses *info);
-//int set_img(int argc, char **argv);
-//int set_img(int argc, char *prog_name, Window window_in, char *path, double factor_in, int y_pos_in, int x_pos_in);
-//unsigned long set_img(int argc, char *prog_name, Window window_in, char *path, double factor_in, int y_pos_in, int x_pos_in);
 unsigned long set_img(char *path, InfoKeyPresses *info);
 
 #endif // IMG_H

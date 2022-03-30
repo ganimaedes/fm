@@ -302,8 +302,7 @@ Window get_child_window(Display *display, Window window)
         XFree(children);
       }
       return window_copy;
-    }
-    else {
+    } else {
       window = parent;
     }
   }
@@ -392,12 +391,9 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   xwa_image.override_redirect = TRUE;
   XWindowAttributes xwa;
   if (!XGetWindowAttributes(foreground_dpy, win->background_win, &xwa)) {
-  //if (!XGetWindowAttributes(foreground_dpy, term_window, &xwa)) {
-    fprintf(stderr, "Error XGetWindowAttributes\n");
+    PRINT("Error XGetWindowAttributes\n");
   }
   factor = fix_factor_to_fit_inside_window(img, xwa.width, xwa.height);
-  //img->new_width = (double)img->width * factor;
-  //img->new_height = (double)img->height * factor;
   img->new_width = img->width * factor;
   img->new_height = img->height * factor;
 
@@ -440,7 +436,6 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   printf("win->screen = %d\n\t", win->screen);
   printf("x_px = %d | y_px = %d\n\t", x_px, y_px);
 #endif
-  //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, x_px, y_px,
   int x_dist = 100;
   int center_in_second_window_dist = (xwa.width) / 4;
   win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, ((xwa.width / 2) + xwa.x + center_in_second_window_dist - img->new_width / 2) - 10,
@@ -558,10 +553,9 @@ Window get_top_window(Display* d, Window start)
   unsigned int nchildren;
   Status s;
 
-  //printf("getting top window ... \n");
   while (parent != root) {
     w = parent;
-    s = XQueryTree(d, w, &root, &parent, &children, &nchildren); // see man
+    s = XQueryTree(d, w, &root, &parent, &children, &nchildren);
     if (s) {
       XFree(children);
     }
@@ -569,9 +563,7 @@ Window get_top_window(Display* d, Window start)
       printf("fail\n");
       exit(1);
     }
-    //printf("  get parent (window: 0x%lx)\n", w);
   }
-  //printf("success (window: 0x%lx)\n", w);
   return w;
 }
 
@@ -831,95 +823,36 @@ int process_event(GC *gc,
   // set marks for files the same waay vim sets marks for line numbers
 }
 
+// https://opensource.apple.com/source/X11libs/X11libs-60/mesa/Mesa-7.8.2/src/glut/glx/glut_event.c.auto.html
+// If we are ignoring auto repeated keys for this window,
+// check if the next event in the X event queue is a KeyPress
+// for the exact same key (and at the exact same time) as the
+// key being released.  The X11 protocol will send auto
+// repeated keys as such KeyRelease/KeyPress pairs. */
 int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
 {
-    XEvent event = { 0 };
-    XEvent ahead = { 0 };
-    //XNextEvent(foreground_dpy, &event);
-    XNextEvent(foreground_dpy, &ahead);
-    //  if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
-    //    XEvent nev;
-    //    XPeekEvent(foreground_dpy, &nev);
-
-            //sleep(10);
-            
+  XEvent event = { 0 };
+  XEvent ahead = { 0 };
+  XNextEvent(foreground_dpy, &ahead);
   switch (ahead.type) {
     case KeyPress:
-	    if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
-	      XPeekEvent(foreground_dpy, &ahead);
-	      if (ahead.type == KeyPress
-	        && ahead.xkey.window == event.xkey.window
-	        && ahead.xkey.keycode == event.xkey.keycode
-	        && ahead.xkey.time == event.xkey.time) {
-		// Pop off the repeated KeyPress and ignore
-		//   the auto repeated KeyRelease/KeyPress pair.
-	        XNextEvent(foreground_dpy, &event);
-            return 0;
-	        //break;
-	      }
-	    }
+      if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
+        XPeekEvent(foreground_dpy, &ahead);
+        if (ahead.type == KeyPress
+            && ahead.xkey.window == event.xkey.window
+            && ahead.xkey.keycode == event.xkey.keycode
+            && ahead.xkey.time == event.xkey.time) {
+          // Pop off the repeated KeyPress and ignore
+          //   the auto repeated KeyRelease/KeyPress pair.
+          XNextEvent(foreground_dpy, &event);
+          return 0;
+          //break;
+        }
+      }
   }
 
-/*
-    if (event.type == KeyPress) {
-      //XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, *tmp_window);
-      //goto finish;
-
-      //printf("        KEYGRAB         ");
-      //sleep(5);
-      //continue;
-
-      if (event.xkey.keycode == win->keycode_dn) { // X_KEY_DN
-        win->keycode_dn_pressed = 1;
-        XUngrabKey(foreground_dpy, win->keycode_dn, 0, *tmp_window);
-        //goto finish;
-        //return KEY_DOWN;
-        return 0;
-      } else if (event.xkey.keycode == win->keycode_up) { // X_KEY_UP
-        XUngrabKey(foreground_dpy, win->keycode_up, 0, *tmp_window);
-        win->keycode_up_pressed = 1;
-        //goto finish;
-        //return KEY_UP;
-        return 0;
-      }
-      else if (event.xkey.keycode == win->keycodes[0]) { // XK_End
-        XUngrabKey(foreground_dpy, win->keycodes[0], 0, *tmp_window);
-        win->keycode_end_pressed = 1;
-        //goto finish;
-        //return KEY_END;
-        return 0;
-      }
-      else if (event.xkey.keycode == win->keycodes[1]) { // XK_Begin
-        XUngrabKey(foreground_dpy, win->keycodes[1], 0, *tmp_window);
-        win->keycode_beg_pressed = 1;
-        //goto finish;
-        //return KEY_ALL_UP;
-        return 0;
-      }
-
-      else if (event.xkey.keycode == win->keycodes[2]) { // XK_BackSpace
-        XUngrabKey(foreground_dpy, win->keycodes[2], 0, *tmp_window);
-        win->keycode_bckspce_pressed = 1;
-        //goto finish;
-        //return BACKSPACE;
-        return 0;
-      }
-
-      else {
-        // *key = xe.xkey.keycode;
-        XUngrabKey(foreground_dpy, event.xkey.keycode, 0, *tmp_window);
-        //w->keycode_bckspce_pressed = 1;
-        //return 1;
-        //goto finish;
-        return 0;
-      }
-      return 1;
-    }
-  return 1;
-*/
   return 1;
 }
-
 
 int check_if_key_press(InfoKeyPresses *info, Window *tmp_window, Win *win)
 {
@@ -1043,7 +976,6 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   win.keycode_up_pressed = 0;
   win.background_win = term_window;
   create_window(&win, &root, 0, y_px, &img, path);
-  //nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);
 
 //  *
 //  * 1 Create window END
@@ -1072,9 +1004,8 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   Atom_Prop atom_prop = { 0 };
   Atom_Prop child_win = { 0 };
 
-
   int result_key_press = 0;
-  int window_maximized = 0;
+  //int window_maximized = 0;
   put_image(&win, &img, 0, y_px);
 
 
@@ -1129,8 +1060,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 
   XEvent event_foreground = { 0 };
 
-
-  int window_set_above = 0;
+  //int window_set_above = 0;
 #if defined(V_DEBUG)
   //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
   //printf("target_win = 0x%lx | tmp_window = 0x%lx | root = 0x%lx | foreground_win = 0x%lx\n",
