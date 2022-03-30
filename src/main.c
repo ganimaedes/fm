@@ -339,76 +339,6 @@ int main(int argc, char **argv)
 
       print_right_window(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, pos, &c);
 
-/*
-      if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
-        directory_placement(&left_box, &right_box, &s, &pos, &w1, &w2, &w_main);
-
-      } else if (pos < left_box.n_elements &&
-                 (match_extension(left_box.menu[pos].name, "gz") ||
-                 match_extension(left_box.menu[pos].name, "xz"))) {
-        read_tar(&left_box, &pos);
-        sprintf(position, place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
-        move(1, position);
-      } else if (match_extension(left_box.menu[pos].name, "jpeg") ||
-                 match_extension(left_box.menu[pos].name, "jpg") ||
-                 match_extension(left_box.menu[pos].name, "png")) {
-        // soit kbhit is trying to get char at the same time as XGet or XGrabKey error
-//./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
-        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
-        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, w2.x_beg + w1.x_size, w2.y_beg);
-        //set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 0.5, w2.y_px_size, w1.x_px_size);
-        //c = set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
-        //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
-        //ai to see deleted pics
-        //draw_box for when passing from two windows to three windows
-        // ssh function
-        //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
-        //image_appeared = 1;
-        info_key_presses.last_position_array = pos;
-        ttymode_reset(ECHO, 0);
-        //modify_pos_bc_image_used = 1;
-        c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
-        image_appeared = 1;
-        //image_appeared = 0;
-        // ungetc for n_times_pressed
-        // bookmarks et retour ou on etait avant bookmark
-        // always keep above parent window but below others
-        if (info_key_presses.n_times_pressed > 1) {
-          size_t n;
-          for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
-            //ungetc(info_key_presses.keypress_value, stdin);
-            ungetc(info_key_presses.ascii_value, stdin);
-            if (n == info_key_presses.n_times_pressed - 1) {
-              //pos = info_key_presses.last_position_array;
-            }
-          }
-        }
-        if (info_key_presses.n_times_pressed > 1) {
-          msg.print_msg = "n_times_pressed = ";
-          msg.n_ulong = info_key_presses.n_times_pressed;
-          msg.used_ulong = 1;
-          print_message2(&w_main, &s, 1, pos, &msg);
-          //info_key_presses.n_times_pressed = 0;
-          n_times_keypressed = 0;
-          n_times_keypressed_copy = 0;
-          //sleep(5);
-        }
-        if (c == KEY_ALL_UP) {
-          //sleep(10);
-        }
-        image_used = 1;
-      } else if (match_extension(left_box.menu[pos].name, "c") ||
-                 match_extension(left_box.menu[pos].name, "cpp") ||
-                 match_extension(left_box.menu[pos].name, "h") ||
-                 match_extension(left_box.menu[pos].name, "java") ||
-                 match_extension(left_box.menu[pos].name, "txt") ||
-                 match_extension(left_box.menu[pos].name, "md") ||
-                 match_extension(left_box.menu[pos].name, "py")) {
-
-        read_file(&left_box, &w1, &w2, &s, pos);
-
-      }
-*/
     }
 
     if (enter_backspace == 1 && attributes.n_elements != 0 && back_pressed == 1 && initial_loop != 1) {
@@ -604,19 +534,16 @@ void print_right_window(Array *left_box,
       n_times_keypressed_copy = 0;
       //sleep(5);
     }
-/*
-    if (c == KEY_ALL_UP) {
-      //sleep(10);
-    }
-*/
     image_used = 1;
-  } else if (match_extension(left_box->menu[pos].name, "c") ||
-      match_extension(left_box->menu[pos].name, "cpp") ||
-      match_extension(left_box->menu[pos].name, "h") ||
-      match_extension(left_box->menu[pos].name, "java") ||
-      match_extension(left_box->menu[pos].name, "txt") ||
-      match_extension(left_box->menu[pos].name, "md") ||
-      match_extension(left_box->menu[pos].name, "py")) {
+  } else if (match_extension(left_box->menu[pos].name, ".c") ||
+      match_extension(left_box->menu[pos].name, ".cpp") ||
+      match_extension(left_box->menu[pos].name, ".h") ||
+      match_extension(left_box->menu[pos].name, ".java") ||
+      match_extension(left_box->menu[pos].name, ".txt") ||
+      match_extension(left_box->menu[pos].name, ".md") ||
+      match_extension(left_box->menu[pos].name, ".py") ||
+      match_extension(left_box->menu[pos].name, ".sh") ||
+      match_extension(left_box->menu[pos].name, ".json")) {
 
     read_file(left_box, w1, w2, s, pos);
 
