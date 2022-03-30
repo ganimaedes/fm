@@ -393,7 +393,8 @@ int main(int argc, char **argv)
         image_used = 1;
       } else if (match_extension(left_box.menu[pos].name, "c") ||
                  match_extension(left_box.menu[pos].name, "cpp") ||
-                 match_extension(left_box.menu[pos].name, "h")) {
+                 match_extension(left_box.menu[pos].name, "h") ||
+                 match_extension(left_box.menu[pos].name, "java")) {
 
         read_file(&left_box, &w1, &w2, &s, pos);
 

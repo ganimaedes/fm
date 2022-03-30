@@ -703,48 +703,6 @@ int process_event(GC *gc,
         }
       break;
     case KeyPress:
-/*
-      {
-
-#if defined(V_DEBUG)
-      printf("xe.xkey.keycode: %d\n", xe.xkey.keycode);
-#endif // V_DEBUG
-      if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
-        w->keycode_dn_pressed = 1;
-        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
-        return 0;
-      } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
-        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
-        w->keycode_up_pressed = 1;
-        return 0;
-      }
-      else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
-        XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
-        w->keycode_end_pressed = 1;
-        return 0;
-      }
-      else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
-        XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
-        w->keycode_beg_pressed = 1;
-        return 0;
-      }
-
-      else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
-        XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
-        w->keycode_bckspce_pressed = 1;
-        return 0;
-      }
-
-      else {
-        *key = xe.xkey.keycode;
-        XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
-        //w->keycode_bckspce_pressed = 1;
-        //return 1;
-        return 0;
-      }
-      break;
-    }
-*/
       break;
     case KeyRelease: {
 
@@ -775,86 +733,28 @@ int process_event(GC *gc,
         XEvent nev;
         XPeekEvent(foreground_dpy, &nev);
 
-
-
-
-
-
         // https://stackoverflow.com/questions/2150291/how-do-i-measure-a-time-interval-in-c
-        //   struct timeval t1, t2;
-        //double elapsedTime;
 
-        // start timer
-        //gettimeofday(&t1, NULL);
+       if (nev.type == KeyPress 
+         && nev.xkey.keycode == xe.xkey.keycode && elapsedTime < 4.74) {
+         ++n_times_keypressed;
+         ++n_times_keypressed_copy;
+         info->n_times_pressed = n_times_keypressed_copy;
 
-        // do something
-        // ..
-        //
-/*
-Public Boolean tick = false;
-private void Form1_KeyPress(object sender, KeyPressEventArgs e)
-{
-tick = !tick;
-    label1.Text = "Key Pressed: " + e.KeyChar;
-   //animate(sender, e);
-if(tick)
-    timer1.Start();
-else
-    timer1.Stop();
-}
-*/
-
-
-//         if (nev.type == KeyPress && nev.xkey.time == xe.xkey.time &&
-//             nev.xkey.keycode == xe.xkey.keycode)
-             //printf("%f ms.\n", pastElapsedTime);
-
-             if (nev.type == KeyPress /* &&  pastElapsedTime  < 1000.99800 */
-               /*&& nev.xkey.time == xe.xkey.time*/ && nev.xkey.keycode == xe.xkey.keycode && elapsedTime < 4.74 /* && n_times_keypressed == 0 */) {
-               //fprintf (stdout, "key #%ld was retriggered.\n", (long) XLookupKeysym (&nev.xkey, 0));
-               //printf("%f ms.\n", pastElapsedTime);
-               ++n_times_keypressed;
-               ++n_times_keypressed_copy;
-               info->n_times_pressed = n_times_keypressed_copy;
-
-
-
-        //       XUngrabKey(foreground_dpy, int, unsigned int, Window);
-               //XUngrabKey(foreground_dpy, (long) XLookupKeysym(&nev.xkey, 0), 0, *top_window);
-               // delete retriggered KeyPress event
-               XNextEvent (foreground_dpy, &xe);
-               //is_retriggered = 1;
-               is_retriggered = !is_retriggered;
-               //elapsedTime = 0;
-             }
+         XNextEvent (foreground_dpy, &xe);
+         is_retriggered = !is_retriggered;
+       }
 
 // retourner la derniere position du left box precedent
         if (!is_retriggered) {
-          //fprintf (stdout, "key #%ld was released.\n",
-          //    (long) XLookupKeysym (&xe.xkey, 0));
           // start timer
           gettimeofday(&t1, NULL);
           ++n_times_keypressed_copy;
           info->n_times_pressed = n_times_keypressed_copy;
-          if (n_times_keypressed >= 1) {
-            //n_times_keypressed = 0;
-          }
           elapsedTime = 0;
           elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
           elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
 
-          /*
-          // stop timer
-          gettimeofday(&t2, NULL);
-
-          // compute and print the elapsed time in millisec
-          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
-          elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
-                                                               //printf("%f ms.\n", elapsedTime);
-                                                               pastElapsedTime = elapsedTime;
-                                                               */
-          //XUngrabKey(foreground_dpy, (long) XLookupKeysym(&nev.xkey, 0), 0, *top_window);
-          //return 0;
           return 1;
         } else {
           ++n_times_keypressed_copy;
@@ -869,8 +769,6 @@ else
           info->n_times_pressed = n_times_keypressed_copy;
           info->keypress_value = (long)XLookupKeysym(&nev.xkey, 0);
           info->ascii_value = KEY_DOWN;
-          //info->keypress_value = KEY_DOWN;
-          //sleep(10);
         }
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up || nev.xkey.keycode == w->keycode_up) { // X_KEY_UP
@@ -887,11 +785,6 @@ else
 
 }
 
-/*
-      if (was_it_auto_repeat(foreground_dpy, &xe, KeyRelease, KeyPress)) {
-        XNextEvent(foreground_dpy, &xe); // Consume the extra event so we can ignore it.
-      }
-*/
 ///*
 #if defined(V_DEBUG)
       printf("xe.xkey.keycode: %d\n", xe.xkey.keycode);
