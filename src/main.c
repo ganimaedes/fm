@@ -1,6 +1,7 @@
 #include "array.h"
 #include "scr.h"
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #define _XOPEN_SOURCE
 
@@ -645,14 +646,25 @@ void read_file(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
       move(1, position);
       if (len > (w2->x_size) - 2) {
         len = (w2->x_size) - 2;
+        //match_extension(read_line, "\t");
+        int pos_tab = strpos(read_line, "\t", 0);
+        if (pos_tab >= 0) {
+          //memmove(read_line + pos_tab, read_line, --len);
+          memmove(read_line, read_line + pos_tab + 1, len--);
+        }
       }
       // goes past window limits if first characters are spaces
       //if (read_line[0] != ' ' || read_line[0] != '/') {
+      write(1, read_line, len);
+/*
       if (read_line[0] == '\t') {
         write(1, &read_line[1], len - 1);
+      } else if (read_line[len - 1] == '*') {
+        write(1, read_line, len - 1);
       } else {
         write(1, read_line, len);
       }
+*/
       ++n_lines;
     }
   }
