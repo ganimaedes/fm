@@ -63,8 +63,10 @@ void free_array(Array *a)
     a->menu[i].type = NULL;
     free(a->menu[i].complete_path);
     a->menu[i].complete_path = NULL;
-    free(a->menu[i].permissions);
-    a->menu[i].permissions = NULL;
+    if (a->menu[i].permissions != NULL) {
+      free(a->menu[i].permissions);
+      a->menu[i].permissions = NULL;
+    }
   }
   free(a->menu);
   a->menu = NULL;

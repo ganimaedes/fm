@@ -149,10 +149,12 @@ int free_menu(Menu *menu)
     menu->parent = NULL;
   }
 //*/
+/*
   if (menu->permissions != NULL) {
     free(menu->permissions);
     menu->permissions = NULL;
   }
+*/
   return 1;
 }
 

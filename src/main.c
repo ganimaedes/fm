@@ -229,12 +229,12 @@ int main(int argc, char **argv)
     print_message2(&w_main, &s, 1, pos, &msg);
 #endif // EBUG
     if (left_box.n_elements != 0) {
-      //if (previous_pos < left_box.n_elements) {
+      if (previous_pos < left_box.n_elements) {
         if (backspace) {
           pos = previous_pos;
           backspace = 0;
         }
-      //}
+      }
 
       if (!left_allocation || secondary_loop) {
         reprint = 1;
@@ -302,31 +302,11 @@ int main(int argc, char **argv)
           delete_counter = 0;
         }
       }
-      //char *MSG = "c = ";
-      //if (c > 400) { c = 107; }
-      //print_message(&w_main, &s, 4, MSG, c, &pos);
-      // mettre une autre struct enregistrant les keypresses
 
-      //if (c > 400) { c = 107; pos = 0; sleep(5); }
-      //if (c == -17) { c = 107; }
-
-      //if (image_used) {
-      //  pos = previous_pos;
-      //}
       if (image_used) {
         pos = info_key_presses.last_position_array;
       }
 
-/*
-      if (info_key_presses.n_times_pressed > 0 && image_appeared && back_pressed) {
-        //sleep(5);
-        //ungetc(info_key_presses.ascii_value, stdin);
-        --pos;
-        --info_key_presses.n_times_pressed;
-      } else if (info_key_presses.n_times_pressed == 0) {
-        image_appeared = 0;
-      }
-*/
       print_entries(&w1, &s, entries, option, (int)c, &pos, &left_box);
       image_used = 0;
       print_permissions(&left_box, &s, &w1, pos);
@@ -382,7 +362,11 @@ int main(int argc, char **argv)
       if (left_box.n_elements != 0) {
         free_array(&left_box);
         left_box.n_elements = 0;
-        init(&left_box, right_box.n_elements);
+        if (right_box.n_elements > 0) {
+          init(&left_box, right_box.n_elements);
+        } else {
+          init(&left_box, 1);
+        }
       }
       dupArray2(&right_box, &left_box);
 
@@ -421,7 +405,7 @@ int main(int argc, char **argv)
 
       erase_window(&w2, &s);
 
-      if (right_box.n_elements != 0) {
+      if (/* right_box.menu[0].complete_path != NULL && */ right_box.n_elements != 0) {
         free_array(&right_box);
         right_box.n_elements = 0;
         if (left_box.n_elements != 0) {
@@ -543,7 +527,8 @@ void print_right_window(Array *left_box,
       match_extension(left_box->menu[pos].name, ".md") ||
       match_extension(left_box->menu[pos].name, ".py") ||
       match_extension(left_box->menu[pos].name, ".sh") ||
-      match_extension(left_box->menu[pos].name, ".json")) {
+      match_extension(left_box->menu[pos].name, ".json") ||
+      match_extension(left_box->menu[pos].name, ".patch")) {
 
     read_file(left_box, w1, w2, s, pos);
 
@@ -1328,7 +1313,7 @@ void reprint_menu(Window_ *w, Scroll *s1, Array *a, Attributes *attr, int pos, i
       }
     }
     // print permissions
-    print_permissions(a, s1, w, pos);
+    //print_permissions(a, s1, w, pos);
   }
 }
 

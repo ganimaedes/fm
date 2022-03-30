@@ -626,7 +626,6 @@ int process_event(GC *gc,
                   InfoKeyPresses *info)
 {
   XEvent xe;
-
   XConfigureEvent cEvent;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
@@ -656,14 +655,15 @@ int process_event(GC *gc,
 #if defined(V_DEBUG_POSITION)
     printf("img.ximage[0] = %d\n", img.ximage->data[0]);
 #endif
-    nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+    //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+    nanosleep((const struct timespec[]){{0, 9000000L}}, NULL);
     XPutImage(foreground_dpy, w->foreground_win,
               *gc, img->ximage,
               0, 0,
               0, 0,
               img->new_width, img->new_height);
     //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
-    XFlush(foreground_dpy);
+    //XFlush(foreground_dpy);
     XSync(foreground_dpy, False);
     window_remapped = 1;
     window_unmapped = 0;
@@ -995,7 +995,6 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 //  * 2 Grab Key END
 //  *
 
-
 //  *
 //  * 3 Put Image BEGIN
 //  *
@@ -1016,8 +1015,8 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   }
 
   img.ximage = XCreateImage(foreground_dpy, CopyFromParent, img.depth, ZPixmap,
-                                0, (char *)img.data_resized, img.new_width, img.new_height,
-                                img.bpl * 8, img.bpl * img.new_width);
+                            0, (char *)img.data_resized, img.new_width, img.new_height,
+                            img.bpl * 8, img.bpl * img.new_width);
   img.gc = XCreateGC(foreground_dpy, win.foreground_win, 0, 0);
   XFlush(foreground_dpy);
   XSync(foreground_dpy, False);
