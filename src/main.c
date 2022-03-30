@@ -391,7 +391,8 @@ int main(int argc, char **argv)
         }
         image_used = 1;
       } else if (match_extension(left_box.menu[pos].name, "c") ||
-                 match_extension(left_box.menu[pos].name, "cpp")) {
+                 match_extension(left_box.menu[pos].name, "cpp") ||
+                 match_extension(left_box.menu[pos].name, "h")) {
 
         FILE * fp;
         char *read_line = NULL;
@@ -405,7 +406,6 @@ int main(int argc, char **argv)
 
         int n_lines = 0;
         while ((read = getline(&read_line, &len, fp)) != -1) {
-          //printf("%s", line);
           if (n_lines < w2.y_size - 1) {
             int len = strlen(read_line);
             sprintf(position, place_, w2.y_beg + 2, w2.x_beg + 1);
