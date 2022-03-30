@@ -429,6 +429,8 @@ int main(int argc, char **argv)
           read_line = NULL;
         }
 
+        sprintf(position, place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
+        move(1, position);
 
 
       }
