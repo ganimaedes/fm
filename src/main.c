@@ -109,6 +109,7 @@ void print_n_elements(Array *left_box);
 void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos);
 void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned long number, int *pos);
 void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, Message *msg);
+void read_file(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos);
 
 int main(int argc, char **argv)
 {
@@ -394,43 +395,7 @@ int main(int argc, char **argv)
                  match_extension(left_box.menu[pos].name, "cpp") ||
                  match_extension(left_box.menu[pos].name, "h")) {
 
-        FILE * fp;
-        char *read_line = NULL;
-        size_t len = 0;
-        ssize_t read;
-
-        fp = fopen(left_box.menu[pos].complete_path, "r");
-        if (fp == NULL) {
-          PRINT("read file error");
-        }
-
-        int n_lines = 0;
-        while ((read = getline(&read_line, &len, fp)) != -1) {
-          if (n_lines < w2.y_size - 1) {
-            int len = strlen(read_line);
-            sprintf(position, place_, w2.y_beg + 2, w2.x_beg + 1);
-            move(1, position);
-            del_from_cursor(del_in);
-            sprintf(position, place_, w2.y_beg + n_lines + 1, w2.x_beg + 1);
-            move(1, position);
-            del_from_cursor(del_in);
-            move(1, position);
-            if (len > (w2.x_size) - 2) {
-              len = (w2.x_size) - 2;
-            }
-            write(1, read_line, len);
-            ++n_lines;
-          }
-        }
-
-        fclose(fp);
-        if (read_line) {
-          free(read_line);
-          read_line = NULL;
-        }
-
-        sprintf(position, place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
-        move(1, position);
+        read_file(&left_box, &w1, &w2, &s, pos);
 
 
       }
@@ -566,6 +531,48 @@ int main(int argc, char **argv)
 #endif // EBUG
   restore_config;
   return 0;
+}
+
+void read_file(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
+{
+  FILE * fp;
+  char *read_line = NULL;
+  size_t len = 0;
+  ssize_t read;
+
+  fp = fopen(left_box->menu[pos].complete_path, "r");
+  if (fp == NULL) {
+    PRINT("read file error");
+  }
+
+  int n_lines = 0;
+  while ((read = getline(&read_line, &len, fp)) != -1) {
+    if (n_lines < w2->y_size - 1) {
+      int len = strlen(read_line);
+      sprintf(position, place_, w2->y_beg + 2, w2->x_beg + 1);
+      move(1, position);
+      del_from_cursor(del_in);
+      sprintf(position, place_, w2->y_beg + n_lines + 1, w2->x_beg + 1);
+      move(1, position);
+      del_from_cursor(del_in);
+      move(1, position);
+      if (len > (w2->x_size) - 2) {
+        len = (w2->x_size) - 2;
+      }
+      write(1, read_line, len);
+      ++n_lines;
+    }
+  }
+
+  fclose(fp);
+  if (read_line) {
+    free(read_line);
+    read_line = NULL;
+  }
+
+  sprintf(position, place_, pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
+  move(1, position);
+
 }
 
 void init_msg_struct(Message *msg)
