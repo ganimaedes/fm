@@ -443,10 +443,7 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, x_px, y_px,
   int x_dist = 100;
   int center_in_second_window_dist = (xwa.width) / 4;
-  //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
-  //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, (xwa.width / 2) + center_in_second_window_dist - img->new_width / 2, 49,
-  //win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, ((xwa.width + xwa.x + x_dist) / 2) + center_in_second_window_dist - img->new_width / 2, 49,
-  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, ((xwa.width) / 2) + xwa.x + center_in_second_window_dist - img->new_width / 2,
+  win->foreground_win = XCreateSimpleWindow(foreground_dpy, *root, ((xwa.width / 2) + xwa.x + center_in_second_window_dist - img->new_width / 2) - 10,
                                               xwa.y + 49,
                                               img->new_width, img->new_height, 0,
                                               BlackPixel(foreground_dpy, win->screen),
@@ -659,9 +656,11 @@ int process_event(GC *gc,
   } else if (window_unmapped == 1) {
     XMapWindow(foreground_dpy, w->foreground_win);
     XSync(foreground_dpy, False);
-    nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
-    XFlush(foreground_dpy);
+    //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+    nanosleep((const struct timespec[]){{0, 9000000L}}, NULL);
+    //XFlush(foreground_dpy);
     //XSync(foreground_dpy, False);
+    XSync(foreground_dpy, True);
 #if defined(V_DEBUG_POSITION)
     printf("img.ximage[0] = %d\n", img.ximage->data[0]);
 #endif
@@ -671,6 +670,7 @@ int process_event(GC *gc,
               0, 0,
               0, 0,
               img->new_width, img->new_height);
+    //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
     XFlush(foreground_dpy);
     XSync(foreground_dpy, False);
     window_remapped = 1;
