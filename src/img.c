@@ -1009,10 +1009,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 
   Window root = DefaultRootWindow(foreground_dpy);
   Window term_window = get_focus_window(foreground_dpy); // parent window id
-  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
 
-  //tmp_window = select_args(&argc, argv);
-  //tmp_window = window_in;
   tmp_window = term_window;
   target_win = get_toplevel_parent(foreground_dpy, tmp_window);
 #if defined(V_DEBUG_POSITION)
@@ -1056,11 +1053,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
     XSelectInput(foreground_dpy,target_win,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
   }
   XSelectInput(foreground_dpy,target_win,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
-
-//  XSelectInput(foreground_dpy,term_window,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
-  //XSelectInput(foreground_dpy,tmp_window,KeyPressMask|PropertyChangeMask|StructureNotifyMask | ExposureMask);
   XSelectInput(foreground_dpy,term_window,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
-
 
 //  *
 //  * 2 Grab Key BEGIN
@@ -1091,13 +1084,10 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
     }
   }
 
-
   img.ximage = XCreateImage(foreground_dpy, CopyFromParent, img.depth, ZPixmap,
                                 0, (char *)img.data_resized, img.new_width, img.new_height,
                                 img.bpl * 8, img.bpl * img.new_width);
-  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   img.gc = XCreateGC(foreground_dpy, win.foreground_win, 0, 0);
-  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   XFlush(foreground_dpy);
   XSync(foreground_dpy, False);
   nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
