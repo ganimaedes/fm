@@ -57,19 +57,27 @@ void addMenu2(Array **a, Menu *menu)
 void free_array(Array *a)
 {
   for (int i = 0; i < a->n_elements; ++i) {
-    free(a->menu[i].name);
-    a->menu[i].name = NULL;
-    free(a->menu[i].type);
-    a->menu[i].type = NULL;
-    free(a->menu[i].complete_path);
-    a->menu[i].complete_path = NULL;
+    if (a->menu[i].name != NULL) {
+      free(a->menu[i].name);
+      a->menu[i].name = NULL;
+    }
+    if (a->menu[i].type != NULL) {
+      free(a->menu[i].type);
+      a->menu[i].type = NULL;
+    }
+    if (a->menu[i].complete_path != NULL) {
+      free(a->menu[i].complete_path);
+      a->menu[i].complete_path = NULL;
+    }
     if (a->menu[i].permissions != NULL) {
       free(a->menu[i].permissions);
       a->menu[i].permissions = NULL;
     }
   }
-  free(a->menu);
-  a->menu = NULL;
+  if (a->menu != NULL) {
+    free(a->menu);
+    a->menu = NULL;
+  }
 }
 
 void print_array(Array *a)
