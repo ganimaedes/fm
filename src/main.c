@@ -406,12 +406,12 @@ int main(int argc, char **argv)
         int n_lines = 0;
         while ((read = getline(&read_line, &len, fp)) != -1) {
           //printf("%s", line);
-          if (n_lines < w2.y_size) {
+          if (n_lines < w2.y_size - 1) {
             int len = strlen(read_line);
-            sprintf(position, place_, w2.y_beg + 1, w2.x_beg + 1);
+            sprintf(position, place_, w2.y_beg + 2, w2.x_beg + 1);
             move(1, position);
             del_from_cursor(del_in);
-            sprintf(position, place_, w2.y_beg + n_lines, w2.x_beg + 1);
+            sprintf(position, place_, w2.y_beg + n_lines + 1, w2.x_beg + 1);
             move(1, position);
             del_from_cursor(del_in);
             move(1, position);
