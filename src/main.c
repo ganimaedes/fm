@@ -50,6 +50,12 @@ char *file_to_be_copied;
 static int previous_pos_copy = 0;
 static int previous_pos_copy_from_attr = 0;
 
+static unsigned char SIGNATURE_PNG[9] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00 };
+static unsigned char SIGNATURE_JPG[11] = {
+  0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00 };
+static size_t SIZE_JPEG_ARRAY = sizeof(SIGNATURE_JPG) / sizeof(*SIGNATURE_JPG);
+static size_t SIZE_PNG_ARRAY = sizeof(SIGNATURE_PNG) / sizeof(*SIGNATURE_PNG);
+
 typedef struct _Message {
   char *print_msg;
   char *n_char;
@@ -61,6 +67,23 @@ typedef struct _Message {
   unsigned long n_ulong;
   int used_ulong;
 } Message;
+
+static char *TYPE[] = {
+  "j", /* JPEG JIFF */
+  "p", /* PNG       */
+  "g", /* GIF       */
+  "d", /* PDF       */
+  "o"  /* FOLDER    */
+};
+
+typedef struct _STAT_INFO {
+  unsigned short width;
+  unsigned short height;
+  unsigned int file_len;
+  char *file_name;
+  FILE *file;
+  unsigned char *data;
+} STAT_INFO;
 
 void print_path(Scroll *s, char *path, int pos, int backspace_pressed);
 int strpos(char *hay, char *needle, int offset);
@@ -89,7 +112,6 @@ void print_attributes_debug(Window_ *w, Scroll *s, int option, int pos,
 int copy_file2(Array *left_box, int pos);
 int read_tar(Array *left_box, int *pos);
 int getBackSpaceFolder(Array *left_box, int *pos, int *previous_pos, Scroll *s);
-int directory_placement(Array *left_box, Array *right_box, Scroll *s, int *pos, Window_ *w1, Window_ *w2, Window_ *w_main);
 int directory_placement2(Array *left_box, Array **right_box, Scroll *s, int *pos, Window_ *w1, Window_ *w2, Window_ *w_main);
 int window_resize(Window_ *w_main,
                   Window_ *w1,
@@ -116,6 +138,11 @@ void print_right_window(Array *left_box,
                         Window_ *w_main,
                         Message *msg,
                         int pos, unsigned long *c);
+void open_file(STAT_INFO *info);
+int is_jpeg(STAT_INFO *info);
+int is_png(STAT_INFO *info);
+char find_file_type(STAT_INFO *info);
+char find_file_type2(STAT_INFO *info);
 
 int main(int argc, char **argv)
 {
@@ -219,6 +246,8 @@ int main(int argc, char **argv)
   info_key_presses.keypress_value = 0;
   info_key_presses.n_times_pressed = 0;
 
+  STAT_INFO info_file = { 0 };
+
   for (;;) {
     if (!ioctl(0, TIOCGWINSZ, &w_s)) {
       window_resize(&w_main, &w1, &w2, &w_s, &s, &left_box, &right_box, &option, &pos, &initial_loop, &resized, &i);
@@ -319,7 +348,113 @@ int main(int argc, char **argv)
       print_message2(&w1, &s, 0, pos, &msg);
 #endif // EBUG
 
-      print_right_window(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, pos, &c);
+
+      //print_right_window(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, pos, &c);
+
+  if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
+    //directory_placement2(&left_box, &right_box, s, &pos, w1, w2, w_main);
+
+    if (right_box.n_elements != 0) {
+      free_array(&right_box);
+      init(&right_box, 1);
+    }
+    parcours(left_box.menu[pos].complete_path, 0, &right_box, 0, &w_main);
+    int to_print = 0;
+    if (right_box.n_elements <= s.n_to_print) {
+      to_print = right_box.n_elements;
+    } else {
+      if (right_box.n_elements >= w2.y_size - 1) {
+        to_print = w2.y_size - 1;
+      } else {
+        to_print = right_box.n_elements;
+      }
+    }
+    size_t i;
+    for (i = 0; i < to_print; ++i) {
+      mvwprintw(&w2, &right_box, i + w2.y_beg + 1, w2.x_beg + 1, right_box.menu[i].name, i);
+    }
+    sprintf(position, place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
+    move(1, position);
+
+  } else if (pos < left_box.n_elements &&
+      (match_extension(left_box.menu[pos].name, "gz") ||
+       match_extension(left_box.menu[pos].name, "xz"))) {
+    read_tar(&left_box, &pos);
+    sprintf(position, place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
+    move(1, position);
+  } else if (!strcmp(left_box.menu[pos].type, "file") /*&& match_extension(left_box.menu[pos].name, "jpeg") ||
+      match_extension(left_box.menu[pos].name, "jpg") ||
+      match_extension(left_box.menu[pos].name, "png") ||
+      file_type == 'j' || file_type == 'p' */) {
+      copy(&(info_file.file_name), left_box.menu[pos].complete_path, strlen(left_box.menu[pos].complete_path));
+      char file_type = find_file_type2(&info_file);
+      if (file_type == 'j' || file_type == 'p') {
+        // soit kbhit is trying to get char at the same time as XGet or XGrabKey error
+        //./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
+        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
+        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, w2.x_beg + w1.x_size, w2.y_beg);
+        //set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 0.5, w2.y_px_size, w1.x_px_size);
+        //c = set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
+        //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
+        //ai to see deleted pics
+        //draw_box for when passing from two windows to three windows
+        // ssh function
+        //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
+        //image_appeared = 1;
+        info_key_presses.last_position_array = pos;
+        ttymode_reset(ECHO, 0);
+        //modify_pos_bc_image_used = 1;
+        c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
+        image_appeared = 1;
+        //image_appeared = 0;
+        // ungetc for n_times_pressed
+        // bookmarks et retour ou on etait avant bookmark
+        // always keep above parent window but below others
+        if (info_key_presses.n_times_pressed > 1) {
+          size_t n;
+          for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
+            //ungetc(info_key_presses.keypress_value, stdin);
+            ungetc(info_key_presses.ascii_value, stdin);
+            if (n == info_key_presses.n_times_pressed - 1) {
+              //pos = info_key_presses.last_position_array;
+            }
+          }
+        }
+        if (info_key_presses.n_times_pressed > 1) {
+          msg.print_msg = "n_times_pressed = ";
+          msg.n_ulong = info_key_presses.n_times_pressed;
+          msg.used_ulong = 1;
+          print_message2(&w_main, &s, 1, pos, &msg);
+          //info_key_presses.n_times_pressed = 0;
+          n_times_keypressed = 0;
+          n_times_keypressed_copy = 0;
+          //sleep(5);
+        }
+        image_used = 1;
+      }
+      if (info_file.file_name != NULL) {
+        free(info_file.file_name);
+        info_file.file_name = NULL;
+      }
+  } else if (match_extension(left_box.menu[pos].name, ".c") ||
+      match_extension(left_box.menu[pos].name, ".cpp") ||
+      match_extension(left_box.menu[pos].name, ".h") ||
+      match_extension(left_box.menu[pos].name, ".java") ||
+      match_extension(left_box.menu[pos].name, ".txt") ||
+      match_extension(left_box.menu[pos].name, ".md") ||
+      match_extension(left_box.menu[pos].name, ".py") ||
+      match_extension(left_box.menu[pos].name, ".sh") ||
+      match_extension(left_box.menu[pos].name, ".json") ||
+      match_extension(left_box.menu[pos].name, ".patch") ||
+      match_extension(left_box.menu[pos].name, "Makefile")) {
+
+    read_file(&left_box, &w1, &w2, &s, pos);
+
+  }
+
+
+
+
 
     }
 
@@ -458,6 +593,185 @@ int main(int argc, char **argv)
   return 0;
 }
 
+void open_file(STAT_INFO *info)
+{
+  info->file = fopen(info->file_name, "rb");
+  if (info->file == NULL) {
+    fprintf(stderr, "Error opening file: %s\n", info->file_name);
+    exit(1);
+  }
+  fseek(info->file, 0, SEEK_END);
+  info->file_len = ftell(info->file);
+  fseek(info->file, 0, SEEK_SET);
+}
+
+int is_jpeg(STAT_INFO *info)
+{
+  size_t i;
+  for (i = 1; i < SIZE_JPEG_ARRAY; ++i) {
+    if (info->data[i] != SIGNATURE_JPG[i]) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+int is_png(STAT_INFO *info)
+{
+  fseek(info->file, 0, SEEK_SET);
+  unsigned char nbr[8] = "";
+  size_t i;
+  for (i = 1; i < SIZE_PNG_ARRAY - 1; ++i) {
+    if (info->data[i] != SIGNATURE_PNG[i]) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+char find_file_type(STAT_INFO *info)
+{
+  //open_file(info);
+  char *file_type = NULL;
+#define BUFSZ 256
+  //const size_t MIME_SIZE_READ = 11;
+  //unsigned char buf[BUFSZ] = {0};
+  unsigned char *buf = NULL;
+  size_t bytes = 0, i, readsz = sizeof buf;
+  FILE *fp = fopen(info->file_name, "wbx");
+  buf = malloc(256 * sizeof *info->data);
+  if (buf == NULL) {
+    PRINT("malloc");
+  }
+/*
+  if (info->file_len > MIME_SIZE_READ) {
+    info->data = malloc(MIME_SIZE_READ * sizeof *info->data);
+    if (info->data == NULL) {
+      PRINT("malloc");
+    }
+  }
+*/
+  /* read/output BUFSZ bytes at a time */
+  int counter = 0;
+  while ((bytes = fread(buf, sizeof *buf, readsz, fp)) == readsz) {
+  //while ((bytes = fread(info->data, sizeof *info->data, readsz, fp)) == readsz) {
+  ++counter;
+/*
+    for (i = 0; i < readsz; i++) {
+      printf (" 0x%02x", buf[i]);
+    }
+*/
+    if (counter >= 1) {
+      break;
+    }
+/*
+    if (info->data != NULL) {
+      free(info->data);
+      info->data = NULL;
+    }
+    for (i = 0; i < readsz; i++)
+      printf (" 0x%02x", buf[i]);
+*/
+  }
+  printf("counter = %d, bytes = %lu\n", counter, bytes);
+
+
+
+    if (buf[0] == SIGNATURE_JPG[0]) {
+      size_t i;
+      for (i = 1; i < SIZE_JPEG_ARRAY - 1; ++i) {
+        if (buf[i] != SIGNATURE_JPG[i]) {
+          return 0;
+        }
+      }
+      return *TYPE[0];
+      //file_type = is_jpeg(info) ? TYPE[0] : NULL;
+
+    } else if (buf[0] == SIGNATURE_PNG[0]) {
+      fseek(fp, 0, SEEK_SET);
+      unsigned char nbr[8] = "";
+      size_t i;
+      for (i = 1; i < SIZE_PNG_ARRAY - 2; ++i) {
+        if (buf[i] != SIGNATURE_PNG[i]) {
+          return 0;
+        }
+      }
+      return *TYPE[1];
+      //file_type = is_png(info) ? TYPE[1] : NULL;
+    }
+/*
+  const size_t MIME_SIZE_READ = 11;
+  if (info->file_len > MIME_SIZE_READ) {
+    info->data = malloc(MIME_SIZE_READ * sizeof *info->data);
+    if (info->data == NULL) {
+      fprintf(stderr, "Error malloc: %s.\n", __func__);
+      fclose(info->file);
+      exit(1);
+    }
+    memset(info->data, 0, MIME_SIZE_READ);
+    fread(info->data, MIME_SIZE_READ, sizeof *info->data, info->file);
+    if (info->data[0] == SIGNATURE_JPG[0]) {
+      file_type = is_jpeg(info) ? TYPE[0] : NULL;
+    } else if (info->data[0] == SIGNATURE_PNG[0]) {
+      file_type = is_png(info) ? TYPE[1] : NULL;
+    }
+    free(info->data);
+    info->data = NULL;
+  }
+*/
+  if (buf != NULL) {
+    free(buf);
+    buf = NULL;
+  }
+  return *file_type;
+}
+
+
+char find_file_type2(STAT_INFO *info)
+{
+  char *file_type = NULL;
+  FILE* fpc = fopen(info->file_name, "rb");
+
+  fseek(fpc, 0, SEEK_SET);        // goto offset 16
+  unsigned char buffer[16];
+  fread(buffer, 16, 1, fpc);        // read 8 bytes (which are a 64 bit integer)
+/*
+  uint64_t rawsize;
+  memcpy(&rawsize, buffer, 8);     // copy bytes read to 64 bit variable
+
+  unsigned char targetsize = (unsigned char)rawsize;  // convert to unsigned int
+*/
+
+  if (buffer[0] == SIGNATURE_JPG[0]) {
+    size_t i;
+    for (i = 1; i < SIZE_JPEG_ARRAY - 1; ++i) {
+      if (buffer[i] != SIGNATURE_JPG[i]) {
+        fclose(fpc);
+        return 0;
+      }
+    }
+    fclose(fpc);
+    return *TYPE[0];
+    //file_type = is_jpeg(info) ? TYPE[0] : NULL;
+
+  } else if (buffer[0] == SIGNATURE_PNG[0]) {
+    fseek(fpc, 0, SEEK_SET);
+    unsigned char nbr[8] = "";
+    size_t i;
+    for (i = 0; i < SIZE_PNG_ARRAY - 1; ++i) {
+      if (buffer[i] != SIGNATURE_PNG[i]) {
+        fclose(fpc);
+        return 0;
+      }
+    }
+    fclose(fpc);
+    return *TYPE[1];
+  }
+  fclose(fpc);
+  //return *file_type;
+  return 0;
+}
+
 void print_right_window(Array *left_box,
                         Array *right_box,
                         Scroll *s,
@@ -469,7 +783,6 @@ void print_right_window(Array *left_box,
 {
 
   if (pos < left_box->n_elements && !strcmp(left_box->menu[pos].type, "directory")) {
-    //directory_placement(left_box, right_box, s, &pos, w1, w2, w_main);
     directory_placement2(left_box, &right_box, s, &pos, w1, w2, w_main);
 
   } else if (pos < left_box->n_elements &&
@@ -540,87 +853,6 @@ void print_right_window(Array *left_box,
   }
 
 }
-
-void print_right_window2(Array *left_box,
-                         Array *right_box,
-                         Scroll *s,
-                         Window_ *w1,
-                         Window_ *w2,
-                         Window_ *w_main,
-                         Message *msg,
-                         int pos, unsigned long *c)
-{
-  if (pos < left_box->n_elements && !strcmp(left_box->menu[pos].type, "directory")) {
-    directory_placement(left_box, right_box, s, &pos, w1, w2, w_main);
-
-  } else if (pos < left_box->n_elements &&
-      (match_extension(left_box->menu[pos].name, "gz") ||
-       match_extension(left_box->menu[pos].name, "xz"))) {
-    read_tar(left_box, &pos);
-    sprintf(position, place_, pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
-    move(1, position);
-  } else if (match_extension(left_box->menu[pos].name, "jpeg") ||
-      match_extension(left_box->menu[pos].name, "jpg") ||
-      match_extension(left_box->menu[pos].name, "png")) {
-    // soit kbhit is trying to get char at the same time as XGet or XGrabKey error
-    //./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
-    //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
-    //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, w2.x_beg + w1.x_size, w2.y_beg);
-    //set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 0.5, w2.y_px_size, w1.x_px_size);
-    //c = set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
-    //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
-    //ai to see deleted pics
-    //draw_box for when passing from two windows to three windows
-    // ssh function
-    //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
-    //image_appeared = 1;
-    info_key_presses.last_position_array = pos;
-    ttymode_reset(ECHO, 0);
-    //modify_pos_bc_image_used = 1;
-    *c = set_img(left_box->menu[pos].complete_path, &info_key_presses);
-    image_appeared = 1;
-    //image_appeared = 0;
-    // ungetc for n_times_pressed
-    // bookmarks et retour ou on etait avant bookmark
-    // always keep above parent window but below others
-    if (info_key_presses.n_times_pressed > 1) {
-      size_t n;
-      for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
-        //ungetc(info_key_presses.keypress_value, stdin);
-        ungetc(info_key_presses.ascii_value, stdin);
-        if (n == info_key_presses.n_times_pressed - 1) {
-          //pos = info_key_presses.last_position_array;
-        }
-      }
-    }
-    if (info_key_presses.n_times_pressed > 1) {
-      msg->print_msg = "n_times_pressed = ";
-      msg->n_ulong = info_key_presses.n_times_pressed;
-      msg->used_ulong = 1;
-      print_message2(w_main, s, 1, pos, msg);
-      //info_key_presses.n_times_pressed = 0;
-      n_times_keypressed = 0;
-      n_times_keypressed_copy = 0;
-      //sleep(5);
-    }
-    image_used = 1;
-  } else if (match_extension(left_box->menu[pos].name, ".c") ||
-      match_extension(left_box->menu[pos].name, ".cpp") ||
-      match_extension(left_box->menu[pos].name, ".h") ||
-      match_extension(left_box->menu[pos].name, ".java") ||
-      match_extension(left_box->menu[pos].name, ".txt") ||
-      match_extension(left_box->menu[pos].name, ".md") ||
-      match_extension(left_box->menu[pos].name, ".py") ||
-      match_extension(left_box->menu[pos].name, ".sh") ||
-      match_extension(left_box->menu[pos].name, ".json") ||
-      match_extension(left_box->menu[pos].name, ".patch")) {
-
-    read_file(left_box, w1, w2, s, pos);
-
-  }
-
-}
-
 
 void read_file(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
 {
@@ -928,32 +1160,6 @@ int window_resize(Window_ *w_main,
   }
   w1->y_previous = w1->y_size;
   w1->x_previous = w1->x_size;
-  return 1;
-}
-
-int directory_placement(Array *left_box, Array *right_box, Scroll *s, int *pos, Window_ *w1, Window_ *w2, Window_ *w_main)
-{
-  if (right_box->n_elements != 0) {
-    free_array(right_box);
-    init(right_box, 1);
-  }
-  parcours(left_box->menu[*pos].complete_path, 0, right_box, 0, w_main);
-  int to_print = 0;
-  if (right_box->n_elements <= s->n_to_print) {
-    to_print = right_box->n_elements;
-  } else {
-    if (right_box->n_elements >= w2->y_size - 1) {
-      to_print = w2->y_size - 1;
-    } else {
-      to_print = right_box->n_elements;
-    }
-  }
-  size_t i;
-  for (i = 0; i < to_print; ++i) {
-    mvwprintw(w2, right_box, i + w2->y_beg + 1, w2->x_beg + 1, right_box->menu[i].name, i);
-  }
-  sprintf(position, place_, *pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
-  move(1, position);
   return 1;
 }
 
