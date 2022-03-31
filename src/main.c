@@ -451,23 +451,7 @@ int main(int argc, char **argv)
         free(info_file.file_name);
         info_file.file_name = NULL;
       }
-  } else if (match_extension(left_box.menu[pos].name, ".c") ||
-      match_extension(left_box.menu[pos].name, ".cpp") ||
-      match_extension(left_box.menu[pos].name, ".h") ||
-      match_extension(left_box.menu[pos].name, ".java") ||
-      match_extension(left_box.menu[pos].name, ".txt") ||
-      match_extension(left_box.menu[pos].name, ".md") ||
-      match_extension(left_box.menu[pos].name, ".py") ||
-      match_extension(left_box.menu[pos].name, ".sh") ||
-      match_extension(left_box.menu[pos].name, ".json") ||
-      match_extension(left_box.menu[pos].name, ".patch") ||
-      match_extension(left_box.menu[pos].name, "Makefile")) {
-
-    read_file(&left_box, &w1, &w2, &s, pos);
-
   }
-
-
 
 
 
@@ -759,7 +743,8 @@ char find_file_type2(STAT_INFO *info)
 
   if (buffer[0] == SIGNATURE_JPG[0]) {
     size_t i;
-    for (i = 1; i < SIZE_JPEG_ARRAY - 1; ++i) {
+    //for (i = 1; i < SIZE_JPEG_ARRAY - 1; ++i) {
+    for (i = 1; i < 3; ++i) { // 0xff 0xd8 0xff
       if (buffer[i] != SIGNATURE_JPG[i]) {
         fclose(fpc);
         return 0;
@@ -771,7 +756,7 @@ char find_file_type2(STAT_INFO *info)
 
   } else if (buffer[0] == SIGNATURE_PNG[0]) {
     fseek(fpc, 0, SEEK_SET);
-    unsigned char nbr[8] = "";
+    //unsigned char nbr[8] = "";
     size_t i;
     for (i = 0; i < SIZE_PNG_ARRAY - 1; ++i) {
       if (buffer[i] != SIGNATURE_PNG[i]) {
