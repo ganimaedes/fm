@@ -644,52 +644,32 @@ void read_file(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
       move(1, position);
       del_from_cursor(del_in);
       move(1, position);
-      if (len > (w2->x_size) - 2) {
-        len = (w2->x_size) - 2;
-        //match_extension(read_line, "\t");
-      }
       // goes past window limits if first characters are spaces
-      //if (read_line[0] != ' ' || read_line[0] != '/') {
       int pos_tab = strpos(read_line, "\t", 0);
       char *copy_read = NULL;
-      int counter = 1;
+      int counter = 0;
       if (pos_tab >= 0) {
         copy(&copy_read, read_line, len);
         do {
-          memmove(copy_read + pos_tab, read_line + pos_tab + counter, len - pos_tab + counter);
-          ++counter;
-          //memmove(copy_read, read_line + pos_tab + counter++, len--);
+          //++counter;
+          //memmove(copy_read + pos_tab, read_line + pos_tab + counter, len - pos_tab + counter);
+          copy_read[pos_tab] = ' ';
           pos_tab = strpos(copy_read, "\t", pos_tab);
-        } while (pos_tab > -1 && read_line[pos_tab] == '\t' && len > 0);
-        len -= counter;
-/*
-        memmove(read_line, read_line + pos_tab + 1, len--);
-        while (pos_tab != -1 && (pos_tab = strpos(read_line, "\t", pos_tab)) != -1) {
-          memmove(read_line, read_line + pos_tab + 1, len--);
-        }
-*/
-        //memmove(read_line + pos_tab, read_line, --len);
+        } while (pos_tab > -1 /* && pos_tab < (w2->x_size - 2 - counter) */ && read_line[pos_tab] == '\t' && len > 0);
+        //len -= counter;
+      }
+      if (len > (w2->x_size) - 2) {
+        len = (w2->x_size) - 2 - counter;
       }
       if (read_line[len - 1] == '*' || read_line[len - 2] == '*') {
         write(1, read_line, len - 1);
       } else if (copy_read != NULL) {
         write(1, copy_read, len);
-        if (copy_read != NULL) {
-          free(copy_read);
-          copy_read = NULL;
-        }
+        free(copy_read);
+        copy_read = NULL;
       } else {
         write(1, read_line, len);
       }
-/*
-      if (read_line[0] == '\t') {
-        write(1, &read_line[1], len - 1);
-      } else if (read_line[len - 1] == '*') {
-        write(1, read_line, len - 1);
-      } else {
-        write(1, read_line, len);
-      }
-*/
       ++n_lines;
     }
   }
