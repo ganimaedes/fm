@@ -431,7 +431,22 @@ int main(int argc, char **argv)
           //sleep(5);
         }
         image_used = 1;
+      } else if (match_extension(left_box.menu[pos].name, ".c") ||
+          match_extension(left_box.menu[pos].name, ".cpp") ||
+          match_extension(left_box.menu[pos].name, ".h") ||
+          match_extension(left_box.menu[pos].name, ".java") ||
+          match_extension(left_box.menu[pos].name, ".txt") ||
+          match_extension(left_box.menu[pos].name, ".md") ||
+          match_extension(left_box.menu[pos].name, ".py") ||
+          match_extension(left_box.menu[pos].name, ".sh") ||
+          match_extension(left_box.menu[pos].name, ".json") ||
+          match_extension(left_box.menu[pos].name, ".patch") ||
+          match_extension(left_box.menu[pos].name, "Makefile")) {
+
+        read_file(&left_box, &w1, &w2, &s, pos);
+
       }
+
       if (info_file.file_name != NULL) {
         free(info_file.file_name);
         info_file.file_name = NULL;
