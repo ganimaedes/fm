@@ -320,7 +320,6 @@ int main(int argc, char **argv)
 #endif // EBUG
 
       print_right_window(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, pos, &c);
-      //print_right_window2(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, pos, &c);
 
     }
 
@@ -533,7 +532,8 @@ void print_right_window(Array *left_box,
       match_extension(left_box->menu[pos].name, ".py") ||
       match_extension(left_box->menu[pos].name, ".sh") ||
       match_extension(left_box->menu[pos].name, ".json") ||
-      match_extension(left_box->menu[pos].name, ".patch")) {
+      match_extension(left_box->menu[pos].name, ".patch") ||
+      match_extension(left_box->menu[pos].name, "Makefile")) {
 
     read_file(left_box, w1, w2, s, pos);
 
