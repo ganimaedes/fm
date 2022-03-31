@@ -141,7 +141,6 @@ void print_right_window(Array *left_box,
 void open_file(STAT_INFO *info);
 int is_jpeg(STAT_INFO *info);
 int is_png(STAT_INFO *info);
-char find_file_type(STAT_INFO *info);
 char find_file_type2(STAT_INFO *info);
 
 int main(int argc, char **argv)
@@ -382,10 +381,7 @@ int main(int argc, char **argv)
     read_tar(&left_box, &pos);
     sprintf(position, place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
     move(1, position);
-  } else if (!strcmp(left_box.menu[pos].type, "file") /*&& match_extension(left_box.menu[pos].name, "jpeg") ||
-      match_extension(left_box.menu[pos].name, "jpg") ||
-      match_extension(left_box.menu[pos].name, "png") ||
-      file_type == 'j' || file_type == 'p' */) {
+  } else if (!strcmp(left_box.menu[pos].type, "file")) {
       copy(&(info_file.file_name), left_box.menu[pos].complete_path, strlen(left_box.menu[pos].complete_path));
       char file_type = find_file_type2(&info_file);
       if (file_type == 'j' || file_type == 'p') {
@@ -627,104 +623,6 @@ int is_png(STAT_INFO *info)
   }
   return 1;
 }
-
-char find_file_type(STAT_INFO *info)
-{
-  //open_file(info);
-  char *file_type = NULL;
-#define BUFSZ 256
-  //const size_t MIME_SIZE_READ = 11;
-  //unsigned char buf[BUFSZ] = {0};
-  unsigned char *buf = NULL;
-  size_t bytes = 0, i, readsz = sizeof buf;
-  FILE *fp = fopen(info->file_name, "wbx");
-  buf = malloc(256 * sizeof *info->data);
-  if (buf == NULL) {
-    PRINT("malloc");
-  }
-/*
-  if (info->file_len > MIME_SIZE_READ) {
-    info->data = malloc(MIME_SIZE_READ * sizeof *info->data);
-    if (info->data == NULL) {
-      PRINT("malloc");
-    }
-  }
-*/
-  /* read/output BUFSZ bytes at a time */
-  int counter = 0;
-  while ((bytes = fread(buf, sizeof *buf, readsz, fp)) == readsz) {
-  //while ((bytes = fread(info->data, sizeof *info->data, readsz, fp)) == readsz) {
-  ++counter;
-/*
-    for (i = 0; i < readsz; i++) {
-      printf (" 0x%02x", buf[i]);
-    }
-*/
-    if (counter >= 1) {
-      break;
-    }
-/*
-    if (info->data != NULL) {
-      free(info->data);
-      info->data = NULL;
-    }
-    for (i = 0; i < readsz; i++)
-      printf (" 0x%02x", buf[i]);
-*/
-  }
-  printf("counter = %d, bytes = %lu\n", counter, bytes);
-
-
-
-    if (buf[0] == SIGNATURE_JPG[0]) {
-      size_t i;
-      for (i = 1; i < SIZE_JPEG_ARRAY - 1; ++i) {
-        if (buf[i] != SIGNATURE_JPG[i]) {
-          return 0;
-        }
-      }
-      return *TYPE[0];
-      //file_type = is_jpeg(info) ? TYPE[0] : NULL;
-
-    } else if (buf[0] == SIGNATURE_PNG[0]) {
-      fseek(fp, 0, SEEK_SET);
-      unsigned char nbr[8] = "";
-      size_t i;
-      for (i = 1; i < SIZE_PNG_ARRAY - 2; ++i) {
-        if (buf[i] != SIGNATURE_PNG[i]) {
-          return 0;
-        }
-      }
-      return *TYPE[1];
-      //file_type = is_png(info) ? TYPE[1] : NULL;
-    }
-/*
-  const size_t MIME_SIZE_READ = 11;
-  if (info->file_len > MIME_SIZE_READ) {
-    info->data = malloc(MIME_SIZE_READ * sizeof *info->data);
-    if (info->data == NULL) {
-      fprintf(stderr, "Error malloc: %s.\n", __func__);
-      fclose(info->file);
-      exit(1);
-    }
-    memset(info->data, 0, MIME_SIZE_READ);
-    fread(info->data, MIME_SIZE_READ, sizeof *info->data, info->file);
-    if (info->data[0] == SIGNATURE_JPG[0]) {
-      file_type = is_jpeg(info) ? TYPE[0] : NULL;
-    } else if (info->data[0] == SIGNATURE_PNG[0]) {
-      file_type = is_png(info) ? TYPE[1] : NULL;
-    }
-    free(info->data);
-    info->data = NULL;
-  }
-*/
-  if (buf != NULL) {
-    free(buf);
-    buf = NULL;
-  }
-  return *file_type;
-}
-
 
 char find_file_type2(STAT_INFO *info)
 {
