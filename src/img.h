@@ -109,8 +109,6 @@ static long extract_value(const char **data, int *length, int size);
 static Properties *break_down_property(const char *data, int length, Atom type, int size);
 static void show_prop2(Atom_Prop *atom_prop, const char *prop, Window *top_win, int use_dyn);
 static void show_properties(Atom_Prop *atom_prop, Window *top_win, int use_dyn);
-Window select_args(int *rargc, char **argv);
-Window get_child_window(Display *display, Window window);
 Window get_toplevel_parent(Display * display, Window window);
 void handlern(int sig);
 void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char *path);

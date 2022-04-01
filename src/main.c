@@ -130,6 +130,7 @@ void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos);
 void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, unsigned long number, int *pos);
 void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, Message *msg);
 void read_file(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos);
+void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos);
 void print_right_window(Array *left_box,
                         Array *right_box,
                         Scroll *s,
@@ -151,6 +152,9 @@ void open_file(STAT_INFO *info);
 int is_jpeg(STAT_INFO *info);
 int is_png(STAT_INFO *info);
 char find_file_type2(STAT_INFO *info);
+void _strstr(int *pos, char *_haystack, char *_needle);
+int strpos2(char *hay, char *needle, int offset);
+int strpos4(char *hay, char *needle, int offset);
 
 int main(int argc, char **argv)
 {
@@ -357,111 +361,7 @@ int main(int argc, char **argv)
 #endif // EBUG
 
 
-
       print_right_window2(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, &info_file, pos, &c);
-      //print_right_window(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, pos, &c);
-
-/*
-  if (pos < left_box.n_elements && !strcmp(left_box.menu[pos].type, "directory")) {
-    directory_placement2(&left_box, right_box, s, &pos, w1, w2, w_main);
-
-    if (right_box.n_elements != 0) {
-      free_array(&right_box);
-      init(&right_box, 1);
-    }
-    parcours(left_box.menu[pos].complete_path, 0, &right_box, 0, &w_main);
-    int to_print = 0;
-    if (right_box.n_elements <= s.n_to_print) {
-      to_print = right_box.n_elements;
-    } else {
-      if (right_box.n_elements >= w2.y_size - 1) {
-        to_print = w2.y_size - 1;
-      } else {
-        to_print = right_box.n_elements;
-      }
-    }
-    size_t i;
-    for (i = 0; i < to_print; ++i) {
-      mvwprintw(&w2, &right_box, i + w2.y_beg + 1, w2.x_beg + 1, right_box.menu[i].name, i);
-    }
-    sprintf(position, place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
-    move(1, position);
-
-  } else if (pos < left_box.n_elements &&
-      (match_extension(left_box.menu[pos].name, "gz") ||
-       match_extension(left_box.menu[pos].name, "xz"))) {
-    read_tar(&left_box, &pos);
-    sprintf(position, place_, pos - s.pos_upper_t + w1.y_beg + 1, w1.x_beg + 1);
-    move(1, position);
-  } else if (!strcmp(left_box.menu[pos].type, "file")) {
-      copy(&(info_file.file_name), left_box.menu[pos].complete_path, strlen(left_box.menu[pos].complete_path));
-      char file_type = find_file_type2(&info_file);
-      if (file_type == 'j' || file_type == 'p') {
-        // soit kbhit is trying to get char at the same time as XGet or XGrabKey error
-        //./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
-        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
-        //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, w2.x_beg + w1.x_size, w2.y_beg);
-        //set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 0.5, w2.y_px_size, w1.x_px_size);
-        //c = set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
-        //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
-        //ai to see deleted pics
-        //draw_box for when passing from two windows to three windows
-        // ssh function
-        //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
-        //image_appeared = 1;
-        info_key_presses.last_position_array = pos;
-        ttymode_reset(ECHO, 0);
-        //modify_pos_bc_image_used = 1;
-        c = set_img(left_box.menu[pos].complete_path, &info_key_presses);
-        image_appeared = 1;
-        //image_appeared = 0;
-        // ungetc for n_times_pressed
-        // bookmarks et retour ou on etait avant bookmark
-        // always keep above parent window but below others
-        if (info_key_presses.n_times_pressed > 1) {
-          size_t n;
-          for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
-            //ungetc(info_key_presses.keypress_value, stdin);
-            ungetc(info_key_presses.ascii_value, stdin);
-            if (n == info_key_presses.n_times_pressed - 1) {
-              //pos = info_key_presses.last_position_array;
-            }
-          }
-        }
-        if (info_key_presses.n_times_pressed > 1) {
-          msg.print_msg = "n_times_pressed = ";
-          msg.n_ulong = info_key_presses.n_times_pressed;
-          msg.used_ulong = 1;
-          print_message2(&w_main, &s, 1, pos, &msg);
-          //info_key_presses.n_times_pressed = 0;
-          n_times_keypressed = 0;
-          n_times_keypressed_copy = 0;
-          //sleep(5);
-        }
-        image_used = 1;
-      } else if (match_extension(left_box.menu[pos].name, ".c") ||
-          match_extension(left_box.menu[pos].name, ".cpp") ||
-          match_extension(left_box.menu[pos].name, ".h") ||
-          match_extension(left_box.menu[pos].name, ".java") ||
-          match_extension(left_box.menu[pos].name, ".txt") ||
-          match_extension(left_box.menu[pos].name, ".md") ||
-          match_extension(left_box.menu[pos].name, ".py") ||
-          match_extension(left_box.menu[pos].name, ".sh") ||
-          match_extension(left_box.menu[pos].name, ".json") ||
-          match_extension(left_box.menu[pos].name, ".patch") ||
-          match_extension(left_box.menu[pos].name, "Makefile")) {
-
-        read_file(&left_box, &w1, &w2, &s, pos);
-
-      }
-
-      if (info_file.file_name != NULL) {
-        free(info_file.file_name);
-        info_file.file_name = NULL;
-      }
-  }
-
-*/
 
     }
 
@@ -855,9 +755,11 @@ void print_right_window2(Array *left_box,
           match_extension(left_box->menu[pos].name, ".sh") ||
           match_extension(left_box->menu[pos].name, ".json") ||
           match_extension(left_box->menu[pos].name, ".patch") ||
-          match_extension(left_box->menu[pos].name, "Makefile")) {
+          match_extension(left_box->menu[pos].name, "Makefile") ||
+          match_extension(left_box->menu[pos].name, ".cmake")) {
 
-        read_file(left_box, w1, w2, s, pos);
+        //read_file(left_box, w1, w2, s, pos);
+        read_file2(left_box, w1, w2, s, pos);
 
       }
 
@@ -870,12 +772,56 @@ void print_right_window2(Array *left_box,
 
 }
 
+void _strstr(int *pos, char *_haystack, char *_needle)
+{
+  while (_haystack + *pos++ != _needle) {
+    return;
+  }
+}
+
+int strpos2(char *hay, char *needle, int offset)
+{
+  int len_hay = strlen(hay);
+  int position = 0;
+  char *haystack = NULL;
+  if (len_hay > 0) {
+    haystack = malloc((len_hay - offset + 1) * sizeof *haystack);
+    memcpy(haystack, hay + offset, len_hay - offset);
+    haystack[len_hay -  offset] = '\0';
+    _strstr(&position + offset, haystack + offset, needle);
+    //printf("position = %d\n", position);
+    if (haystack != NULL) {
+      free(haystack);
+      haystack = NULL;
+    }
+  } else {
+    position = -1;
+  }
+  return position;
+}
+
+int strpos4(char *hay, char *needle, int offset)
+{
+  int len_hay = strlen(hay);
+  if (len_hay > 0) {
+    for (int i = 0; i < len_hay; ++i) {
+      if (hay[i + offset] == *needle) {
+        return i + offset;
+      }
+    }
+  }
+  return -1;
+}
+
 void read_file(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
 {
   FILE * fp;
   char *read_line = NULL;
+  //char read_line[4096];
   size_t len = 0;
   ssize_t read;
+
+  //MALLOC(read_line, 4096);
 
   fp = fopen(left_box->menu[pos].complete_path, "r");
   if (fp == NULL) {
@@ -899,12 +845,85 @@ void read_file(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
       if (pos_tab >= 0) {
         copy(&copy_read, read_line, len);
         do {
-          //++counter;
+          ++counter;
           //memmove(copy_read + pos_tab, read_line + pos_tab + counter, len - pos_tab + counter);
           copy_read[pos_tab] = ' ';
+          --len;
           pos_tab = strpos(copy_read, "\t", pos_tab);
-        } while (pos_tab > -1 /* && pos_tab < (w2->x_size - 2 - counter) */ && read_line[pos_tab] == '\t' && len > 0);
+        //} while (pos_tab > -1 /* && pos_tab < (w2->x_size - 2 - counter) && read_line[pos_tab] == '\t' */ && pos_tab < len  && len > 0);
+        } while (pos_tab > -1 && pos_tab < len && len > 0);
         //len -= counter;
+      }
+      if (len > (w2->x_size) - 2) {
+        len = (w2->x_size) - 2 - counter;
+      }
+      if (read_line[len - 1] == '*' || read_line[len - 2] == '*') {
+        write(1, read_line, len - 1);
+      } else if (copy_read != NULL) {
+        write(1, copy_read, len);
+        free(copy_read);
+        copy_read = NULL;
+      } else {
+        write(1, read_line, len);
+      }
+      ++n_lines;
+    }
+  }
+
+  fclose(fp);
+  if (read_line) {
+    free(read_line);
+    read_line = NULL;
+  }
+
+  sprintf(position, place_, pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
+  move(1, position);
+
+}
+
+void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
+{
+  FILE * fp;
+  char *read_line = NULL;
+  //char read_line[4096];
+  size_t len = 0;
+  ssize_t read;
+
+
+  //MALLOC(read_line, 4096);
+
+  fp = fopen(left_box->menu[pos].complete_path, "r");
+  if (fp == NULL) {
+    PRINT("read file error");
+  }
+
+  sprintf(position, place_, w2->y_beg + 2, w2->x_beg + 1);
+  move(1, position);
+  int n_lines = 0;
+  while ((read = getline(&read_line, &len, fp)) != -1) {
+    if (n_lines < w2->y_size - 1) {
+      int len = strlen(read_line);
+      sprintf(position, place_, w2->y_beg + n_lines + 1, w2->x_beg + 1);
+      move(1, position);
+      del_from_cursor(del_in);
+      move(1, position);
+      // goes past window limits if first characters are spaces
+      //int pos_tab = strpos(read_line, "\t", 0);
+      //int pos_tab = strpos2(read_line, "\t", 0);
+      int pos_tab = strpos4(read_line, "\t", 0);
+      char *copy_read = NULL;
+      int counter = 0;
+      if (pos_tab >= 0) {
+        copy(&copy_read, read_line, len);
+        do {
+          ++counter;
+          copy_read[pos_tab] = ' ';
+          //pos_tab = strpos(copy_read, "\t", pos_tab);
+          //pos_tab = strpos2(copy_read, "\t", pos_tab);
+          pos_tab = strpos4(copy_read, "\t", pos_tab);
+        //} while (pos_tab > -1 /* && pos_tab < (w2->x_size - 2 - counter) && read_line[pos_tab] == '\t' */ && pos_tab < len  && len > 0);
+        } while (pos_tab > -1 && read_line[pos_tab] == '\t' && pos_tab < len && len > 0);
+        ++counter;
       }
       if (len > (w2->x_size) - 2) {
         len = (w2->x_size) - 2 - counter;
@@ -1587,11 +1606,40 @@ void print_path(Scroll *s, char *path, int pos, int backspace_pressed)
 int strpos(char *hay, char *needle, int offset)
 {
   int len_hay = strlen(hay);
+  //char *copy_hay = hay;
   char haystack[len_hay];
-  strncpy(haystack, hay + offset, len_hay - offset);
-  char *ptr = strstr(haystack, needle);
-  if (ptr)
-    return ptr - haystack + offset;
+
+  //int position = -1;
+  if (len_hay > 0) {
+    strncpy(haystack, hay + offset, len_hay - offset);
+    char *ptr = strstr(haystack, needle);
+    //char *ptr = strstr(hay + offset, needle);
+    //char *ptr = strstr(copy_hay + offset, needle);
+    if (ptr) {
+      //position = ptr - haystack + offset;
+      return ptr - haystack + offset;
+    }
+/*
+    char *haystack = NULL;
+    haystack = malloc((len_hay - offset + 1) * sizeof *haystack);
+    if (haystack == NULL) {
+      PRINT("malloc");
+    }
+    memcpy(haystack, hay + offset, len_hay - offset);
+    haystack[len_hay - offset] = '\0';
+    //strncpy(haystack, hay + offset, len_hay - offset);
+    char *ptr = strstr(haystack, needle);
+    if (ptr) {
+      position = ptr - haystack + offset;
+      //return ptr - haystack + offset;
+    }
+    if (haystack != NULL) {
+      free(haystack);
+      haystack = NULL;
+    }
+*/
+  }
+  //return position;
   return -1;
 }
 

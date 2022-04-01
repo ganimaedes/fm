@@ -83,7 +83,6 @@ static char *format_atom(Atom atom)
   return formatting_buffer;
 }
 
-
 void init_array(Atom_Prop *atom_prop, size_t inital_size)
 {
   atom_prop->status = malloc((inital_size + 1) * sizeof *atom_prop->status);
@@ -259,54 +258,6 @@ static void show_properties(Atom_Prop *atom_prop, Window *top_win, int use_dyn)
     }
     XFree(atoms);
   }
-}
-
-Window select_args(int *rargc, char **argv)
-{
-  Window w = 0;
-  int argc = *rargc;
-#define OPTION argv[0]
-#define NXTOPTP ++argv, --argc > 0
-#define NXTOPT(arg) if (++argv, --argc == 0) printf("%s requires an argument\n", (arg))
-  while (NXTOPTP) {
-    if (!strcmp(OPTION, "-id")) {
-      NXTOPT("-id");
-      w = 0;
-      sscanf(OPTION, "0x%lx", &w);
-      if (!w)
-        sscanf(OPTION, "%lu", &w);
-      if (!w)
-        error("Invalid window id format: %s.", OPTION);
-      //continue;
-      break;
-    }
-  }
-  return w;
-}
-
-Window get_child_window(Display *display, Window window)
-{
-  Window root;
-  Window parent;
-  Window *children = NULL;
-  unsigned int num_children;
-  Window window_copy;
-
-  for (;;) {
-    if (!XQueryTree(display, window, &root, &parent, &children, &num_children)) {
-      fprintf(stderr, "XQueryTree error: %s\n", __func__);
-    }
-    if (window == root || parent == root) {
-      window_copy = *children;
-      if (children) {
-        XFree(children);
-      }
-      return window_copy;
-    } else {
-      window = parent;
-    }
-  }
-  return -1;
 }
 
 Window get_toplevel_parent(Display * display, Window window)
@@ -936,7 +887,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 //  *
 //  * 0 Image BEGIN
 //  *
-  Image img = {};
+  Image img = { 0 };
 
   int y_px = 90;
 
@@ -1004,7 +955,6 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   Atom_Prop child_win = { 0 };
 
   int result_key_press = 0;
-  //int window_maximized = 0;
   put_image(&win, &img, 0, y_px);
 
 
@@ -1031,7 +981,8 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 #if defined(V_DEBUG_POSITION)
   printf("img.ximage[0] = %d\n", img.ximage->data[0]);
 #endif
-  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  nanosleep((const struct timespec[]){{0, 7000000L}}, NULL);
   XPutImage(foreground_dpy, win.foreground_win,
             img.gc, img.ximage,
             0, 0,
