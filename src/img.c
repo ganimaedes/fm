@@ -438,9 +438,9 @@ void grab_keys(Win *win)
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
 // https://stackoverflow.com/a/29001687 https://stackoverflow.com/a/4037579
-//  XGrabKey(foreground_dpy, win->keycodes[0], modifiers, // XK_End
-//           win->grab_window, owner_events, pointer_mode,
-//           keyboard_mode);
+  XGrabKey(foreground_dpy, win->keycodes[0], modifiers, // XK_End
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
 //  XGrabKey(foreground_dpy, win->keycodes[0], Mod2Mask,
 //           win->grab_window, owner_events, pointer_mode,
 //           keyboard_mode);
@@ -680,7 +680,6 @@ int process_event(GC *gc,
       if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
         XEvent nev;
         XPeekEvent(foreground_dpy, &nev);
-
         // https://stackoverflow.com/questions/2150291/how-do-i-measure-a-time-interval-in-c
 
        if (nev.type == KeyPress 
@@ -702,7 +701,6 @@ int process_event(GC *gc,
           elapsedTime = 0;
           elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
           elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
-
           return 1;
         } else {
           ++n_times_keypressed_copy;
@@ -710,28 +708,29 @@ int process_event(GC *gc,
           gettimeofday(&t2, NULL);
           elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
           elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
-      if (xe.xkey.keycode == w->keycode_dn || nev.xkey.keycode == w->keycode_dn) { // X_KEY_DN
-        w->keycode_dn_pressed = 1;
-        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
-        if (n_times_keypressed_copy > 1) {
-          info->n_times_pressed = n_times_keypressed_copy;
-          info->keypress_value = (long)XLookupKeysym(&nev.xkey, 0);
-          info->ascii_value = KEY_DOWN;
-        }
-        return 0;
-      } else if (xe.xkey.keycode == w->keycode_up || nev.xkey.keycode == w->keycode_up) { // X_KEY_UP
-        //XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
-        w->keycode_up_pressed = 1;
-        return 0;
-      }
-          return 0;
+          if (xe.xkey.keycode == w->keycode_dn || nev.xkey.keycode == w->keycode_dn) { // X_KEY_DN
+            w->keycode_dn_pressed = 1;
+            //XUngrabKey(foreground_dpy, (long) XLookupKeysym(&nev.xkey, 0), 0, *top_window);
+            //XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+            if (n_times_keypressed_copy > 1) {
+              info->n_times_pressed = n_times_keypressed_copy;
+              info->keypress_value = (long)XLookupKeysym(&nev.xkey, 0);
+              info->ascii_value = KEY_DOWN;
+            }
+            return 0;
+          } else if (xe.xkey.keycode == w->keycode_up || nev.xkey.keycode == w->keycode_up) { // X_KEY_UP
+            //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&nev.xkey, 0), 0, *top_window);
+            //XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+            w->keycode_up_pressed = 1;
+            return 0;
+          }
           //return 1;
-          XUngrabKey(foreground_dpy, (long) XLookupKeysym(&nev.xkey, 0), 0, *top_window);
+          //XUngrabKey(foreground_dpy, (long) XLookupKeysym(&nev.xkey, 0), 0, *top_window);
           elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
           elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+          return 0;
         }
-
-}
+    }
 
 ///*
 #if defined(V_DEBUG)
