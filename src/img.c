@@ -473,7 +473,8 @@ void put_image(Win *win, Image *img, int x_px, int y_px)
 
   XMapWindow(foreground_dpy, win->foreground_win);
   img->bpl = 0;
-  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  //nanosleep((const struct timespec[]){{0, 9000000L}}, NULL);
 
   img->depth = DefaultDepth(foreground_dpy, win->screen);
   switch (img->depth) {
@@ -592,7 +593,11 @@ int process_event(GC *gc,
     printf("\t\t\t\t\t\t\tHIDDEN\n\n\n\n\n\n");
 #endif
     XUnmapWindow(foreground_dpy, w->foreground_win);
-    XFlush(foreground_dpy);
+    //XSync(foreground_dpy, False);
+    XSync(foreground_dpy, True);
+    nanosleep((const struct timespec[]){{0, 9000000L}}, NULL);
+    XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+    //XFlush(foreground_dpy);
     window_unmapped = 1;
     window_remapped = 0;
   } else if (window_unmapped == 1) {
@@ -970,7 +975,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   img.gc = XCreateGC(foreground_dpy, win.foreground_win, 0, 0);
   XFlush(foreground_dpy);
   XSync(foreground_dpy, False);
-  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  nanosleep((const struct timespec[]){{0, 7000000L}}, NULL);
   for (;;) {
     XEvent event = { 0 };
     XNextEvent(foreground_dpy, &event);
@@ -982,7 +987,8 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   printf("img.ximage[0] = %d\n", img.ximage->data[0]);
 #endif
   //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
-  nanosleep((const struct timespec[]){{0, 7000000L}}, NULL);
+  //nanosleep((const struct timespec[]){{0, 7000000L}}, NULL);
+  nanosleep((const struct timespec[]){{0, 9000000L}}, NULL);
   XPutImage(foreground_dpy, win.foreground_win,
             img.gc, img.ximage,
             0, 0,
@@ -994,6 +1000,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
       goto finish;
     }
   }
+  //nanosleep((const struct timespec[]){{0, 7000000L}}, NULL);
 //  *
 //  * 3 Put Image END
 //  *

@@ -131,14 +131,6 @@ void print_message(Window_ *w, Scroll *s, int position_from_end_scr, char *msg, 
 void print_message2(Window_ *w, Scroll *s, int position_from_end_scr, int pos, Message *msg);
 void read_file(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos);
 void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos);
-void print_right_window(Array *left_box,
-                        Array *right_box,
-                        Scroll *s,
-                        Window_ *w1,
-                        Window_ *w2,
-                        Window_ *w_main,
-                        Message *msg,
-                        int pos, unsigned long *c);
 void print_right_window2(Array *left_box,
                          Array *right_box,
                          Scroll *s,
@@ -153,7 +145,6 @@ int is_jpeg(STAT_INFO *info);
 int is_png(STAT_INFO *info);
 char find_file_type2(STAT_INFO *info);
 void _strstr(int *pos, char *_haystack, char *_needle);
-int strpos2(char *hay, char *needle, int offset);
 int strpos4(char *hay, char *needle, int offset);
 
 int main(int argc, char **argv)
@@ -660,34 +651,6 @@ void print_right_window2(Array *left_box,
 
 }
 
-void _strstr(int *pos, char *_haystack, char *_needle)
-{
-  while (_haystack + *pos++ != _needle) {
-    return;
-  }
-}
-
-int strpos2(char *hay, char *needle, int offset)
-{
-  int len_hay = strlen(hay);
-  int position = 0;
-  char *haystack = NULL;
-  if (len_hay > 0) {
-    haystack = malloc((len_hay - offset + 1) * sizeof *haystack);
-    memcpy(haystack, hay + offset, len_hay - offset);
-    haystack[len_hay -  offset] = '\0';
-    _strstr(&position + offset, haystack + offset, needle);
-    //printf("position = %d\n", position);
-    if (haystack != NULL) {
-      free(haystack);
-      haystack = NULL;
-    }
-  } else {
-    position = -1;
-  }
-  return position;
-}
-
 int strpos4(char *hay, char *needle, int offset)
 {
   int len_hay = strlen(hay);
@@ -796,8 +759,6 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
       del_from_cursor(del_in);
       move(1, position);
       // goes past window limits if first characters are spaces
-      //int pos_tab = strpos(read_line, "\t", 0);
-      //int pos_tab = strpos2(read_line, "\t", 0);
       int pos_tab = strpos4(read_line, "\t", 0);
       char *copy_read = NULL;
       int counter = 0;
@@ -806,8 +767,6 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
         do {
           ++counter;
           copy_read[pos_tab] = ' ';
-          //pos_tab = strpos(copy_read, "\t", pos_tab);
-          //pos_tab = strpos2(copy_read, "\t", pos_tab);
           pos_tab = strpos4(copy_read, "\t", pos_tab);
         //} while (pos_tab > -1 /* && pos_tab < (w2->x_size - 2 - counter) && read_line[pos_tab] == '\t' */ && pos_tab < len  && len > 0);
         } while (pos_tab > -1 && read_line[pos_tab] == '\t' && pos_tab < len && len > 0);
