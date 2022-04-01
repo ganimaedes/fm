@@ -449,7 +449,7 @@ int main(int argc, char **argv)
 
       erase_window(&w2, &s);
 
-      if (/* right_box.menu[0].complete_path != NULL && */ right_box.n_elements != 0) {
+      if (right_box.menu[0].complete_path != NULL && right_box.n_elements != 0) {
         free_array(&right_box);
         right_box.n_elements = 0;
         if (left_box.n_elements != 0) {
@@ -512,30 +512,6 @@ void open_file(STAT_INFO *info)
   fseek(info->file, 0, SEEK_SET);
 }
 
-int is_jpeg(STAT_INFO *info)
-{
-  size_t i;
-  for (i = 1; i < SIZE_JPEG_ARRAY; ++i) {
-    if (info->data[i] != SIGNATURE_JPG[i]) {
-      return 0;
-    }
-  }
-  return 1;
-}
-
-int is_png(STAT_INFO *info)
-{
-  fseek(info->file, 0, SEEK_SET);
-  unsigned char nbr[8] = "";
-  size_t i;
-  for (i = 1; i < SIZE_PNG_ARRAY - 1; ++i) {
-    if (info->data[i] != SIGNATURE_PNG[i]) {
-      return 0;
-    }
-  }
-  return 1;
-}
-
 char find_file_type2(STAT_INFO *info)
 {
   char *file_type = NULL;
@@ -548,7 +524,6 @@ char find_file_type2(STAT_INFO *info)
 
   if (buffer[0] == SIGNATURE_JPG[0]) {
     size_t i;
-    //for (i = 1; i < SIZE_JPEG_ARRAY - 1; ++i) {
     for (i = 1; i < 3; ++i) { // 0xff 0xd8 0xff
       if (buffer[i] != SIGNATURE_JPG[i]) {
         fclose(fpc);
@@ -556,9 +531,6 @@ char find_file_type2(STAT_INFO *info)
       }
     }
     type = *TYPE[0];
-    //return *TYPE[0];
-    //file_type = is_jpeg(info) ? TYPE[0] : NULL;
-
   } else if (buffer[0] == SIGNATURE_PNG[0]) {
     fseek(fpc, 0, SEEK_SET);
     size_t i;
@@ -569,93 +541,9 @@ char find_file_type2(STAT_INFO *info)
       }
     }
     type = *TYPE[1];
-    //return *TYPE[1];
   }
   fclose(fpc);
   return type;
-  //return 0;
-}
-
-void print_right_window(Array *left_box,
-                        Array *right_box,
-                        Scroll *s,
-                        Window_ *w1,
-                        Window_ *w2,
-                        Window_ *w_main,
-                        Message *msg,
-                        int pos, unsigned long *c)
-{
-
-  if (pos < left_box->n_elements && !strcmp(left_box->menu[pos].type, "directory")) {
-    directory_placement2(left_box, &right_box, s, &pos, w1, w2, w_main);
-
-  } else if (pos < left_box->n_elements &&
-      (match_extension(left_box->menu[pos].name, "gz") ||
-       match_extension(left_box->menu[pos].name, "xz"))) {
-    read_tar(left_box, &pos);
-    sprintf(position, place_, pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
-    move(1, position);
-  } else if (match_extension(left_box->menu[pos].name, "jpeg") ||
-      match_extension(left_box->menu[pos].name, "jpg") ||
-      match_extension(left_box->menu[pos].name, "png")) {
-    // soit kbhit is trying to get char at the same time as XGet or XGrabKey error
-    //./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
-    //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
-    //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, w2.x_beg + w1.x_size, w2.y_beg);
-    //set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 0.5, w2.y_px_size, w1.x_px_size);
-    //c = set_img(6, "fm", 0x200006, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
-    //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, w2.y_px_size, w1.x_px_size);
-    //ai to see deleted pics
-    //draw_box for when passing from two windows to three windows
-    // ssh function
-    //c = set_img(0, NULL, 0, left_box.menu[pos].complete_path, 1, 0, 0);
-    //image_appeared = 1;
-    info_key_presses.last_position_array = pos;
-    ttymode_reset(ECHO, 0);
-    //modify_pos_bc_image_used = 1;
-    *c = set_img(left_box->menu[pos].complete_path, &info_key_presses);
-    image_appeared = 1;
-    //image_appeared = 0;
-    // ungetc for n_times_pressed
-    // bookmarks et retour ou on etait avant bookmark
-    // always keep above parent window but below others
-    if (info_key_presses.n_times_pressed > 1) {
-      size_t n;
-      for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
-        //ungetc(info_key_presses.keypress_value, stdin);
-        ungetc(info_key_presses.ascii_value, stdin);
-        if (n == info_key_presses.n_times_pressed - 1) {
-          //pos = info_key_presses.last_position_array;
-        }
-      }
-    }
-    if (info_key_presses.n_times_pressed > 1) {
-      msg->print_msg = "n_times_pressed = ";
-      msg->n_ulong = info_key_presses.n_times_pressed;
-      msg->used_ulong = 1;
-      print_message2(w_main, s, 1, pos, msg);
-      //info_key_presses.n_times_pressed = 0;
-      n_times_keypressed = 0;
-      n_times_keypressed_copy = 0;
-      //sleep(5);
-    }
-    image_used = 1;
-  } else if (match_extension(left_box->menu[pos].name, ".c") ||
-      match_extension(left_box->menu[pos].name, ".cpp") ||
-      match_extension(left_box->menu[pos].name, ".h") ||
-      match_extension(left_box->menu[pos].name, ".java") ||
-      match_extension(left_box->menu[pos].name, ".txt") ||
-      match_extension(left_box->menu[pos].name, ".md") ||
-      match_extension(left_box->menu[pos].name, ".py") ||
-      match_extension(left_box->menu[pos].name, ".sh") ||
-      match_extension(left_box->menu[pos].name, ".json") ||
-      match_extension(left_box->menu[pos].name, ".patch") ||
-      match_extension(left_box->menu[pos].name, "Makefile")) {
-
-    read_file(left_box, w1, w2, s, pos);
-
-  }
-
 }
 
 void print_right_window2(Array *left_box,
@@ -1329,13 +1217,14 @@ int read_tar(Array *left_box, int *pos)
     exit(1);
   }
 
-  int len_buffer = strlen(buffer) + 1;
-  char *buffer_copy = malloc(len_buffer * sizeof *buffer_copy);
+  //int len_buffer = strlen(buffer) + 1;
+  int len_buffer = strlen(buffer);
+  char *buffer_copy = malloc((len_buffer + 1) * sizeof *buffer_copy);
   if (buffer_copy == NULL) {
-    fprintf(stderr, "Error buffer_copy.\n");
-    exit(1);
+    PRINT("Error buffer_copy.");
   }
-  strncpy(buffer_copy, buffer, len_buffer);
+  memcpy(buffer_copy, buffer, len_buffer);
+  //strncpy(buffer_copy, buffer, len_buffer);
   buffer_copy[len_buffer] = '\0';
 
 
@@ -1384,8 +1273,13 @@ int read_tar(Array *left_box, int *pos)
   for (x = 0; x < pos_of_n; ++x) {
     if (x != 0) {
       size_alloc = array_n[x] - 1 - array_n[x - 1] - alloc_n - 1 ;
-      buf_tmp = malloc(size_alloc * sizeof *buf_tmp);
-      strncpy(buf_tmp, &buffer[array_n[x - 1] + 1 + alloc_n + 1], array_n[x] - 1 - array_n[x - 1] - alloc_n - 1);
+      //buf_tmp = malloc(size_alloc * sizeof *buf_tmp);
+      buf_tmp = malloc((size_alloc + 1) * sizeof *buf_tmp);
+      if (buf_tmp == NULL) {
+        PRINT("malloc");
+      }
+      //strncpy(buf_tmp, &buffer[array_n[x - 1] + 1 + alloc_n + 1], array_n[x] - 1 - array_n[x - 1] - alloc_n - 1);
+      memcpy(buf_tmp, &buffer[array_n[x - 1] + 1 + alloc_n + 1], array_n[x] - 1 - array_n[x - 1] - alloc_n - 1);
       buf_tmp[size_alloc ] = '\0';
       print_logos(buf_tmp, buf_tmp);
 
