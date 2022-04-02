@@ -606,6 +606,10 @@ void print_right_window2(Array *left_box,
 
         if (*c == KEY_DOWN && info_key_presses.n_times_pressed > 1) {
           ungetc(*c, stdin);
+          info_key_presses.n_times_pressed = 0;
+        }
+        if (*c == 0xff1b) {
+          ungetc(*c, stdin);
         }
         //image_appeared = 0;
         // ungetc for n_times_pressed

@@ -465,6 +465,9 @@ void grab_keys(Win *win)
            keyboard_mode);
   //XGrabKeyboard(foreground_dpy, win->grab_window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
+  XGrabKey(foreground_dpy, win->keycodes[3], modifiers, // XK_Page_Down
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
   XGrabKey(foreground_dpy, win->keycodes[3], Mod2Mask, // XK_Page_Down
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
@@ -480,9 +483,6 @@ void grab_keys(Win *win)
 
 
 
-  XGrabKey(foreground_dpy, win->keycodes[3], modifiers, // XK_Page_Down
-           win->grab_window, owner_events, pointer_mode,
-           keyboard_mode);
 */
 
   XGrabKey(foreground_dpy, win->keycodes[4], Mod2Mask, // XK_Page_Up
@@ -940,6 +940,9 @@ int process_event2(GC *gc,
 
 	        XNextEvent(foreground_dpy, &xe);
             XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+            XKeyPressedEvent eventkey;
+
+
             //XUngrabKeyboard(foreground_dpy, CurrentTime);
             ++info->n_times_pressed;
             return 0;
