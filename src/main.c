@@ -595,6 +595,10 @@ void print_right_window2(Array *left_box,
         //modify_pos_bc_image_used = 1;
         *c = set_img(left_box->menu[pos].complete_path, &info_key_presses);
         image_appeared = 1;
+
+        if (*c == KEY_DOWN && info_key_presses.n_times_pressed > 1) {
+          ungetc(*c, stdin);
+        }
         //image_appeared = 0;
         // ungetc for n_times_pressed
         // bookmarks et retour ou on etait avant bookmark
@@ -618,7 +622,6 @@ void print_right_window2(Array *left_box,
         } else if (*c == KEY_UP) {
           ungetc(*c, stdin);
         }
-*/
         if (info_key_presses.n_times_pressed > 1) {
           size_t n;
           for (n = 0; n < info_key_presses.n_times_pressed; ++n) {
@@ -629,6 +632,7 @@ void print_right_window2(Array *left_box,
             }
           }
         }
+*/
         if (info_key_presses.n_times_pressed > 1) {
           msg->print_msg = "n_times_pressed = ";
           msg->n_ulong = info_key_presses.n_times_pressed;

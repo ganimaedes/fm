@@ -424,6 +424,9 @@ void grab_keys(Win *win)
   int            pointer_mode    = GrabModeAsync;
   int            keyboard_mode   = GrabModeAsync;
 
+
+  //XGrabKeyboard(foreground_dpy, win->grab_window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+
   XGrabKey(foreground_dpy, win->keycode_dn, modifiers,
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
@@ -455,21 +458,21 @@ void grab_keys(Win *win)
   XGrabKey(foreground_dpy, win->keycodes[2], modifiers, // XK_BackSpace
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
-///*
+//
 
   XGrabKey(foreground_dpy, win->keycodes[2], Mod2Mask,
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
   XGrabKeyboard(foreground_dpy, win->grab_window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
+  XGrabKey(foreground_dpy, win->keycodes[3], Mod2Mask, // XK_Page_Down
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
 /*
   XGrabKey(foreground_dpy, win->keycodes[3], Mod1Mask, // XK_Page_Down
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
 
-  XGrabKey(foreground_dpy, win->keycodes[3], Mod2Mask, // XK_Page_Down
-           win->grab_window, owner_events, pointer_mode,
-           keyboard_mode);
 
 
 
@@ -481,6 +484,7 @@ void grab_keys(Win *win)
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
 */
+
   XGrabKey(foreground_dpy, win->keycodes[4], Mod2Mask, // XK_Page_Up
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
@@ -489,7 +493,6 @@ void grab_keys(Win *win)
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
 */
-//*/
 }
 
 void put_image(Win *win, Image *img, int x_px, int y_px)
@@ -924,24 +927,27 @@ int process_event2(GC *gc,
     case KeyRelease: {
       // https://opensource.apple.com/source/X11libs/X11libs-60/mesa/Mesa-7.8.2/src/glut/glx/glut_event.c.auto.html
 
-/*
 	  //if (window->ignoreKeyRepeat) {
+/*
 	    if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
 	      XPeekEvent(foreground_dpy, &ahead);
 	      if (ahead.type == KeyPress
 	        && ahead.xkey.window == xe.xkey.window
 	        && ahead.xkey.keycode == xe.xkey.keycode
 	        && ahead.xkey.time == xe.xkey.time) {
-		// Pop off the repeated KeyPress and ignore
-		//   the auto repeated KeyRelease/KeyPress pair.
+            // Pop off the repeated KeyPress and ignore
+            //   the auto repeated KeyRelease/KeyPress pair.
 
 	        XNextEvent(foreground_dpy, &xe);
+            XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+            //XUngrabKeyboard(foreground_dpy, CurrentTime);
             ++info->n_times_pressed;
-	        break;
+            return 0;
+	        //break;
 	      }
 	    }
-	  //}
 */
+	  //}
     // https://stackoverflow.com/questions/2100654/ignore-auto-repeat-in-x11-applications
 
 #if defined(V_DEBUG)
@@ -952,23 +958,28 @@ int process_event2(GC *gc,
         w->keycode_dn_pressed = 1;
         info->ascii_value = KEY_DOWN;
         XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
         XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
         info->ascii_value = KEY_UP;
         w->keycode_up_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
         XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
         info->ascii_value = KEY_END;
         w->keycode_end_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
         XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
         info->ascii_value = KEY_HOME;
         w->keycode_beg_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
         XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
         info->ascii_value = KEY_BACKSPACE;
         w->keycode_bckspce_pressed = 1;
@@ -976,16 +987,21 @@ int process_event2(GC *gc,
       } else if (xe.xkey.keycode == w->keycodes[3]) { // XK_Page_Down
         w->keycode_page_dn_pressed = 1;
         info->ascii_value = KEY_PAGE_DN;
-        //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
-        XUngrabKey(foreground_dpy, w->keycodes[3], 0, *top_window);
+        XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[3], 0, *top_window);
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        return 0;
       } else if (xe.xkey.keycode == w->keycodes[4]) { // XK_Page_Up
         w->keycode_page_up_pressed = 1;
         info->ascii_value = KEY_PAGE_UP;
-        //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
-        XUngrabKey(foreground_dpy, w->keycodes[4], 0, *top_window);
+        XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[4], 0, *top_window);
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        return 0;
       } else {
         *key = xe.xkey.keycode;
         XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
         return 0;
       }
     }
