@@ -463,7 +463,7 @@ void grab_keys(Win *win)
   XGrabKey(foreground_dpy, win->keycodes[2], Mod2Mask,
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
-  XGrabKeyboard(foreground_dpy, win->grab_window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+  //XGrabKeyboard(foreground_dpy, win->grab_window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
   XGrabKey(foreground_dpy, win->keycodes[3], Mod2Mask, // XK_Page_Down
            win->grab_window, owner_events, pointer_mode,
@@ -923,7 +923,7 @@ int process_event2(GC *gc,
         }
       break;
     case KeyPress:
-      break;
+      //break;
     case KeyRelease: {
       // https://opensource.apple.com/source/X11libs/X11libs-60/mesa/Mesa-7.8.2/src/glut/glx/glut_event.c.auto.html
 
@@ -962,9 +962,9 @@ int process_event2(GC *gc,
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
         //XUngrabKeyboard(foreground_dpy, CurrentTime);
-        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
         info->ascii_value = KEY_UP;
         w->keycode_up_pressed = 1;
+        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
         //XUngrabKeyboard(foreground_dpy, CurrentTime);

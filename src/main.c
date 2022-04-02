@@ -53,8 +53,10 @@ static int previous_pos_copy_from_attr = 0;
 static unsigned char SIGNATURE_PNG[9] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00 };
 static unsigned char SIGNATURE_JPG[11] = {
   0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00 };
+static unsigned char SIGNATURE_GIF[3] = { 0x47, 0x49, 0x46 };
 static size_t SIZE_JPEG_ARRAY = sizeof(SIGNATURE_JPG) / sizeof(*SIGNATURE_JPG);
 static size_t SIZE_PNG_ARRAY = sizeof(SIGNATURE_PNG) / sizeof(*SIGNATURE_PNG);
+static size_t SIZE_GIF_ARRAY = sizeof(SIGNATURE_GIF) / sizeof(*SIGNATURE_GIF);
 
 typedef struct _Message {
   char *print_msg;
@@ -510,8 +512,8 @@ char find_file_type2(STAT_INFO *info)
   unsigned char buffer[16];
   fread(buffer, 16, 1, fpc);
 
+  size_t i;
   if (buffer[0] == SIGNATURE_JPG[0]) {
-    size_t i;
     for (i = 1; i < 3; ++i) { // 0xff 0xd8 0xff
       if (buffer[i] != SIGNATURE_JPG[i]) {
         goto quit_file_type;
@@ -520,13 +522,19 @@ char find_file_type2(STAT_INFO *info)
     type = *TYPE[0];
   } else if (buffer[0] == SIGNATURE_PNG[0]) {
     fseek(fpc, 0, SEEK_SET);
-    size_t i;
     for (i = 0; i < SIZE_PNG_ARRAY - 1; ++i) {
       if (buffer[i] != SIGNATURE_PNG[i]) {
         goto quit_file_type;
       }
     }
     type = *TYPE[1];
+  } else if (buffer[0] == SIGNATURE_GIF[0]) {
+    for (i = 1; i < SIZE_GIF_ARRAY; ++i) {
+      if (buffer[i] != SIGNATURE_PNG[i]) {
+        goto quit_file_type;
+      }
+    }
+    type = *TYPE[2];
   }
 quit_file_type:
   fclose(fpc);
@@ -577,7 +585,7 @@ void print_right_window2(Array *left_box,
   } else if (!strcmp(left_box->menu[pos].type, "file")) {
       copy(&(info_file->file_name), left_box->menu[pos].complete_path, strlen(left_box->menu[pos].complete_path));
       char file_type = find_file_type2(info_file);
-      if (file_type == 'j' || file_type == 'p') {
+      if (file_type == 'j' || file_type == 'p' || file_type == 'g') {
         // soit kbhit is trying to get char at the same time as XGet or XGrabKey error
         //./min -id 0x<WINDOW_ID> <IMAGE_PATH> 0.5 980 50
         //set_img(6, "fm", 0x200008, left_box.menu[pos].complete_path, 0.5, 50, 980);
