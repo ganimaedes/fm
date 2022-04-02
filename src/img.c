@@ -850,6 +850,64 @@ int process_event(GC *gc,
   // set marks for files the same waay vim sets marks for line numbers
 }
 
+// https://opensource.apple.com/source/X11libs/X11libs-60/mesa/Mesa-7.8.2/src/glut/glx/glut_event.c.auto.html
+/* Unlike XNextEvent, if a signal arrives,
+   interruptibleXNextEvent will return (with a zero return
+   value).  This helps GLUT drop out of XNextEvent if a signal
+   is delivered.  The intent is so that a GLUT program can call 
+   glutIdleFunc in a signal handler to register an idle func
+   and then immediately get dropped into the idle func (after
+   returning from the signal handler).  The idea is to make
+   GLUT's main loop reliably interruptible by signals. */
+static int
+interruptibleXNextEvent(Display * dpy, XEvent * event)
+{
+
+  struct timeval tv;
+
+  int fd_background = 0;
+  int fd_foreground = 0;
+  int num_fds       = 0;
+  fd_foreground     = ConnectionNumber(foreground_dpy);
+
+
+
+
+
+  fd_set fds;
+  int rc;
+
+  /* Flush X protocol since XPending does not do this
+     implicitly. */
+  XFlush(foreground_dpy);
+  for (;;) {
+    if (XPending(foreground_dpy)) {
+      XNextEvent(dpy, event);
+      return 1;
+    }
+//#ifndef VMS
+    /* the combination ConectionNumber-select is buggy on VMS. Sometimes it
+     * fails. This part of the code hangs the program on VMS7.2. But even
+     * without it the program seems to run correctly.
+     * Note that this is a bug in the VMS/DECWindows run-time-libraries.
+     * Compaq engeneering does not want or is not able to make a fix.
+     * (last sentence is a quotation from Compaq when I reported the
+     * problem January 2000) */
+    FD_ZERO(&fds);
+    //FD_SET(__glutConnectionFD, &fds);
+    FD_SET(fd_foreground, &fds);
+    rc = select(fd_foreground + 1, &fds, NULL, NULL, NULL);
+    if (rc < 0) {
+      if (errno == EINTR) {
+        return 0;
+      } else {
+        error("select error.");
+      }
+    }
+//#endif
+  }
+}
+
 int process_event2(GC *gc,
                    Window *top_window,
                    Atom *wmDeleteMessage,
@@ -905,6 +963,8 @@ int process_event2(GC *gc,
     free(atom_prop->status);
     atom_prop->status = NULL;
   }
+ int gotEvent = interruptibleXNextEvent(foreground_dpy, &xe);
+ if (gotEvent) {
   switch (xe.type) {
     case MapNotify:
       XSync(foreground_dpy, False);
@@ -918,12 +978,103 @@ int process_event2(GC *gc,
         cEvent = xe.xconfigure;
         if ((cEvent.width != xwa.width) || (cEvent.height != xwa.height)) {
           //printf("Window resized to be %d X %d\n", xwa.width, xwa.height);
+//          WINDOW_WIDTH = cEvent.width;
+//          WINDOW_HEIGHT = cEvent.height;
+//          printf("Window resized to be %d X %d\n", WINDOW_WIDTH, WINDOW_HEIGHT);
+//          redraw(display, win, gc);
+        }
+      break;
+    case KeyPress:
+      //break;
+    case KeyRelease: {
+    // https://opensource.apple.com/source/X11libs/X11libs-60/mesa/Mesa-7.8.2/src/glut/glx/glut_event.c.auto.html
+    // https://stackoverflow.com/questions/2100654/ignore-auto-repeat-in-x11-applications
+
+#if defined(V_DEBUG)
+      printf("xe.xkey.keycode: %d\n", xe.xkey.keycode);
+#endif // V_DEBUG
+
+      if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
+        w->keycode_dn_pressed = 1;
+        info->ascii_value = KEY_DOWN;
+        XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        return 0;
+      } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        info->ascii_value = KEY_UP;
+        w->keycode_up_pressed = 1;
+        XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        return 0;
+      } else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
+        info->ascii_value = KEY_END;
+        w->keycode_end_pressed = 1;
+        return 0;
+      } else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
+        info->ascii_value = KEY_HOME;
+        w->keycode_beg_pressed = 1;
+        return 0;
+      } else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
+        info->ascii_value = KEY_BACKSPACE;
+        w->keycode_bckspce_pressed = 1;
+        return 0;
+      } else if (xe.xkey.keycode == w->keycodes[3]) { // XK_Page_Down
+        w->keycode_page_dn_pressed = 1;
+        info->ascii_value = KEY_PAGE_DN;
+        XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[3], 0, *top_window);
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        return 0;
+      } else if (xe.xkey.keycode == w->keycodes[4]) { // XK_Page_Up
+        w->keycode_page_up_pressed = 1;
+        info->ascii_value = KEY_PAGE_UP;
+        XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+        //XUngrabKey(foreground_dpy, w->keycodes[4], 0, *top_window);
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        return 0;
+      } else if (xe.xkey.keycode == w->keycodes[5]) {
+        w->keycode_escape_pressed = 1;
+        info->ascii_value = KEY_ESCAPE;
+        return 0;
+        //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+      } else {
+        *key = xe.xkey.keycode;
+        XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+        //XUngrabKeyboard(foreground_dpy, CurrentTime);
+        return 0;
+      }
+    }
+    default:
+      return 1;
+  }
+
+ }
 /*
-          WINDOW_WIDTH = cEvent.width;
-          WINDOW_HEIGHT = cEvent.height;
-          printf("Window resized to be %d X %d\n", WINDOW_WIDTH, WINDOW_HEIGHT);
-          redraw(display, win, gc);
-*/
+  switch (xe.type) {
+    case MapNotify:
+      XSync(foreground_dpy, False);
+      return 1;
+      break;
+    case ClientMessage:
+      if (xe.xclient.message_type == *wmDeleteMessage) {
+        return 0;
+      }
+    case ConfigureNotify:
+        cEvent = xe.xconfigure;
+        if ((cEvent.width != xwa.width) || (cEvent.height != xwa.height)) {
+          //printf("Window resized to be %d X %d\n", xwa.width, xwa.height);
+//
+//          WINDOW_WIDTH = cEvent.width;
+//          WINDOW_HEIGHT = cEvent.height;
+//          printf("Window resized to be %d X %d\n", WINDOW_WIDTH, WINDOW_HEIGHT);
+//          redraw(display, win, gc);
+
         }
       break;
     case KeyPress:
@@ -932,28 +1083,28 @@ int process_event2(GC *gc,
       // https://opensource.apple.com/source/X11libs/X11libs-60/mesa/Mesa-7.8.2/src/glut/glx/glut_event.c.auto.html
 
 	  //if (window->ignoreKeyRepeat) {
-/*
-	    if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
-	      XPeekEvent(foreground_dpy, &ahead);
-	      if (ahead.type == KeyPress
-	        && ahead.xkey.window == xe.xkey.window
-	        && ahead.xkey.keycode == xe.xkey.keycode
-	        && ahead.xkey.time == xe.xkey.time) {
+//
+//	    if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
+//	      XPeekEvent(foreground_dpy, &ahead);
+//	      if (ahead.type == KeyPress
+//	        && ahead.xkey.window == xe.xkey.window
+//	        && ahead.xkey.keycode == xe.xkey.keycode
+//	        && ahead.xkey.time == xe.xkey.time) {
             // Pop off the repeated KeyPress and ignore
             //   the auto repeated KeyRelease/KeyPress pair.
 
-	        XNextEvent(foreground_dpy, &xe);
-            XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
-            XKeyPressedEvent eventkey;
+//	        XNextEvent(foreground_dpy, &xe);
+//            XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+//            XKeyPressedEvent eventkey;
 
 
             //XUngrabKeyboard(foreground_dpy, CurrentTime);
-            ++info->n_times_pressed;
-            return 0;
+//            ++info->n_times_pressed;
+//            return 0;
 	        //break;
-	      }
-	    }
-*/
+//	      }
+//	    }
+
 	  //}
     // https://stackoverflow.com/questions/2100654/ignore-auto-repeat-in-x11-applications
 
@@ -1020,6 +1171,7 @@ int process_event2(GC *gc,
     default:
       return 1;
   }
+*/
   // set marks for files the same waay vim sets marks for line numbers
 }
 

@@ -325,9 +325,7 @@ int main(int argc, char **argv)
 #endif // EBUG
 
       print_right_window2(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, &info_file, pos, &c);
-      if (c == KEY_ESCAPE) {
-        break;
-      }
+      if (c == KEY_ESCAPE) { break; }
 
     }
 
