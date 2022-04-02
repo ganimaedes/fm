@@ -598,11 +598,16 @@ void print_right_window2(Array *left_box,
         // bookmarks et retour ou on etait avant bookmark
         // always keep above parent window but below others
         //if (info_key_presses.keypress_value) {
+        //ungetc(*c, stdin);
         if (*c == KEY_PAGE_DN) {
-          printf("wait");
+          //printf("wait");
           //sleep(5);
           //ungetc(info_key_presses.ascii_value, stdin);
-          //ungetc(*c, stdin);
+          ungetc(*c, stdin);
+        } else if (*c == KEY_DOWN) {
+          ungetc(*c, stdin);
+        } else if (*c == KEY_UP) {
+          ungetc(*c, stdin);
         }
         if (info_key_presses.n_times_pressed > 1) {
           size_t n;

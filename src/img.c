@@ -459,18 +459,22 @@ void grab_keys(Win *win)
   XGrabKey(foreground_dpy, win->keycodes[2], Mod2Mask,
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
-  XGrabKey(foreground_dpy, win->keycodes[3], modifiers, // XK_Page_Down
-           win->grab_window, owner_events, pointer_mode,
-           keyboard_mode);
   XGrabKey(foreground_dpy, win->keycodes[3], Mod2Mask, // XK_Page_Down
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
-  XGrabKey(foreground_dpy, win->keycodes[4], modifiers, // XK_Page_Up
+/*
+  XGrabKey(foreground_dpy, win->keycodes[3], modifiers, // XK_Page_Down
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
+*/
   XGrabKey(foreground_dpy, win->keycodes[4], Mod2Mask, // XK_Page_Up
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
+/*
+  XGrabKey(foreground_dpy, win->keycodes[4], modifiers, // XK_Page_Up
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+*/
 //*/
 }
 
@@ -1359,8 +1363,8 @@ finish:
   } else if (win.keycode_bckspce_pressed) {
     return BACKSPACE;
   } else if (win.keycode_page_dn_pressed) {
-    printf("wait");
-    sleep(5);
+    //printf("wait");
+    //sleep(5);
     return KEY_PAGE_DN;
   } else if (win.keycode_page_up_pressed) {
     return KEY_PAGE_UP;
