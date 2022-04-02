@@ -920,7 +920,7 @@ int process_event2(GC *gc,
   XEvent xe;
   //XEvent ahead;
   XConfigureEvent cEvent;
-  XNextEvent(foreground_dpy, &xe);
+  //XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
   XWindowAttributes xwa;
   if (!XGetWindowAttributes(foreground_dpy, *top_window, &xwa)) {
