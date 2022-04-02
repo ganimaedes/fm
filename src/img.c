@@ -862,17 +862,8 @@ int process_event(GC *gc,
 static int
 interruptibleXNextEvent(Display * dpy, XEvent * event)
 {
-
-  struct timeval tv;
-
-  int fd_background = 0;
   int fd_foreground = 0;
-  int num_fds       = 0;
   fd_foreground     = ConnectionNumber(foreground_dpy);
-
-
-
-
 
   fd_set fds;
   int rc;
@@ -920,7 +911,7 @@ int process_event2(GC *gc,
   XEvent xe;
   //XEvent ahead;
   XConfigureEvent cEvent;
-  //XNextEvent(foreground_dpy, &xe);
+  XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
   XWindowAttributes xwa;
   if (!XGetWindowAttributes(foreground_dpy, *top_window, &xwa)) {
@@ -963,6 +954,7 @@ int process_event2(GC *gc,
     free(atom_prop->status);
     atom_prop->status = NULL;
   }
+/*
  int gotEvent = interruptibleXNextEvent(foreground_dpy, &xe);
  if (gotEvent) {
   switch (xe.type) {
@@ -1055,7 +1047,8 @@ int process_event2(GC *gc,
   }
 
  }
-/*
+*/
+
   switch (xe.type) {
     case MapNotify:
       XSync(foreground_dpy, False);
@@ -1171,7 +1164,6 @@ int process_event2(GC *gc,
     default:
       return 1;
   }
-*/
   // set marks for files the same waay vim sets marks for line numbers
 }
 
