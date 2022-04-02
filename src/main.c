@@ -599,16 +599,21 @@ void print_right_window2(Array *left_box,
         // always keep above parent window but below others
         //if (info_key_presses.keypress_value) {
         //ungetc(*c, stdin);
-        if (*c == KEY_PAGE_DN) {
+/*
+        if (*c == KEY_PAGE_DN || *c == KEY_PAGE_UP || *c == KEY_DOWN || *c == KEY_UP || *c == KEY_END || *c == KEY_HOME) {
           //printf("wait");
           //sleep(5);
           //ungetc(info_key_presses.ascii_value, stdin);
-          ungetc(*c, stdin);
+          // counter to check consecutive times an image has been viewed to unget the characters (for files side by side that are images)
+          //ungetc(*c, stdin);
+          // *c = 0;
+          *c = BACKSPACE;
         } else if (*c == KEY_DOWN) {
           ungetc(*c, stdin);
         } else if (*c == KEY_UP) {
           ungetc(*c, stdin);
         }
+*/
         if (info_key_presses.n_times_pressed > 1) {
           size_t n;
           for (n = 0; n < info_key_presses.n_times_pressed; ++n) {

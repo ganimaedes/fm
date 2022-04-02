@@ -918,7 +918,9 @@ int process_event2(GC *gc,
 	        && ahead.xkey.time == xe.xkey.time) {
 		// Pop off the repeated KeyPress and ignore
 		//   the auto repeated KeyRelease/KeyPress pair.
+
 	        XNextEvent(foreground_dpy, &xe);
+            ++info->n_times_pressed;
 	        break;
 	      }
 	    }
@@ -931,30 +933,37 @@ int process_event2(GC *gc,
 
       if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
         w->keycode_dn_pressed = 1;
+        info->ascii_value = KEY_DOWN;
         XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
         return 0;
       } else if (xe.xkey.keycode == w->keycode_up) { // X_KEY_UP
         XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
+        info->ascii_value = KEY_UP;
         w->keycode_up_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
         XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
+        info->ascii_value = KEY_END;
         w->keycode_end_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
         XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
+        info->ascii_value = KEY_HOME;
         w->keycode_beg_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
         XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
+        info->ascii_value = KEY_BACKSPACE;
         w->keycode_bckspce_pressed = 1;
         return 0;
       } else if (xe.xkey.keycode == w->keycodes[3]) { // XK_Page_Down
         w->keycode_page_dn_pressed = 1;
+        info->ascii_value = KEY_PAGE_DN;
         //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
         XUngrabKey(foreground_dpy, w->keycodes[3], 0, *top_window);
       } else if (xe.xkey.keycode == w->keycodes[4]) { // XK_Page_Up
         w->keycode_page_up_pressed = 1;
+        info->ascii_value = KEY_PAGE_UP;
         //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
         XUngrabKey(foreground_dpy, w->keycodes[4], 0, *top_window);
       } else {
