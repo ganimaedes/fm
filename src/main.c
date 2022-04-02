@@ -371,10 +371,12 @@ int main(int argc, char **argv)
     } else if ((c == 'l' || c == KEY_ENTER || c == ENTER) &&
                !strcmp(left_box.menu[pos].type, "directory") &&
                right_box.n_elements != 0) {
+
       if (position_before_copying_sig) {
         position_before_copying_sig = 0;
         pos = position_before_copying;
       }
+      info_key_presses.n_times_pressed = 0;
 
       n_elements_to_erase = left_box.n_elements;
 
@@ -600,6 +602,9 @@ void print_right_window2(Array *left_box,
         //if (info_key_presses.keypress_value) {
         //ungetc(*c, stdin);
 /*
+        if (*c == KEY_PAGE_DN || *c == KEY_PAGE_UP || *c == KEY_END) {
+          ungetc(*c, stdin);
+        }
         if (*c == KEY_PAGE_DN || *c == KEY_PAGE_UP || *c == KEY_DOWN || *c == KEY_UP || *c == KEY_END || *c == KEY_HOME) {
           //printf("wait");
           //sleep(5);

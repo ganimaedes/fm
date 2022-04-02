@@ -456,13 +456,27 @@ void grab_keys(Win *win)
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
 ///*
+
   XGrabKey(foreground_dpy, win->keycodes[2], Mod2Mask,
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
+  XGrabKeyboard(foreground_dpy, win->grab_window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+
+/*
+  XGrabKey(foreground_dpy, win->keycodes[3], Mod1Mask, // XK_Page_Down
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+
   XGrabKey(foreground_dpy, win->keycodes[3], Mod2Mask, // XK_Page_Down
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
-/*
+
+
+
+
+
+
+
   XGrabKey(foreground_dpy, win->keycodes[3], modifiers, // XK_Page_Down
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
@@ -839,7 +853,7 @@ int process_event2(GC *gc,
                    InfoKeyPresses *info)
 {
   XEvent xe;
-  XEvent ahead;
+  //XEvent ahead;
   XConfigureEvent cEvent;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
@@ -906,9 +920,11 @@ int process_event2(GC *gc,
         }
       break;
     case KeyPress:
+      break;
     case KeyRelease: {
       // https://opensource.apple.com/source/X11libs/X11libs-60/mesa/Mesa-7.8.2/src/glut/glx/glut_event.c.auto.html
 
+/*
 	  //if (window->ignoreKeyRepeat) {
 	    if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
 	      XPeekEvent(foreground_dpy, &ahead);
@@ -925,6 +941,7 @@ int process_event2(GC *gc,
 	      }
 	    }
 	  //}
+*/
     // https://stackoverflow.com/questions/2100654/ignore-auto-repeat-in-x11-applications
 
 #if defined(V_DEBUG)
