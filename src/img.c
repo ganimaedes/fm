@@ -381,6 +381,8 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
    win->keycodes[0] = XKeysymToKeycode(foreground_dpy, XK_End);
    win->keycodes[1] = XKeysymToKeycode(foreground_dpy, XK_Begin);
    win->keycodes[2] = XKeysymToKeycode(foreground_dpy, XK_BackSpace);
+   win->keycodes[3] = XKeysymToKeycode(foreground_dpy, XK_Page_Down);
+   win->keycodes[4] = XKeysymToKeycode(foreground_dpy, XK_Page_Up);
 
   win->screen = DefaultScreen(foreground_dpy);
 #if defined(V_DEBUG_POSITION)
@@ -455,6 +457,18 @@ void grab_keys(Win *win)
            keyboard_mode);
 ///*
   XGrabKey(foreground_dpy, win->keycodes[2], Mod2Mask,
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+  XGrabKey(foreground_dpy, win->keycodes[3], modifiers, // XK_Page_Down
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+  XGrabKey(foreground_dpy, win->keycodes[3], Mod2Mask, // XK_Page_Down
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+  XGrabKey(foreground_dpy, win->keycodes[4], modifiers, // XK_Page_Up
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
+  XGrabKey(foreground_dpy, win->keycodes[4], Mod2Mask, // XK_Page_Up
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
 //*/
@@ -677,6 +691,7 @@ int process_event(GC *gc,
 	  }
 */
     // https://stackoverflow.com/questions/2100654/ignore-auto-repeat-in-x11-applications
+/*
       if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
         XEvent nev;
         XPeekEvent(foreground_dpy, &nev);
@@ -731,12 +746,14 @@ int process_event(GC *gc,
           return 0;
         }
     }
+*/
 
 ///*
 #if defined(V_DEBUG)
       printf("xe.xkey.keycode: %d\n", xe.xkey.keycode);
 #endif // V_DEBUG
     // start timer
+///*
       if (xe.xkey.keycode == w->keycode_dn) { // X_KEY_DN
         w->keycode_dn_pressed = 1;
         XUngrabKey(foreground_dpy, w->keycode_dn, 0, *top_window);
@@ -745,31 +762,35 @@ int process_event(GC *gc,
         XUngrabKey(foreground_dpy, w->keycode_up, 0, *top_window);
         w->keycode_up_pressed = 1;
         return 0;
-      }
-      else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
+      } else if (xe.xkey.keycode == w->keycodes[0]) { // XK_End
         XUngrabKey(foreground_dpy, w->keycodes[0], 0, *top_window);
         w->keycode_end_pressed = 1;
         return 0;
-      }
-      else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
+      } else if (xe.xkey.keycode == w->keycodes[1]) { // XK_Begin
         XUngrabKey(foreground_dpy, w->keycodes[1], 0, *top_window);
         w->keycode_beg_pressed = 1;
         return 0;
-      }
-
-      else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
+      } else if (xe.xkey.keycode == w->keycodes[2]) { // XK_BackSpace
         XUngrabKey(foreground_dpy, w->keycodes[2], 0, *top_window);
         w->keycode_bckspce_pressed = 1;
         return 0;
-      }
-
-      else {
+      } else if (xe.xkey.keycode == w->keycodes[3]) { // XK_Page_Down
+        w->keycode_page_dn_pressed = 1;
+        //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycodes[3], 0, *top_window);
+      } else if (xe.xkey.keycode == w->keycodes[4]) { // XK_Page_Up
+        w->keycode_page_up_pressed = 1;
+        //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+        XUngrabKey(foreground_dpy, w->keycodes[4], 0, *top_window);
+      } else {
         *key = xe.xkey.keycode;
-        XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
+        XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+        //XUngrabKey(foreground_dpy, xe.xkey.keycode, 0, *top_window);
         //w->keycode_bckspce_pressed = 1;
         //return 1;
         return 0;
       }
+//*/
 //*/
     }
     default:
@@ -1337,6 +1358,12 @@ finish:
     return KEY_ALL_UP;
   } else if (win.keycode_bckspce_pressed) {
     return BACKSPACE;
+  } else if (win.keycode_page_dn_pressed) {
+    printf("wait");
+    sleep(5);
+    return KEY_PAGE_DN;
+  } else if (win.keycode_page_up_pressed) {
+    return KEY_PAGE_UP;
   } else {
     return key;
   }

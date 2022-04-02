@@ -77,6 +77,9 @@ typedef struct _Win {
   int keycode_bckspce_pressed;
   int keycode_dn_pressed;
   int keycode_up_pressed;
+  int keycode_page_dn_pressed;
+  int keycode_page_up_pressed;
+
   int screen;
   Window foreground_win;
   Window background_win;
