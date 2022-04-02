@@ -133,6 +133,14 @@ int process_event(GC *gc,
                   Image *img,
                   KeyCode *key,
                   InfoKeyPresses *info);
+int process_event2(GC *gc,
+                   Window *top_window,
+                   Atom *wmDeleteMessage,
+                   Win *w,
+                   Atom_Prop *atom_prop,
+                   Image *img,
+                   KeyCode *key,
+                   InfoKeyPresses *info);
 unsigned long set_img(char *path, InfoKeyPresses *info);
 
 #endif // IMG_H
