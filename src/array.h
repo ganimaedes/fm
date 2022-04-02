@@ -11,6 +11,23 @@
 //#include <stdlib.h>
 //#include <string.h>
 
+static char *TYPE[] = {
+  "j", /* JPEG JIFF */
+  "p", /* PNG       */
+  "g", /* GIF       */
+  "d", /* PDF       */
+  "o"  /* FOLDER    */
+};
+
+typedef struct _STAT_INFO {
+  unsigned short width;
+  unsigned short height;
+  unsigned int file_len;
+  char *file_name;
+  FILE *file;
+  unsigned char *data;
+} STAT_INFO;
+
 typedef struct {
     char *name;
     char *type;

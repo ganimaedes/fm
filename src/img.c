@@ -383,6 +383,7 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
    win->keycodes[2] = XKeysymToKeycode(foreground_dpy, XK_BackSpace);
    win->keycodes[3] = XKeysymToKeycode(foreground_dpy, XK_Page_Down);
    win->keycodes[4] = XKeysymToKeycode(foreground_dpy, XK_Page_Up);
+   win->keycodes[5] = XKeysymToKeycode(foreground_dpy, XK_Escape);
 
   win->screen = DefaultScreen(foreground_dpy);
 #if defined(V_DEBUG_POSITION)
@@ -493,6 +494,9 @@ void grab_keys(Win *win)
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
 */
+  XGrabKey(foreground_dpy, win->keycodes[5], modifiers, // XK_Escape
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
 }
 
 void put_image(Win *win, Image *img, int x_px, int y_px)
@@ -1001,6 +1005,11 @@ int process_event2(GC *gc,
         //XUngrabKey(foreground_dpy, w->keycodes[4], 0, *top_window);
         //XUngrabKeyboard(foreground_dpy, CurrentTime);
         return 0;
+      } else if (xe.xkey.keycode == w->keycodes[5]) {
+        w->keycode_escape_pressed = 1;
+        info->ascii_value = KEY_ESCAPE;
+        return 0;
+        //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
       } else {
         *key = xe.xkey.keycode;
         XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
@@ -1020,7 +1029,8 @@ int process_event2(GC *gc,
 // for the exact same key (and at the exact same time) as the
 // key being released.  The X11 protocol will send auto
 // repeated keys as such KeyRelease/KeyPress pairs. */
-int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
+//int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
+int check_if_key_press2(InfoKeyPresses *info)
 {
   XEvent event = { 0 };
   XEvent ahead = { 0 };
@@ -1042,73 +1052,6 @@ int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
       }
   }
 
-  return 1;
-}
-
-int check_if_key_press(InfoKeyPresses *info, Window *tmp_window, Win *win)
-{
-    XEvent event = { 0 };
-    XNextEvent(foreground_dpy, &event);
-    if (event.type == MapNotify) {
-      //break;
-      return 0;
-    } else if (event.type == KeyPress) {
-      //XUngrabKey(foreground_dpy, (long)info->keypress_value, 0, *tmp_window);
-      //goto finish;
-
-      //printf("        KEYGRAB         ");
-      //sleep(5);
-      //continue;
-
-      if (event.xkey.keycode == win->keycode_dn) { // X_KEY_DN
-        win->keycode_dn_pressed = 1;
-        XUngrabKey(foreground_dpy, win->keycode_dn, 0, *tmp_window);
-        //goto finish;
-        //return KEY_DOWN;
-        return 0;
-      } else if (event.xkey.keycode == win->keycode_up) { // X_KEY_UP
-        XUngrabKey(foreground_dpy, win->keycode_up, 0, *tmp_window);
-        win->keycode_up_pressed = 1;
-        //goto finish;
-        //return KEY_UP;
-        return 0;
-      }
-      else if (event.xkey.keycode == win->keycodes[0]) { // XK_End
-        XUngrabKey(foreground_dpy, win->keycodes[0], 0, *tmp_window);
-        win->keycode_end_pressed = 1;
-        //goto finish;
-        //return KEY_END;
-        return 0;
-      }
-      else if (event.xkey.keycode == win->keycodes[1]) { // XK_Begin
-        XUngrabKey(foreground_dpy, win->keycodes[1], 0, *tmp_window);
-        win->keycode_beg_pressed = 1;
-        //goto finish;
-        //return KEY_ALL_UP;
-        return 0;
-      }
-
-      else if (event.xkey.keycode == win->keycodes[2]) { // XK_BackSpace
-        XUngrabKey(foreground_dpy, win->keycodes[2], 0, *tmp_window);
-        win->keycode_bckspce_pressed = 1;
-        //goto finish;
-        //return BACKSPACE;
-        return 0;
-      }
-
-      else {
-        //*key = xe.xkey.keycode;
-        XUngrabKey(foreground_dpy, event.xkey.keycode, 0, *tmp_window);
-        //w->keycode_bckspce_pressed = 1;
-        //return 1;
-        //goto finish;
-        return 0;
-      }
-//  *
-//  * 8 WIN BEGIN
-//  *
-      return 1;
-    }
   return 1;
 }
 
@@ -1198,7 +1141,8 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   put_image(&win, &img, 0, y_px);
 
 
-  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+  //if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+  if (check_if_key_press2(info) == 0) {
     if (result_key_press == 0) {
       goto finish;
     }
@@ -1230,7 +1174,8 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
             0, 0,
             img.new_width, img.new_height);
   XFlush(foreground_dpy);
-  if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+  //if (check_if_key_press2(info, &tmp_window, &win) == 0) {
+  if (check_if_key_press2(info) == 0) {
     if (result_key_press == 0) {
       goto finish;
     }
@@ -1580,6 +1525,8 @@ finish:
     return KEY_PAGE_DN;
   } else if (win.keycode_page_up_pressed) {
     return KEY_PAGE_UP;
+  } else if (win.keycode_escape_pressed) {
+    return KEY_ESCAPE;
   } else {
     return key;
   }

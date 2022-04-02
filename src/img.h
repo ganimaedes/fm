@@ -38,6 +38,13 @@ static sig_atomic_t volatile window_remapped = 0;
 #endif // FALSE
 static Bool xerror = FALSE;
 
+static unsigned char SIGNATURE_PNG[9] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00 };
+static unsigned char SIGNATURE_JPG[11] = { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00 };
+static unsigned char SIGNATURE_GIF[3] = { 0x47, 0x49, 0x46 };
+static size_t SIZE_JPEG_ARRAY = sizeof(SIGNATURE_JPG) / sizeof(*SIGNATURE_JPG);
+static size_t SIZE_PNG_ARRAY = sizeof(SIGNATURE_PNG) / sizeof(*SIGNATURE_PNG);
+static size_t SIZE_GIF_ARRAY = sizeof(SIGNATURE_GIF) / sizeof(*SIGNATURE_GIF);
+
 #define ATOM(a) XInternAtom(foreground_dpy, #a, False)
 
 typedef struct _Properties {
@@ -79,6 +86,7 @@ typedef struct _Win {
   int keycode_up_pressed;
   int keycode_page_dn_pressed;
   int keycode_page_up_pressed;
+  int keycode_escape_pressed;
 
   int screen;
   Window foreground_win;
@@ -121,7 +129,8 @@ Window get_top_window(Display* d, Window start);
 Window get_focus_window(Display* d);
 int x_error_handler(Display* dpy, XErrorEvent* pErr);
 int check_if_key_press(InfoKeyPresses *info, Window *tmp_window, Win *win);
-int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win);
+//int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win);
+int check_if_key_press2(InfoKeyPresses *info);
 
 int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_type);
 

@@ -50,14 +50,6 @@ char *file_to_be_copied;
 static int previous_pos_copy = 0;
 static int previous_pos_copy_from_attr = 0;
 
-static unsigned char SIGNATURE_PNG[9] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00 };
-static unsigned char SIGNATURE_JPG[11] = {
-  0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00 };
-static unsigned char SIGNATURE_GIF[3] = { 0x47, 0x49, 0x46 };
-static size_t SIZE_JPEG_ARRAY = sizeof(SIGNATURE_JPG) / sizeof(*SIGNATURE_JPG);
-static size_t SIZE_PNG_ARRAY = sizeof(SIGNATURE_PNG) / sizeof(*SIGNATURE_PNG);
-static size_t SIZE_GIF_ARRAY = sizeof(SIGNATURE_GIF) / sizeof(*SIGNATURE_GIF);
-
 typedef struct _Message {
   char *print_msg;
   char *n_char;
@@ -69,23 +61,6 @@ typedef struct _Message {
   unsigned long n_ulong;
   int used_ulong;
 } Message;
-
-static char *TYPE[] = {
-  "j", /* JPEG JIFF */
-  "p", /* PNG       */
-  "g", /* GIF       */
-  "d", /* PDF       */
-  "o"  /* FOLDER    */
-};
-
-typedef struct _STAT_INFO {
-  unsigned short width;
-  unsigned short height;
-  unsigned int file_len;
-  char *file_name;
-  FILE *file;
-  unsigned char *data;
-} STAT_INFO;
 
 void print_path(Scroll *s, char *path, int pos, int backspace_pressed);
 int strpos(char *hay, char *needle, int offset);
@@ -350,6 +325,9 @@ int main(int argc, char **argv)
 #endif // EBUG
 
       print_right_window2(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, &info_file, pos, &c);
+      if (c == KEY_ESCAPE) {
+        break;
+      }
 
     }
 
@@ -530,7 +508,7 @@ char find_file_type2(STAT_INFO *info)
     type = *TYPE[1];
   } else if (buffer[0] == SIGNATURE_GIF[0]) {
     for (i = 1; i < SIZE_GIF_ARRAY; ++i) {
-      if (buffer[i] != SIGNATURE_PNG[i]) {
+      if (buffer[i] != SIGNATURE_GIF[i]) {
         goto quit_file_type;
       }
     }
@@ -608,9 +586,11 @@ void print_right_window2(Array *left_box,
           ungetc(*c, stdin);
           info_key_presses.n_times_pressed = 0;
         }
-        if (*c == 0xff1b) {
+/*
+        if (*c == 0xff1b) { // XK_Escape
           ungetc(*c, stdin);
         }
+*/
         //image_appeared = 0;
         // ungetc for n_times_pressed
         // bookmarks et retour ou on etait avant bookmark
