@@ -1,5 +1,5 @@
 CC         = gcc
-CBASEFLAGS = -ggdb3 -O0 -rdynamic #-DV_DEBUG #-DEBUG -DV_DEBUG_POSITION #-DEBUG2
+CBASEFLAGS = -ggdb3 -O0 -rdynamic -DSHOW_ATOMS #-DV_DEBUG #-DEBUG -DV_DEBUG_POSITION #-DEBUG2
 CFLAGS 	   = -I. $(CBASEFLAGS) -Wall -pedantic -finstrument-functions
 IMGCFLAGS  = -I/usr/local/include -lX11 -lm
 IMGOBJS    = parcours.o positions.o scr.o deb.o array.o copy.o img.o
@@ -35,7 +35,7 @@ array.o: array.c
 copy.o: copy.c
 	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
 
-img.o: img.c stb_image.h stb_image_resize.h
+img.o: img.c stb_image.h stb_image_resize.h debug.h
 	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
 
 .PHONY: clean

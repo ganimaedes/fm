@@ -20,6 +20,9 @@
 #include <stdint.h>
 #include <time.h>
 #include <sys/time.h>
+#if defined(SHOW_ATOMS)
+#include "debug.h"
+#endif // SHOW_ATOMS
 
 #define MAXSTR      500
 #ifndef MIN

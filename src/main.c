@@ -123,9 +123,7 @@ int strpos4(char *hay, char *needle, int offset);
 int main(int argc, char **argv)
 {
   char **entries = NULL;
-#if defined(EBUG)
   signal(SIGSEGV, handler);
-#endif // EBUG
   if (argc < 2) { fprintf(stderr, "Missing Arguments\n"); exit(1); }
   setlocale(LC_ALL, "");
   save_config;
@@ -139,6 +137,15 @@ int main(int argc, char **argv)
     write(1, error, strlen(error));
     return EXIT_FAILURE;
   }
+
+#if defined(SHOW_ATOMS)
+  if (argv[2] != NULL) {
+    file_descriptor = open(argv[2], O_RDWR);
+    save_config_fd(file_descriptor);
+    printf("file_descriptor = %d\n", file_descriptor);
+    sleep(5);
+  }
+#endif // SHOW_ATOMS
 
   int pos = 0;
 
@@ -462,6 +469,11 @@ int main(int argc, char **argv)
     restore_config_fd(fd);
   }
 #endif // EBUG
+#if defined(SHOW_ATOMS)
+  if (argc == 3 && argv[2] != NULL) {
+    restore_config_fd(file_descriptor);
+  }
+#endif // SHOW_ATOMS
   restore_config;
   return 0;
 }
@@ -1466,7 +1478,7 @@ int match_extension(char *name, const char *ext)
   return namelen >= extlen && !strcmp(name + namelen - extlen, ext);
 }
 
-#if defined(EBUG)
+//#if defined(EBUG)
 void handler(int sig)
 {
   void *array[10];
@@ -1476,7 +1488,7 @@ void handler(int sig)
   backtrace_symbols_fd(array, size, STDERR_FILENO);
   exit(1);
 }
-#endif // EBUG
+//#endif // EBUG
 
 void reprint_menu(Window_ *w, Scroll *s1, Array *a, Attributes *attr, int pos, int option)
 {

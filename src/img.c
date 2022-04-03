@@ -107,9 +107,17 @@ int add_element(Atom_Prop *atom_prop, char *element)
     memcpy(&atom_prop->status[atom_prop->total_len - len_element], element, len_element);
     atom_prop->status[atom_prop->total_len] = '\0';
 #if defined(SHOW_ATOMS)
-    fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-    printf("len_element %lu, atom_prop->total_len = %d\natom_prop->status[%d]: %s\n",
-        len_element, atom_prop->total_len, atom_prop->total_len, atom_prop->status);
+    sprintf(del_in_debug, del_debug, 100 - 2);
+    //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
+    __PRINTDEBUG;
+    //PRINTDEBUG("");
+
+//    printf("len_element %lu, atom_prop->total_len = %d\natom_prop->status[%d]: %s\n",
+//        len_element, atom_prop->total_len, atom_prop->total_len, atom_prop->status);
+    //printTTYSTR(1, 1, "len_element"); printTTYLONGUNSIGNED(1, strlen("len_element"), len_element);
+    //printTTYSTR(2, 1, "atom_prop->total_len"); printTTYINT(1, strlen("atom_prop->total_len"), atom_prop->total_len);
+    //printTTYSTR(3, 1, "atom_prop->status["); printTTYINT(1, strlen("atom_prop->status["), atom_prop->total_len);
+        //printTTYSTR(3, strlen("atom_prop->status[") + 3, "]: "); printTTYSTR(3, strlen("atom_prop->status[]") + 3, atom_prop->status);
 #endif
     return 1;
   }
@@ -912,7 +920,8 @@ int process_event2(GC *gc,
   //XEvent ahead;
   XConfigureEvent cEvent;
   XNextEvent(foreground_dpy, &xe);
-  XSelectInput(foreground_dpy, *top_window, KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask);
+  XSelectInput(foreground_dpy, *top_window,
+      KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
   XWindowAttributes xwa;
   if (!XGetWindowAttributes(foreground_dpy, *top_window, &xwa)) {
     fprintf(stderr, "Error XGetWindowAttributes\n");
