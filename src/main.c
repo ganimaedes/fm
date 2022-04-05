@@ -142,8 +142,6 @@ int main(int argc, char **argv)
   if (argv[2] != NULL) {
     file_descriptor = open(argv[2], O_RDWR);
     save_config_fd(file_descriptor);
-    printf("file_descriptor = %d\n", file_descriptor);
-    sleep(5);
   }
 #endif // SHOW_ATOMS
 
@@ -590,6 +588,9 @@ void print_right_window2(Array *left_box,
         ttymode_reset(ECHO, 0);
         //modify_pos_bc_image_used = 1;
         *c = set_img(left_box->menu[pos].complete_path, &info_key_presses);
+        n_times_add_element_called = 0;
+        //y_pos_debug = 0;
+        //x_pos_debug = 0;
         image_appeared = 1;
 
         if (*c == KEY_DOWN && info_key_presses.n_times_pressed > 1) {

@@ -52,25 +52,32 @@ static char del_in_debug[IN_SZ_DEBUG];
 
 #define _LINENUMBER ":%d"
 static char _line_number[sizeof(_LINENUMBER)];
-#define PRINTDEBUG(_msg) do {                                             \
-  write_line_debug(file_descriptor, __FILE__); \
-  write_line_debug(file_descriptor, __func__); \
-  sprintf(_line_number, _LINENUMBER, __LINE__); \
+#define PRINTDEBUG(_msg) do {                      \
+  write_line_debug(file_descriptor, __FILE__);     \
+  write_line_debug(file_descriptor, __func__);     \
+  sprintf(_line_number, _LINENUMBER, __LINE__);    \
   write_line_debug(file_descriptor, _line_number); \
-  write_line_debug(file_descriptor, "\n"); \
-  if (strlen(_msg) > 0) { \
-    write_line_debug(file_descriptor, (_msg));\
-  }      \
-  if (quit) { exit(1); }    \
+  write_line_debug(file_descriptor, "\n");         \
+  if (strlen(_msg) > 0) {                          \
+    write_line_debug(file_descriptor, (_msg));     \
+  }                                                \
+  if (quit) { exit(1); }                           \
 } while (0)
 
+//static volatile sig_atomic_t x_pos_debug = 0;
+//static volatile sig_atomic_t y_pos_debug = 0;
+
+static int n_times_add_element_called = 0;
+
 #define __PRINTDEBUG do {                          \
+  mv_debug(y_pos_debug, x_pos_debug);              \
   write_line_debug(file_descriptor, __FILE__);     \
   write_line_debug(file_descriptor, ":");          \
   write_line_debug(file_descriptor, __func__);     \
   sprintf(_line_number, _LINENUMBER, __LINE__);    \
   write_line_debug(file_descriptor, _line_number); \
   write_line_debug(file_descriptor, "\n");         \
+  mv_debug(y_pos_debug, x_pos_debug);              \
 } while (0)
 
   //fprintf(file_descriptor, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__); \
@@ -89,10 +96,11 @@ static char _line_number[sizeof(_LINENUMBER)];
   for (_k = 0; _k < x_; ++_k) { write_line_debug(file_descriptor, " "); } \
 } while(0)
 #define printTTYSTR(_x, _y, array) do { \
-  int _pos = 2;                         \
-  empty_space_debug(strlen((array)));    \
+  mv_debug((_y), (_x));                 \
+  empty_space_debug(strlen((array)));   \
   mvprint_debug((_y), (_y), (array));   \
 } while(0)
+  //int _pos = 2;                         \
   //if (_pos_array <= 1) { _pos = 1; }    \
 
 #define NUMLU " = %lu"
@@ -100,7 +108,7 @@ static char numlu[sizeof(NUMLU)];
 #define printTTYLONGUNSIGNED(_x, _y, _numlu) do { \
   int _pos = 2;                                   \
   sprintf(numlu, NUMLU, _numlu);                  \
-  empty_space_debug(strlen((numlu)));              \
+  empty_space_debug(strlen((numlu)));             \
   mvprint_debug((_y), (_y), (numlu));             \
 } while(0)
   //if (_pos_array <= 1) { _pos = 1; }              \

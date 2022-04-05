@@ -107,17 +107,19 @@ int add_element(Atom_Prop *atom_prop, char *element)
     memcpy(&atom_prop->status[atom_prop->total_len - len_element], element, len_element);
     atom_prop->status[atom_prop->total_len] = '\0';
 #if defined(SHOW_ATOMS)
-    sprintf(del_in_debug, del_debug, 100 - 2);
+    //sprintf(del_in_debug, del_debug, 100 - 2);
     //fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-    __PRINTDEBUG;
-    //PRINTDEBUG("");
+    //if (++n_times_add_element_called == atom_prop->total_len - 1) {
+      //__PRINTDEBUG;
+      //PRINTDEBUG("");
 
-//    printf("len_element %lu, atom_prop->total_len = %d\natom_prop->status[%d]: %s\n",
-//        len_element, atom_prop->total_len, atom_prop->total_len, atom_prop->status);
-    //printTTYSTR(1, 1, "len_element"); printTTYLONGUNSIGNED(1, strlen("len_element"), len_element);
-    //printTTYSTR(2, 1, "atom_prop->total_len"); printTTYINT(1, strlen("atom_prop->total_len"), atom_prop->total_len);
-    //printTTYSTR(3, 1, "atom_prop->status["); printTTYINT(1, strlen("atom_prop->status["), atom_prop->total_len);
-        //printTTYSTR(3, strlen("atom_prop->status[") + 3, "]: "); printTTYSTR(3, strlen("atom_prop->status[]") + 3, atom_prop->status);
+      //    printf("len_element %lu, atom_prop->total_len = %d\natom_prop->status[%d]: %s\n",
+      //        len_element, atom_prop->total_len, atom_prop->total_len, atom_prop->status);
+      //printTTYSTR(2, 1, "len_element"); printTTYLONGUNSIGNED(2, strlen("len_element"), len_element);
+      //printTTYSTR(2, 1, "atom_prop->total_len"); printTTYINT(1, strlen("atom_prop->total_len"), atom_prop->total_len);
+      //printTTYSTR(3, 1, "atom_prop->status["); printTTYINT(1, strlen("atom_prop->status["), atom_prop->total_len);
+      //printTTYSTR(3, strlen("atom_prop->status[") + 3, "]: "); printTTYSTR(3, strlen("atom_prop->status[]") + 3, atom_prop->status);
+    //}
 #endif
     return 1;
   }
@@ -148,6 +150,13 @@ static void display_property2(Atom_Prop *atom_prop, Properties *properties, int 
       int namelen = strlen(name);
       memcpy(formatting_buffer, name, namelen);
       formatting_buffer[namelen] = '\0';
+    }
+    if (name != NULL && counter_position < 1) {
+      ++y_pos_debug;
+      //__PRINTDEBUG;
+      ++y_pos_debug;
+      //printTTYSTR(y_pos_debug, x_pos_debug, name);
+      ++counter_position;
     }
     XFree(name);
   }
@@ -920,7 +929,9 @@ int process_event2(GC *gc,
   //XEvent ahead;
   XConfigureEvent cEvent;
   XNextEvent(foreground_dpy, &xe);
-  XSelectInput(foreground_dpy, *top_window,
+  //XSelectInput(foreground_dpy, *top_window,
+  //    KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
+  XSelectInput(foreground_dpy, w->foreground_win,
       KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
   XWindowAttributes xwa;
   if (!XGetWindowAttributes(foreground_dpy, *top_window, &xwa)) {
@@ -956,6 +967,8 @@ int process_event2(GC *gc,
     XSync(foreground_dpy, False);
     window_remapped = 1;
     window_unmapped = 0;
+  } else if (!strstr(atom_prop->status, "WM_STATE_FOCUSED")) {
+    XLowerWindow(foreground_dpy, w->foreground_win);
   }
 
 
@@ -963,6 +976,8 @@ int process_event2(GC *gc,
     free(atom_prop->status);
     atom_prop->status = NULL;
   }
+  XSelectInput(foreground_dpy, *top_window,
+      KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
 /*
  int gotEvent = interruptibleXNextEvent(foreground_dpy, &xe);
  if (gotEvent) {
@@ -1361,6 +1376,9 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   pastElapsedTime = 0.0;
   KeyCode key = 0;
   //while (process_event(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key, info)) {
+
+  counter_position = 0;
+  y_pos_debug = 1;
   while (process_event2(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key, info)) {
     elapsedTime = 0;
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms

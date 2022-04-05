@@ -50,6 +50,10 @@ static size_t SIZE_GIF_ARRAY = sizeof(SIGNATURE_GIF) / sizeof(*SIGNATURE_GIF);
 
 #define ATOM(a) XInternAtom(foreground_dpy, #a, False)
 
+static volatile sig_atomic_t counter_position = 0;
+static volatile sig_atomic_t x_pos_debug = 1;
+static volatile sig_atomic_t y_pos_debug = 1;
+
 typedef struct _Properties {
   int         n_elements;
   int         capacity;
