@@ -588,7 +588,7 @@ void print_right_window2(Array *left_box,
         ttymode_reset(ECHO, 0);
         //modify_pos_bc_image_used = 1;
         *c = set_img(left_box->menu[pos].complete_path, &info_key_presses);
-        n_times_add_element_called = 0;
+        //n_times_add_element_called = 0;
         //y_pos_debug = 0;
         //x_pos_debug = 0;
         image_appeared = 1;

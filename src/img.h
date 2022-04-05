@@ -135,20 +135,8 @@ void put_image(Win *win, Image *img, int x_px, int y_px);
 Window get_top_window(Display* d, Window start);
 Window get_focus_window(Display* d);
 int x_error_handler(Display* dpy, XErrorEvent* pErr);
-int check_if_key_press(InfoKeyPresses *info, Window *tmp_window, Win *win);
-//int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win);
 int check_if_key_press2(InfoKeyPresses *info);
-
 int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_type);
-
-int process_event(GC *gc,
-                  Window *top_window,
-                  Atom *wmDeleteMessage,
-                  Win *w,
-                  Atom_Prop *atom_prop,
-                  Image *img,
-                  KeyCode *key,
-                  InfoKeyPresses *info);
 int process_event2(GC *gc,
                    Window *top_window,
                    Atom *wmDeleteMessage,
