@@ -724,10 +724,12 @@ int process_event2(GC *gc,
     XSync(foreground_dpy, False);
     window_remapped = 1;
     window_unmapped = 0;
-  } else if (!strstr(atom_prop->status, "WM_STATE_FOCUSED")) {
+  }
+/*
+  else if (!strstr(atom_prop->status, "WM_STATE_FOCUSED")) {
     XLowerWindow(foreground_dpy, w->foreground_win);
   }
-
+*/
 
   if (atom_prop->status) {
     free(atom_prop->status);
@@ -854,7 +856,6 @@ int process_event2(GC *gc,
 // for the exact same key (and at the exact same time) as the
 // key being released.  The X11 protocol will send auto
 // repeated keys as such KeyRelease/KeyPress pairs. */
-//int check_if_key_press2(InfoKeyPresses *info, Window *tmp_window, Win *win)
 int check_if_key_press2(InfoKeyPresses *info)
 {
   XEvent event = { 0 };

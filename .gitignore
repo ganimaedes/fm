@@ -85,3 +85,4 @@ img_copy2.c
 img_copy2.h
 eventTest.*
 min
+find_mapped_windows.c
