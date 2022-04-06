@@ -493,14 +493,6 @@ void grab_keys(Win *win)
   XGrabKey(foreground_dpy, win->keycodes[3], Mod1Mask, // XK_Page_Down
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
-
-
-
-
-
-
-
-
 */
 
   XGrabKey(foreground_dpy, win->keycodes[4], Mod2Mask, // XK_Page_Up
@@ -529,7 +521,7 @@ void put_image(Win *win, Image *img, int x_px, int y_px)
 
   XMapWindow(foreground_dpy, win->foreground_win);
   img->bpl = 0;
-  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   //nanosleep((const struct timespec[]){{0, 9000000L}}, NULL);
 
   img->depth = DefaultDepth(foreground_dpy, win->screen);
@@ -725,11 +717,13 @@ int process_event3(GC *gc,
     window_remapped = 1;
     window_unmapped = 0;
   }
-/*
   else if (!strstr(atom_prop->status, "WM_STATE_FOCUSED")) {
+    XSelectInput(foreground_dpy, w->foreground_win,
+        KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
     XLowerWindow(foreground_dpy, w->foreground_win);
+    XSelectInput(foreground_dpy, *top_window,
+        KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
   }
-*/
 
   if (atom_prop->status) {
     free(atom_prop->status);

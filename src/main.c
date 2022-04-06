@@ -115,7 +115,7 @@ void print_right_window2(Array *left_box,
                          Window_ *w_main,
                          Message *msg,
                          STAT_INFO *info_file,
-                         int pos, unsigned long *c);
+                         int pos, int *c);
 void open_file(STAT_INFO *info);
 char find_file_type2(STAT_INFO *info);
 int strpos4(char *hay, char *needle, int offset);
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
     write(2, err1, sizeof(err1));
   }
 
-  unsigned long c = 0;
+  int c = 0;
   int previous_pos_c = 0;
   int second_previous_c = 0;
   int option = 0,
@@ -535,7 +535,7 @@ void print_right_window2(Array *left_box,
                          Window_ *w_main,
                          Message *msg,
                          STAT_INFO *info_file,
-                         int pos, unsigned long *c)
+                         int pos, int *c)
 {
   if (pos < left_box->n_elements && !strcmp(left_box->menu[pos].type, "directory")) {
     directory_placement2(left_box, &right_box, s, &pos, w1, w2, w_main);
