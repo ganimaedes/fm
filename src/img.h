@@ -137,7 +137,7 @@ Window get_focus_window(Display* d);
 int x_error_handler(Display* dpy, XErrorEvent* pErr);
 int check_if_key_press2(InfoKeyPresses *info);
 int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_type);
-int process_event2(GC *gc,
+int process_event3(GC *gc,
                    Window *top_window,
                    Atom *wmDeleteMessage,
                    Win *w,

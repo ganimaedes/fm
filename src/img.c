@@ -529,7 +529,7 @@ void put_image(Win *win, Image *img, int x_px, int y_px)
 
   XMapWindow(foreground_dpy, win->foreground_win);
   img->bpl = 0;
-  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
   //nanosleep((const struct timespec[]){{0, 9000000L}}, NULL);
 
   img->depth = DefaultDepth(foreground_dpy, win->screen);
@@ -673,7 +673,7 @@ interruptibleXNextEvent(Display * dpy, XEvent * event)
   }
 }
 
-int process_event2(GC *gc,
+int process_event3(GC *gc,
                    Window *top_window,
                    Atom *wmDeleteMessage,
                    Win *w,
@@ -686,8 +686,8 @@ int process_event2(GC *gc,
   //XEvent ahead;
   XConfigureEvent cEvent;
   XNextEvent(foreground_dpy, &xe);
-  //XSelectInput(foreground_dpy, *top_window,
-  //    KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
+  XSelectInput(foreground_dpy, *top_window,
+      KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
   XSelectInput(foreground_dpy, w->foreground_win,
       KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
   XWindowAttributes xwa;
@@ -735,8 +735,8 @@ int process_event2(GC *gc,
     free(atom_prop->status);
     atom_prop->status = NULL;
   }
-  XSelectInput(foreground_dpy, *top_window,
-      KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
+  //XSelectInput(foreground_dpy, *top_window,
+  //    KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
 
   switch (xe.type) {
     case MapNotify:
@@ -751,9 +751,11 @@ int process_event2(GC *gc,
         cEvent = xe.xconfigure;
       break;
     case KeyPress:
+/*
       if (img->height > 450 && img->width > 400) {
         break;
       }
+*/
       //break;
     case KeyRelease: {
       // https://opensource.apple.com/source/X11libs/X11libs-60/mesa/Mesa-7.8.2/src/glut/glx/glut_event.c.auto.html
@@ -1041,7 +1043,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 
   counter_position = 0;
   y_pos_debug = 1;
-  while (process_event2(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key, info)) {
+  while (process_event3(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key, info)) {
     elapsedTime = 0;
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
