@@ -675,7 +675,7 @@ int process_event3(GC *gc,
                    InfoKeyPresses *info)
 {
   XEvent xe;
-  //XEvent ahead;
+  XEvent ahead;
   XConfigureEvent cEvent;
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window,
@@ -745,6 +745,10 @@ int process_event3(GC *gc,
         cEvent = xe.xconfigure;
       break;
     case KeyPress:
+      if (info_key_presses.last_element_is_not_img) {
+        info_key_presses.last_element_is_not_img = 0;
+        break;
+      }
 /*
       if (img->height > 450 && img->width > 400) {
         break;
@@ -756,26 +760,27 @@ int process_event3(GC *gc,
 
 	  //if (window->ignoreKeyRepeat) {
 //
-//	    if (XEventsQueued(foreground_dpy, QueuedAfterReading)) {
-//	      XPeekEvent(foreground_dpy, &ahead);
-//	      if (ahead.type == KeyPress
-//	        && ahead.xkey.window == xe.xkey.window
-//	        && ahead.xkey.keycode == xe.xkey.keycode
-//	        && ahead.xkey.time == xe.xkey.time) {
+	    if (info_key_presses.last_element_is_not_img && XEventsQueued(foreground_dpy, QueuedAfterReading)) {
+	      XPeekEvent(foreground_dpy, &ahead);
+	      if (ahead.type == KeyPress
+	        && ahead.xkey.window == xe.xkey.window
+	        && ahead.xkey.keycode == xe.xkey.keycode
+	        && ahead.xkey.time == xe.xkey.time) {
             // Pop off the repeated KeyPress and ignore
             //   the auto repeated KeyRelease/KeyPress pair.
 
-//	        XNextEvent(foreground_dpy, &xe);
-//            XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
-//            XKeyPressedEvent eventkey;
+	        XNextEvent(foreground_dpy, &xe);
+            XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+            XKeyPressedEvent eventkey;
 
 
             //XUngrabKeyboard(foreground_dpy, CurrentTime);
-//            ++info->n_times_pressed;
-//            return 0;
+            ++info->n_times_pressed;
+            info_key_presses.last_element_is_not_img = 0;
+            return 0;
 	        //break;
-//	      }
-//	    }
+	      }
+	    }
 
 	  //}
     // https://stackoverflow.com/questions/2100654/ignore-auto-repeat-in-x11-applications

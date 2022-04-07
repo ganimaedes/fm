@@ -76,9 +76,6 @@ void highlight2(Array *a, int *pos);
 int update(Window_ *w, Scroll *s, int *pos, int size);
 void print_debug(Window_ *w, Scroll *s, int option, int pos, int cursor_pos, Array *a);
 void move_erase(Window_ *w, int fd, int y, int x);
-//void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned int *c, int *pos, Array *a);
-//void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned long *c, int *pos, Array *a);
-//void print_entries(Window_ *w, Scroll *s, char **entries, int option, unsigned long c, int *pos, Array *a);
 void print_entries(Window_ *w, Scroll *s, char **entries, int option, int c, int *pos, Array *a);
 void print(Window_ *w, Array *a, int pos_array);
 static void sig_win_ch_handler(int sig);
@@ -587,6 +584,10 @@ void print_right_window2(Array *left_box,
         info_key_presses.last_position_array = pos;
         ttymode_reset(ECHO, 0);
         //modify_pos_bc_image_used = 1;
+        //if ((pos < left_box->n_elements - 1) && pos > 0 && strcmp(left_box->menu[pos - 1].type, "directory") == 0) {
+        if (strcmp(left_box->menu[pos > 0 ? pos - 1 : pos].type, "directory") == 0) {
+          info_key_presses.last_element_is_not_img = 1;
+        }
         *c = set_img(left_box->menu[pos].complete_path, &info_key_presses);
         //n_times_add_element_called = 0;
         //y_pos_debug = 0;
@@ -660,7 +661,6 @@ void print_right_window2(Array *left_box,
           match_extension(left_box->menu[pos].name, "Makefile") ||
           match_extension(left_box->menu[pos].name, ".cmake")) {
 
-        //read_file(left_box, w1, w2, s, pos);
         read_file2(left_box, w1, w2, s, pos);
 
       }

@@ -285,6 +285,7 @@ typedef struct {
   unsigned long ascii_value;
   int n_times_pressed;
   int last_position_array;
+  int last_element_is_not_img;
 } InfoKeyPresses;
 
 static InfoKeyPresses info_key_presses;
