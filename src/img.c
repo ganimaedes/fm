@@ -445,7 +445,9 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
                KeyPressMask | PropertyChangeMask | StructureNotifyMask);
 
   ttymode_reset(ECHO, 1);
-  printTTY_UL(xwa.height - 1, 1, img->size);
+  //printTTY_UL(xwa.height - 1, 1, img->size / 1000);
+  //printTTY_filesize(1, xwa.height - 2, ((double)img->size / 1000.0));
+  print_tty_filesize3(1, xwa.height - 2, ((double)img->size / 1000.0));
   ttymode_reset(ECHO, 0);
 }
 
@@ -1089,6 +1091,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info, STAT_INFO *info_file)
     pastElapsedTime = elapsedTime;
   }
 
+  erase_size(1, xwa.height - 1);
 /*
   while (!stop) {
 
