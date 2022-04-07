@@ -1,4 +1,5 @@
 #include "img.h"
+#include "array.h"
 #include "scr.h"
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -385,6 +386,15 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
     dp[i] = (dp[i] & 0xFF00FF00) | ((dp[i] >> 16) & 0xFF) | ((dp[i] << 16) & 0xFF0000);
   }
 
+  //img->img_size = sizeof(img->data_resized);
+  //img->size = img->new_height * img->new_width * 4;
+
+  if (!XGetWindowAttributes(foreground_dpy, win->background_win, &xwa)) {
+    fprintf(stderr, "Error XGetWindowAttributes\n");
+  }
+  //printf("size = %lu", img->size);
+
+
 #if defined(V_DEBUG_POSITION)
   fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
   printf("root = 0x%lx\n\t", *root);
@@ -433,6 +443,10 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
   XSelectInput(foreground_dpy,
                win->foreground_win,
                KeyPressMask | PropertyChangeMask | StructureNotifyMask);
+
+  ttymode_reset(ECHO, 1);
+  printTTY_UL(xwa.height - 1, 1, img->size);
+  ttymode_reset(ECHO, 0);
 }
 
 void grab_keys(Win *win)
@@ -882,7 +896,16 @@ int check_if_key_press2(InfoKeyPresses *info)
   return 1;
 }
 
-unsigned long set_img(char *path, InfoKeyPresses *info)
+void move_and_return(int vert, int horiz, int returnVert, int returnHoriz, char *_str)
+{
+  sprintf(position, place_, vert, horiz);
+  move(__file_descriptor, position);
+  write_line(__file_descriptor, _str);
+  sprintf(position, place_, returnVert, returnHoriz);
+  move(__file_descriptor, position);
+}
+
+unsigned long set_img(char *path, InfoKeyPresses *info, STAT_INFO *info_file)
 {
 #if defined(EBUG)
   signal(SIGSEGV, handlern);
@@ -925,6 +948,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
   if (!XGetWindowAttributes(foreground_dpy, target_win, &xwa)) {
     fprintf(stderr, "Error XGetWindowAttributes\n");
   }
+  img.size = info_file->file_len;
 
 //  *
 //  * 1 Create window BEGIN
@@ -1042,7 +1066,23 @@ unsigned long set_img(char *path, InfoKeyPresses *info)
 
   counter_position = 0;
   y_pos_debug = 1;
+
+  img.size = 0;
+
   while (process_event3(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key, info)) {
+
+    //ttymode_reset(ECHO, 1);
+    if (img.size > 0) {
+
+      if (!XGetWindowAttributes(foreground_dpy, term_window, &xwa)) {
+        fprintf(stderr, "Error XGetWindowAttributes\n");
+      }
+      //sprintf(imgsize, IMGSIZE, img.size);
+      //printf("%lu", img.size);
+      //move_and_return(xwa.height - 2, 1, 1, 1, imgsize);
+      //mvprint_goback(xwa.height - 1, 1, 1, 1, imgsize);
+      //printTTY_UL(xwa.height - 1, 1, img.size);
+    }
     elapsedTime = 0;
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms

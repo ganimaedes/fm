@@ -40,9 +40,6 @@ volatile sig_atomic_t modify_pos_bc_image_used = 0;
 volatile sig_atomic_t image_appeared = 0;
 volatile sig_atomic_t previous_position_before_backspace = 0;
 
-char position[PLACE_SZ];
-char del_in[IN_SZ];
-
 Window_ w_main, w1, w2, w3;
 Attributes attributes;
 char *file_to_be_copied;
@@ -136,7 +133,7 @@ int main(int argc, char **argv)
   }
 
 #if defined(SHOW_ATOMS)
-  if (argv[2] != NULL) {
+  if (argc == 3 && argv[2] != NULL) {
     file_descriptor = open(argv[2], O_RDWR);
     save_config_fd(file_descriptor);
   }
@@ -482,18 +479,35 @@ void open_file(STAT_INFO *info)
   }
   fseek(info->file, 0, SEEK_END);
   info->file_len = ftell(info->file);
+  printf("%lu", info->file_len);
   fseek(info->file, 0, SEEK_SET);
 }
 
 char find_file_type2(STAT_INFO *info)
 {
+  info->file = fopen(info->file_name, "rb");
+  if (info->file == NULL) {
+    fprintf(stderr, "Error opening file: %s\n", info->file_name);
+    exit(1);
+  }
+
+  fseek(info->file, 0, SEEK_END);
+  info->file_len = ftell(info->file);
+//  printf("%lu", info->file_len);
+//  fseek(info->file, 0, SEEK_SET);
+
   char *file_type = NULL;
-  FILE* fpc = fopen(info->file_name, "rb");
+  //FILE* fpc = fopen(info->file_name, "rb");
   char type = 0;
 
+/*
   fseek(fpc, 0, SEEK_SET);
   unsigned char buffer[16];
   fread(buffer, 16, 1, fpc);
+*/
+  fseek(info->file, 0, SEEK_SET);
+  unsigned char buffer[16];
+  fread(buffer, 16, 1, info->file);
 
   size_t i;
   if (buffer[0] == SIGNATURE_JPG[0]) {
@@ -504,7 +518,8 @@ char find_file_type2(STAT_INFO *info)
     }
     type = *TYPE[0];
   } else if (buffer[0] == SIGNATURE_PNG[0]) {
-    fseek(fpc, 0, SEEK_SET);
+    //fseek(fpc, 0, SEEK_SET);
+    fseek(info->file, 0, SEEK_SET);
     for (i = 0; i < SIZE_PNG_ARRAY - 1; ++i) {
       if (buffer[i] != SIGNATURE_PNG[i]) {
         goto quit_file_type;
@@ -520,7 +535,8 @@ char find_file_type2(STAT_INFO *info)
     type = *TYPE[2];
   }
 quit_file_type:
-  fclose(fpc);
+  //fclose(fpc);
+  fclose(info->file);
   return type;
 }
 
@@ -588,7 +604,8 @@ void print_right_window2(Array *left_box,
         if (strcmp(left_box->menu[pos > 0 ? pos - 1 : pos].type, "directory") == 0) {
           info_key_presses.last_element_is_not_img = 1;
         }
-        *c = set_img(left_box->menu[pos].complete_path, &info_key_presses);
+        //*c = set_img(left_box->menu[pos].complete_path, &info_key_presses);
+        *c = set_img(left_box->menu[pos].complete_path, &info_key_presses, info_file);
         //n_times_add_element_called = 0;
         //y_pos_debug = 0;
         //x_pos_debug = 0;

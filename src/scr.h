@@ -39,6 +39,12 @@
 #define PLACE_SZ sizeof(place_)
 #define IN_SZ    sizeof(del)
 
+
+char position[PLACE_SZ];
+char del_in[IN_SZ];
+
+#define write_line(fd, str) if (write((fd), (str), strlen(str)) < 0) { fprintf(stderr, "Error write\n"); }
+
 /*
 #define KEY_ESCAPE    0x001b
 #define KEY_ENTER     0x000a
@@ -288,6 +294,24 @@ typedef struct {
   int last_element_is_not_img;
 } InfoKeyPresses;
 
+static char *TYPE[] = {
+  "j", /* JPEG JIFF */
+  "p", /* PNG       */
+  "g", /* GIF       */
+  "d", /* PDF       */
+  "o"  /* FOLDER    */
+};
+
+typedef struct _STAT_INFO {
+  unsigned short width;
+  unsigned short height;
+  //unsigned int file_len;
+  unsigned long file_len;
+  char *file_name;
+  FILE *file;
+  unsigned char *data;
+} STAT_INFO;
+
 static InfoKeyPresses info_key_presses;
 
 #ifndef TRUE
@@ -340,6 +364,49 @@ static int quit = FALSE;
   memcpy((*dest), (src_one), (len_one));                       \
   memcpy(&((*dest)[len_one]), (src_two), len_two);             \
   (*dest)[(len_one) + (len_two)] = '\0';                       \
+} while(0)
+
+
+#ifndef __file_descriptor
+#define __file_descriptor 1
+#endif // __file_descriptor
+#define mvprint_goback(vert, horiz, returnVert, returnHoriz, _str) do {                \
+  mv((vert), (horiz));                                \
+  write_line(__file_descriptor, _str);            \
+  mv((returnVert), (returnHoriz));                               \
+} while(0)
+#define mvprint(vert, horiz, _str) do {                \
+  mv((vert), (horiz));                                \
+  write_line(__file_descriptor, _str);            \
+  mv((vert), (horiz));                                \
+} while(0)
+#define mv(y, x) do {                          \
+  sprintf(position, place_, (y), (x)); \
+  move(__file_descriptor, position);             \
+} while(0)
+#define empty_space_debug(x_) do {                                        \
+  int _k;                                                                \
+  for (_k = 0; _k < x_; ++_k) { write_line(__file_descriptor, " "); } \
+} while(0)
+#define UNSIGNEDLONG "%lu"
+static char unsignedlong[sizeof(UNSIGNEDLONG)];
+#define printTTY_UL(_x, _y, _ul_number) do { \
+  mv((_y), (_x));                 \
+  sprintf(unsignedlong, UNSIGNEDLONG, _ul_number); \
+  empty_space_debug(strlen((unsignedlong)));   \
+  write_line(__file_descriptor, unsignedlong);            \
+} while(0)
+#define printTTYSTR(_x, _y, array) do { \
+  mv((_y), (_x));                 \
+  empty_space_debug(strlen((array)));   \
+  mvprint((_y), (_y), (array));   \
+} while(0)
+#define NUMINT " = %d"
+static char numint[sizeof(NUMINT)];
+#define printTTYINT(_x, _y, _numint) do { \
+  sprintf(numint, NUMINT, _numint);       \
+  empty_space_debug(strlen((numint)));     \
+  mvprint((_y), (_y), (numint));    \
 } while(0)
 
 struct termios term, oterm;

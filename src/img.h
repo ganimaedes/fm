@@ -114,7 +114,11 @@ typedef struct _Image {
   uint8_t *data_resized;
   uint8_t *data;
   XImage *ximage;
+  size_t size;
 } Image;
+
+#define IMGSIZE "%lu"
+char imgsize[sizeof(IMGSIZE)];
 
 void close_display();
 void error(const char *msg, ...);
@@ -137,6 +141,7 @@ Window get_focus_window(Display* d);
 int x_error_handler(Display* dpy, XErrorEvent* pErr);
 int check_if_key_press2(InfoKeyPresses *info);
 int was_it_auto_repeat(Display * d, XEvent * event, int current_type, int next_type);
+void move_and_return(int vert, int horiz, int returnVert, int returnHoriz, char *_str);
 int process_event3(GC *gc,
                    Window *top_window,
                    Atom *wmDeleteMessage,
@@ -145,6 +150,7 @@ int process_event3(GC *gc,
                    Image *img,
                    KeyCode *key,
                    InfoKeyPresses *info);
-unsigned long set_img(char *path, InfoKeyPresses *info);
+//unsigned long set_img(char *path, InfoKeyPresses *info);
+unsigned long set_img(char *path, InfoKeyPresses *info, STAT_INFO *info_file);
 
 #endif // IMG_H
