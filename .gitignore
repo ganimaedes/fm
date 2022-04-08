@@ -73,7 +73,7 @@ src/errors
 src/unused_functions.c
 unused_functions.c
 min.c
-stb*
+#stb*
 find_id.c
 find_id
 get_active_window.c
