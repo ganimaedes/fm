@@ -87,3 +87,5 @@ eventTest.*
 min
 find_mapped_windows.c
 removed_functions.c
+method*
+raise*
