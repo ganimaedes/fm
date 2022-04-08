@@ -313,6 +313,7 @@ typedef struct _STAT_INFO {
 } STAT_INFO;
 
 static InfoKeyPresses info_key_presses;
+static char *file_to_be_copied;
 
 #ifndef TRUE
 #define TRUE  1
@@ -434,6 +435,8 @@ static int change_kb = 0;
   write_line(__file_descriptor, change_kb ? " Mb" : " Kb"); \
   change_kb = 0; \
 } while(0)
+// remove XGrabKey is it possible
+// faire un thread pour que un ecrive lautre dessine
 
 #define erase_size(_x, _y) do {\
   mv((_y), (_x)); \

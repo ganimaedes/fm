@@ -42,7 +42,7 @@ volatile sig_atomic_t previous_position_before_backspace = 0;
 
 Window_ w_main, w1, w2, w3;
 Attributes attributes;
-char *file_to_be_copied;
+//char *file_to_be_copied;
 
 static int previous_pos_copy = 0;
 static int previous_pos_copy_from_attr = 0;
@@ -267,21 +267,28 @@ int main(int argc, char **argv)
         }
       }
 
-      if (c == 'c' || c == 'x' || c == 'y') {
+      if (c == 'c') {
+        //fprintf(stdout, "%c image_used = %d image_appeared = %d", c, image_used, image_appeared);
+        fprintf(stdout, " to_be_copied: %s", file_to_be_copied);
+      }
+      if (c == 'c' || c == 'x' || c == 'y' && image_cp_signal == 0) {
         if (c == 'y') {
           ++yank_counter;
         }
         if (yank_counter != 2) {
-          if (file_to_be_copied) {
+          if (file_to_be_copied && image_cp_signal == 0) {
             free(file_to_be_copied);
             file_to_be_copied = NULL;
           }
-          size_t len_copy = strlen(left_box.menu[pos].complete_path);
-          copy(&file_to_be_copied, left_box.menu[pos].complete_path, len_copy);
-          if (c == 'x') {
-            file_to_be_moved_signal = 1;
+          if (image_cp_signal == 0) {
+            size_t len_copy = strlen(left_box.menu[pos].complete_path);
+            copy(&file_to_be_copied, left_box.menu[pos].complete_path, len_copy);
+            if (c == 'x') {
+              file_to_be_moved_signal = 1;
+            }
+            yank_counter = 0;
+
           }
-          yank_counter = 0;
         }
       } else if (c == 'p') {
         int result_copy = copy_file2(&left_box, pos);
@@ -296,9 +303,13 @@ int main(int argc, char **argv)
 
         n_elements_to_erase = left_box.n_elements;
 
+
         erase_window(&w1, &s);
         reprint_menu(&w1, &s, &left_box, &attributes, pos, option);
         file_pasted_signal = 1;
+        if (image_cp_signal) {
+          image_cp_signal = 0;
+        }
       } else if (c == KEY_SUPPR || c == 'd') {
         if (c == 'd') {
           ++delete_counter;
@@ -313,6 +324,7 @@ int main(int argc, char **argv)
         pos = info_key_presses.last_position_array;
       }
 
+
       print_entries(&w1, &s, entries, option, (int)c, &pos, &left_box);
       image_used = 0;
       print_permissions(&left_box, &s, &w1, pos);
@@ -325,6 +337,8 @@ int main(int argc, char **argv)
 
       print_right_window2(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, &info_file, pos, &c);
       if (c == KEY_ESCAPE) { break; }
+      else if (c == 'c') { fprintf(stdout, "%c", c); image_appeared = 1; }
+
 
     }
 
@@ -409,7 +423,6 @@ int main(int argc, char **argv)
         // chercher le parent avec l'inode place en ordre decroissant
         getBackSpaceFolder(&left_box, &pos, &previous_pos, &s);
       }
-
       //n_elements_to_erase = right_box.n_elements;
 
       erase_window(&w2, &s);
@@ -1341,6 +1354,7 @@ int copy_file2(Array *left_box, int pos)
     memcpy(path_to_copied, parent, len_current_folder);
     memcpy(&path_to_copied[len_current_folder], &file_to_be_copied[slash_pos + 1], len_copy);
     path_to_copied[total_copy] ='\0';
+    printf("%s", path_to_copied);
     if (cp(file_to_be_copied, path_to_copied) != 0) {
       return 0;
     }

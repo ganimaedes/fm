@@ -411,6 +411,7 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
    win->keycodes[3] = XKeysymToKeycode(foreground_dpy, XK_Page_Down);
    win->keycodes[4] = XKeysymToKeycode(foreground_dpy, XK_Page_Up);
    win->keycodes[5] = XKeysymToKeycode(foreground_dpy, XK_Escape);
+   win->keycodes[6] = XKeysymToKeycode(foreground_dpy, XK_c);
 
   win->screen = DefaultScreen(foreground_dpy);
 #if defined(V_DEBUG_POSITION)
@@ -461,6 +462,9 @@ void grab_keys(Win *win)
 
   //XGrabKeyboard(foreground_dpy, win->grab_window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
+  XGrabKey(foreground_dpy, win->keycodes[6], modifiers,
+           win->grab_window, owner_events, pointer_mode,
+           keyboard_mode);
   XGrabKey(foreground_dpy, win->keycode_dn, modifiers,
            win->grab_window, owner_events, pointer_mode,
            keyboard_mode);
@@ -854,6 +858,14 @@ int process_event3(GC *gc,
         info->ascii_value = KEY_ESCAPE;
         return 0;
         //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
+      } else if (xe.xkey.keycode == w->keycodes[6]) {
+        w->keycode_copy_pressed = 1;
+        info->ascii_value = 'c';
+        image_cp_signal = 1;
+        // quit x11 and come back to it
+        copy(&file_to_be_copied, img->path, strlen(img->path));
+        return 0;
+        //XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
       } else {
         *key = xe.xkey.keycode;
         XUngrabKey(foreground_dpy, (long)XLookupKeysym(&xe.xkey, 0), 0, *top_window);
@@ -1070,6 +1082,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info, STAT_INFO *info_file)
   y_pos_debug = 1;
 
   img.size = 0;
+  copy(&(img.path), path, strlen(path));
 
   while (process_event3(&img.gc, &tmp_window, &wmDeleteMessage, &win, &atom_prop, &img, &key, info)) {
 
@@ -1085,10 +1098,15 @@ unsigned long set_img(char *path, InfoKeyPresses *info, STAT_INFO *info_file)
       //mvprint_goback(xwa.height - 1, 1, 1, 1, imgsize);
       //printTTY_UL(xwa.height - 1, 1, img.size);
     }
+    img.size = 0;
     elapsedTime = 0;
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
     pastElapsedTime = elapsedTime;
+  }
+  if (img.path != NULL) {
+    free(img.path);
+    img.path = NULL;
   }
 
   erase_size(1, xwa.height - 1);
@@ -1405,6 +1423,8 @@ finish:
     return KEY_PAGE_UP;
   } else if (win.keycode_escape_pressed) {
     return KEY_ESCAPE;
+  } else if (win.keycode_copy_pressed) {
+    return 'c';
   } else {
     return key;
   }

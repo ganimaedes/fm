@@ -8,6 +8,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
+#include <bits/types/sig_atomic_t.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -94,6 +95,8 @@ typedef struct _Win {
   int keycode_page_dn_pressed;
   int keycode_page_up_pressed;
   int keycode_escape_pressed;
+  int keycode_copy_pressed;
+
 
   int screen;
   Window foreground_win;
@@ -115,7 +118,10 @@ typedef struct _Image {
   uint8_t *data;
   XImage *ximage;
   size_t size;
+  char *path;
 } Image;
+
+static volatile sig_atomic_t image_cp_signal = 0;
 
 #define IMGSIZE "%lu"
 char imgsize[sizeof(IMGSIZE)];
