@@ -7,6 +7,8 @@
 #include <execinfo.h>
 #include <errno.h>
 
+static volatile sig_atomic_t xwindow_created = 0;
+
 void set_window_properties(Display* dsp, Window win);
 void map_notify_handler(XEvent local_event, Display* display);
 void check_event(Display *display, XEvent *local_event, Window *img_window, Atom_Prop *atom_prop);

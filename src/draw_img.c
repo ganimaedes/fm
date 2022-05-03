@@ -157,9 +157,11 @@ void check_event(Display *display, XEvent *local_event, Window *img_window, Atom
         mapped = 1;
         just_unmapped = 0;
       }
+#if defined(V_DEBUG)
       __PRINTDEBUG;
       //__PRINTMAPINFO("FocusIn");
       __PRINTMAPINFO2("FocusIn");
+#endif // V_DEBUG
       break;
     case FocusOut:
       if (mapped == 1 && just_unmapped == 0) {
@@ -185,24 +187,6 @@ void check_event(Display *display, XEvent *local_event, Window *img_window, Atom
       break;
   }
 }
-/*
-void ttymode_reset(int mode, int imode)
-{
-  int fd = 1;
-  struct termios ioval;
-  tcgetattr(STDIN_FILENO, &ioval);
-  ((ioval).c_lflag) &= ~mode;
-
-
-  while (tcsetattr(fd, TCSANOW, &ioval) == -1) {
-    if (errno == EINTR || errno == EAGAIN) {
-      continue;
-    }
-    write_line_debug(__file_descriptor, "Error occured while reset : errno = ");
-    //write_line_debug(__file_descriptor, );
-  }
-}
-*/
 
 int processEvent(Display *display,
                  Window *term_window,
@@ -381,8 +365,8 @@ void *detect_keypress(void *arg)
     if (key != '\0') {                   // if we got a key, log it
       //write_line("pulled key "); write_line(&key); write_line(" from queue\n");
     }
-    //usleep(1000);
-    usleep(100);
+    usleep(10000);
+    //usleep(100);
   }
   pthread_exit(NULL);
 }
@@ -443,8 +427,9 @@ void closex(void *arg)
   if (_image->ximage != NULL) {
     XDestroyImage(_image->ximage);
   }
-  if (img_window) {
+  if (img_window && xwindow_created == 1) {
     XDestroyWindow(display, img_window);
+    xwindow_created = 0;
   }
   if (display != NULL) {
     XCloseDisplay(display);
@@ -615,6 +600,7 @@ void *openx(void *arg)
                              0, 24, InputOutput, visual,
                              CWEventMask | CWOverrideRedirect,
                              &attr);
+  xwindow_created = 1;
 
   set_window_properties(display, img_window);
   Atom WM_message[2];
@@ -702,7 +688,8 @@ int set_img(char *path, STAT_INFO *info_file)
   for (;;) {
     c = kbget();
     threadInfo_t *t = &threads[0];           // get shorthand ptr to thread
-    if (c == 'w' || c == 'q' || c == KEY_DOWN || c == KEY_UP) {
+    if (c == 'w' || c == 'q' || c == KEY_DOWN || c == KEY_UP || c == KEY_ESCAPE || c == KEY_BACKSPACE ||
+        c == KEY_PAGE_DN || c == KEY_PAGE_UP || c == KEY_BACK) {
       pthread_cancel(memory_thread_id);
       break;
     }

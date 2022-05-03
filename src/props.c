@@ -3,6 +3,7 @@
 
 #define ATOM(a, True_False) XInternAtom(foreground_dpy, #a, (True_False))
 
+#if defined(WITH_PROPS)
 void close_display()
 {
   if (foreground_dpy == NULL) {
@@ -261,3 +262,4 @@ Window Select_Window_Args(int *rargc, char **argv)
   }
   return w;
 }
+#endif // WITH_PROPS
