@@ -170,13 +170,13 @@ static char __lxnumber[ENOUGH_LUINT];
 
 #define comma write_line_debug(__file_descriptor, ":")
 
-#define PRINTWRITE(msg) do {                                        \
+#define PRINTWRITE(msg) do {                                         \
   write_line_debug(__file_descriptor, __FILE__); comma;              \
   write_line_debug(__file_descriptor, __func__); comma;              \
-  sprintf(_line_number, _LINENUMBER, __LINE__);                     \
+  sprintf(_line_number, _LINENUMBER, __LINE__);                      \
   write_line_debug(__file_descriptor, (_line_number)); LINE_CH; TAB; \
   write_line_debug(__file_descriptor, msg); LINE_CH;                 \
-  if (quit) exit(1);                                                \
+  if (quit) exit(1);                                                 \
 } while (0)
 #define MALLOC(str, len) do {                                        \
   if (!((str) = malloc((len) * sizeof (*(str)))) && (quit = TRUE)) { \

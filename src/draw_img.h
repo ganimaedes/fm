@@ -35,6 +35,7 @@ XImage *CreateTrueColorImage(Display *display,
                              int height);
 #endif // WITH_STBI
 void *openx(void *arg);
-int set_img(char *path);
+//int set_img(char *path);
+int set_img(char *path, STAT_INFO *info_file);
 
 #endif // DRAW_IMG_H

@@ -2,8 +2,6 @@
 // https://www.linuxquestions.org/questions/programming-9/how-to-draw-color-images-with-xlib-339366/
 // https://stackoverflow.com/questions/36119241/x11-ximage-manipulation/36138997#36138997
 // libaosd/libaosd/aosd.c
-//#include "toon.h"
-//#include "mem.h"
 // http://www.makelinux.net/alp/035.htm SHMGET if prev is img rewrite on it
 // gcc -Wall -ggdb3 -O0 draw_img.c -o draw_img -lX11 -lm -pthread && valgrind --tool=helgrind ./draw_img
 // gcc -Wall -ggdb3 -O0 -DWITH_STBI draw_img.c -o draw_img -lX11 -lm -pthread && valgrind --tool=helgrind ./draw_img ""
@@ -174,12 +172,16 @@ void check_event(Display *display, XEvent *local_event, Window *img_window, Atom
         mapped = 0;
         just_unmapped = 1;
       }
+#if defined(V_DEBUG)
       __PRINTDEBUG;
       __PRINTMAPINFO2("FocusOut");
+#endif // V_DEBUG
       break;
     default:
+#if defined(V_DEBUG)
       __PRINTDEBUG;
       __PRINTMAPINFO2("default");
+#endif // V_DEBUG
       break;
   }
 }
@@ -240,19 +242,25 @@ int processEvent(Display *display,
           }
         }
       case ConfigureNotify:
+#if defined(V_DEBUG)
         __PRINTDEBUG;
+#endif // V_DEBUG
         ++*nth_call_to_process_event_function;
         if (mapped == 1) {
           XUnmapWindow(display, *img_window);
           mapped = 0;
           just_unmapped = 1;
+#if defined(V_DEBUG)
           __PRINTMAPINFO_N2("ConfigureNotify");
+#endif // V_DEBUG
           //just_unraised = 1;
         } else if (mapped == 0) {
           XMapRaised(display, *img_window);
           mapped = 1;
           just_unmapped = 0;
+#if defined(V_DEBUG)
           __PRINTMAPINFO_N2("ConfigureNotify");
+#endif // V_DEBUG
         }
         XUnlockDisplay(display);
         return 1;
@@ -266,13 +274,17 @@ int processEvent(Display *display,
             mapped = 1;
             second_loop = 0;
             ++*nth_call_to_process_event_function;
+#if defined(V_DEBUG)
             __PRINTDEBUG;
             __PRINTMAPINFO2("default");
+#endif // V_DEBUG
             XUnlockDisplay(display);
             return 1;
           } else if (mapped == 1 && just_unmapped == 0) {
+#if defined(V_DEBUG)
             __PRINTDEBUG;
             write_line_debug(__file_descriptor, "ISMAPPED\n");
+#endif // V_DEBUG
           }
         }
         XUnlockDisplay(display);
@@ -431,7 +443,7 @@ void closex(void *arg)
   if (_image->ximage != NULL) {
     XDestroyImage(_image->ximage);
   }
-  if (img_window != 0) {
+  if (img_window) {
     XDestroyWindow(display, img_window);
   }
   if (display != NULL) {
@@ -576,7 +588,7 @@ void *openx(void *arg)
 
   Window top_window; // term_window
   top_window = get_focus_window(display);
-  target_win = get_toplevel_parent(display, top_window);
+  //target_win = get_toplevel_parent(display, top_window);
   top_window = get_top_window(display, top_window);
 
 #if defined(WITH_STBI)
@@ -586,6 +598,9 @@ void *openx(void *arg)
   load_stbi();
   int x_dist = 100;
   int center_in_second_window_dist = xwa.width / 4;
+  ttymode_reset(ECHO, 1);
+  print_tty_filesize3(1, xwa.height - 2, ((double)_image->size / 1000.0));
+  ttymode_reset(ECHO, 0);
 #endif // WITH_STBI
 
   img_window = XCreateWindow(display, RootWindow(display, 0),
@@ -628,7 +643,9 @@ void *openx(void *arg)
   raised = 1;
   mapped = 1;
 
+#if defined(V_DEBUG)
   PRINTVALUE_UNSIGNED(img_window);
+#endif // V_DEBUG
 
   int nth_call = 0;
   Atom_Prop atom_prop = { 0 };
@@ -658,7 +675,7 @@ void *openx(void *arg)
   pthread_exit(NULL);
 }
 
-int set_img(char *path)
+int set_img(char *path, STAT_INFO *info_file)
 {
   XInitThreads();
 #if defined(WITH_STBI)
@@ -667,6 +684,7 @@ int set_img(char *path)
 #endif // WITH_STBI
   size_t sz_image = 1;
   CALLOC(_image, sz_image);
+  _image->size = info_file->file_len;
   display = XOpenDisplay(NULL);
   if (display == NULL) {
     write_line_debug(STDERR_FILENO, "cannot connect to X server\n");
@@ -705,79 +723,3 @@ int set_img(char *path)
 #endif // EBUG
   return c;
 }
-
-/*
-int main(int argc, char **argv)
-{
-#if defined(WITH_STBI)
-  if (argc != 2) {
-    write_line_debug(STDERR_FILENO, "Usage: ");
-    PRINTWRITE(argv[0]); PRINTWRITE(" <IMAGE_PATH>\n");
-    exit(1);
-  }
-#endif // WITH_STBI
-
-  int c = set_img(argv[1]);
-  write_line_debug(__file_descriptor, "key pressed: ");
-  write_char(c); LINE_CH;
-*/
-/*
-  size_t sz_image = 1;
-  CALLOC(_image, sz_image);
-  display = XOpenDisplay(NULL);
-  if (display == NULL) {
-    write_line_debug(STDERR_FILENO, "cannot connect to X server\n");
-    exit(1);
-  }
-  long i_ = 0;
-  if (pthread_create(&keypress_thread_id, NULL, detect_keypress, NULL) < 0) {
-    PRINTWRITE("Error thread\n");
-  }
-  if (pthread_create(&memory_thread_id, NULL, openx, (void *)i_) < 0) {
-    PRINTWRITE("Error thread\n");
-  }
-
-  //pthread_join(keypress_thread_id, NULL);
-  //pthread_join(memory_thread_id, NULL);
-  //pthread_detach(keypress_thread_id);
-  //pthread_detach(memory_thread_id);
-
-//
-//  tcgetattr(0, &oterm);                         // get orig tty settings
-//  term = oterm;                                // copy them
-//  term.c_lflag &= ~ICANON;                      // put in '1 key mode'
-//  term.c_lflag &= ~ECHO;                        // turn off echo
-//
-  for (;;) {
-//
-//    tcsetattr(0, TCSANOW, &term);             // echo off 1-key read mode
-//    char c = getchar();                        // get single key immed.
-//    tcsetattr(0, TCSANOW, &oterm);            // settings back to normal
-//
-    int c = kbget();
-    write_line_debug(__file_descriptor, "key pressed: ");
-    write_char(c); LINE_CH;
-    threadInfo_t *t = &threads[0];           // get shorthand ptr to thread
-    if (c == 'w' || c == 'q' || c == KEY_DOWN || c == KEY_UP) {
-      pthread_cancel(memory_thread_id);
-      break;
-    }
-    if (strchr(t->keys, c) != NULL) {        // this thread listens for this key
-      pthread_mutex_lock(&t->kqmutex);       // lock other threads out while we tamper
-      keyQueue_t *kq = calloc(sizeof (struct keyQueue), 1); // allocate pkt
-      kq->key = c;                           // stash key there
-      keyQueue_t *kptr = &t->kqhead;         // get pointer to queue head
-      while (kptr->next != NULL)             // find first empty slot
-        kptr = kptr->next;
-      kptr->next = kq;                       // enqueue key packet to thread
-      pthread_mutex_unlock(&t->kqmutex);     // unlock key queue
-    }
-  }
-*/
-/*
-#if defined(EBUG)
-  sleep(5); // you will see closex
-#endif // EBUG
-  return 0;
-}
-*/

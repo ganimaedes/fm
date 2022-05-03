@@ -623,7 +623,8 @@ void print_right_window2(Array *left_box,
 
         //*c = set_img(left_box->menu[pos].complete_path, &info_key_presses, info_file);
 
-        *c = set_img(left_box->menu[pos].complete_path);
+        //*c = set_img(left_box->menu[pos].complete_path);
+        *c = set_img(left_box->menu[pos].complete_path, info_file);
         //n_times_add_element_called = 0;
         //y_pos_debug = 0;
         //x_pos_debug = 0;
