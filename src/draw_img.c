@@ -705,6 +705,7 @@ int set_img(char *path, STAT_INFO *info_file)
     }
   }
 
+  usleep(10000);
 #if defined(EBUG)
   sleep(5); // you will see closex
 #endif // EBUG
