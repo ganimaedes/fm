@@ -441,7 +441,6 @@ void create_window(Win *win, Window *root, int x_px, int y_px, Image *img, char 
                   PropModeReplace,
                   (unsigned char *)&(win->value),
                   1);
-
   XSelectInput(foreground_dpy,
                win->foreground_win,
                KeyPressMask | PropertyChangeMask | StructureNotifyMask);
@@ -701,8 +700,10 @@ int process_event3(GC *gc,
   XNextEvent(foreground_dpy, &xe);
   XSelectInput(foreground_dpy, *top_window,
       KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
+/*
   XSelectInput(foreground_dpy, w->foreground_win,
       KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
+*/
   XWindowAttributes xwa;
   if (!XGetWindowAttributes(foreground_dpy, *top_window, &xwa)) {
     fprintf(stderr, "Error XGetWindowAttributes\n");
@@ -739,11 +740,14 @@ int process_event3(GC *gc,
     window_unmapped = 0;
   }
   else if (!strstr(atom_prop->status, "WM_STATE_FOCUSED")) {
+/*
+)
     XSelectInput(foreground_dpy, w->foreground_win,
         KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
     XLowerWindow(foreground_dpy, w->foreground_win);
     XSelectInput(foreground_dpy, *top_window,
         KeyPressMask | KeyReleaseMask | ExposureMask| PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
+*/
   }
 
   if (atom_prop->status) {
@@ -939,6 +943,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info, STAT_INFO *info_file)
 
   int y_px = 90;
 
+
   Window root = DefaultRootWindow(foreground_dpy);
   Window term_window = get_focus_window(foreground_dpy); // parent window id
 
@@ -977,20 +982,30 @@ unsigned long set_img(char *path, InfoKeyPresses *info, STAT_INFO *info_file)
   win.background_win = term_window;
   create_window(&win, &root, 0, y_px, &img, path);
 
+
 //  *
 //  * 1 Create window END
 //  *
 
+/*
+)
   if (target_win != tmp_window) {
     XSelectInput(foreground_dpy,target_win,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
   }
   XSelectInput(foreground_dpy,target_win,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
   XSelectInput(foreground_dpy,term_window,KeyPressMask|PropertyChangeMask|StructureNotifyMask);
 
+*/
+
 //  *
 //  * 2 Grab Key BEGIN
 //  *
+/*
+
+
+)
   grab_keys(&win);
+*/
 //  *
 //  * 2 Grab Key END
 //  *
@@ -1090,6 +1105,7 @@ unsigned long set_img(char *path, InfoKeyPresses *info, STAT_INFO *info_file)
     //ttymode_reset(ECHO, 1);
     if (img.size > 0) {
 
+    XSetInputFocus(foreground_dpy, win.background_win, RevertToPointerRoot, CurrentTime);
       if (!XGetWindowAttributes(foreground_dpy, term_window, &xwa)) {
         fprintf(stderr, "Error XGetWindowAttributes\n");
       }

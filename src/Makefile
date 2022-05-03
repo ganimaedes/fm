@@ -1,15 +1,15 @@
 CC         = gcc
-CBASEFLAGS = -ggdb3 -O0 -rdynamic -DSHOW_ATOMS #-DV_DEBUG #-DEBUG -DV_DEBUG_POSITION #-DEBUG2
-CFLAGS 	   = -I. $(CBASEFLAGS) -Wall -pedantic -finstrument-functions
+CBASEFLAGS = -ggdb3 -O0 -rdynamic -DWITH_STBI #-DSHOW_ATOMS  -DV_DEBUG #-DEBUG -DV_DEBUG_POSITION #-DEBUG2
+CFLAGS 	   = -I. $(CBASEFLAGS) -Wall -pedantic -finstrument-functions -pthread
 IMGCFLAGS  = -I/usr/local/include -lX11 -lm
-IMGOBJS    = parcours.o positions.o scr.o deb.o array.o copy.o img.o
-CFILES     = parcours.c positions.c scr.c deb.c array.c copy.c img.c
+IMGOBJS    = parcours.o positions.o scr.o deb.o array.o copy.o props.o draw_img.o #img.o
+CFILES     = parcours.c positions.c scr.c deb.c array.c copy.c props.c draw_img.c #img.c
 MAINOBJECT = main.o
 print-%    : ; @echo $* = $($*)
 
 all: fm
 
-main.o: parcours.h positions.h scr.h deb.h array.h copy.h img.h
+main.o: parcours.h positions.h scr.h deb.h array.h copy.h props.h draw_img.h #img.h
 
 main.o: main.c $(CFILES)
 	$(CC) $(CFLAGS) $(IMGCFLAGS) -c $<
@@ -35,8 +35,14 @@ array.o: array.c
 copy.o: copy.c
 	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
 
-img.o: img.c stb_image.h stb_image_resize.h debug.h
+props.o: props.c stb_image.h stb_image_resize.h# debug.h
 	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
+
+draw_img.o: draw_img.c stb_image.h stb_image_resize.h
+	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
+
+#img.o: img.c stb_image.h stb_image_resize.h
+#	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
 
 .PHONY: clean
 

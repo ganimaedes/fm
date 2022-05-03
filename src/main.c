@@ -1,5 +1,6 @@
 #include "array.h"
 #include "scr.h"
+#include "draw_img.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -8,7 +9,7 @@
 #include "parcours.h"
 #include "deb.h"
 #include "copy.h"
-#include "img.h"
+//#include "img.h"
 #include <execinfo.h>
 #include <signal.h>
 #include <stddef.h>
@@ -39,6 +40,7 @@ volatile sig_atomic_t image_used = 0;
 volatile sig_atomic_t modify_pos_bc_image_used = 0;
 volatile sig_atomic_t image_appeared = 0;
 volatile sig_atomic_t previous_position_before_backspace = 0;
+int file_descriptor;
 
 Window_ w_main, w1, w2, w3;
 Attributes attributes;
@@ -618,7 +620,10 @@ void print_right_window2(Array *left_box,
           info_key_presses.last_element_is_not_img = 1;
         }
         //*c = set_img(left_box->menu[pos].complete_path, &info_key_presses);
-        *c = set_img(left_box->menu[pos].complete_path, &info_key_presses, info_file);
+
+        //*c = set_img(left_box->menu[pos].complete_path, &info_key_presses, info_file);
+
+        *c = set_img(left_box->menu[pos].complete_path);
         //n_times_add_element_called = 0;
         //y_pos_debug = 0;
         //x_pos_debug = 0;
