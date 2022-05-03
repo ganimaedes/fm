@@ -512,14 +512,8 @@ char find_file_type2(STAT_INFO *info)
 //  fseek(info->file, 0, SEEK_SET);
 
   char *file_type = NULL;
-  //FILE* fpc = fopen(info->file_name, "rb");
   char type = 0;
 
-/*
-  fseek(fpc, 0, SEEK_SET);
-  unsigned char buffer[16];
-  fread(buffer, 16, 1, fpc);
-*/
   fseek(info->file, 0, SEEK_SET);
   unsigned char buffer[16];
   fread(buffer, 16, 1, info->file);
@@ -550,7 +544,6 @@ char find_file_type2(STAT_INFO *info)
     type = *TYPE[2];
   }
 quit_file_type:
-  //fclose(fpc);
   fclose(info->file);
   return type;
 }

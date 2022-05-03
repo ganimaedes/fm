@@ -689,7 +689,7 @@ int set_img(char *path, STAT_INFO *info_file)
     c = kbget();
     threadInfo_t *t = &threads[0];           // get shorthand ptr to thread
     if (c == 'w' || c == 'q' || c == KEY_DOWN || c == KEY_UP || c == KEY_ESCAPE || c == KEY_BACKSPACE ||
-        c == KEY_PAGE_DN || c == KEY_PAGE_UP || c == KEY_BACK) {
+        c == KEY_PAGE_DN || c == KEY_PAGE_UP || c == KEY_BACK || c == KEY_END || c == KEY_HOME) {
       pthread_cancel(memory_thread_id);
       break;
     }
