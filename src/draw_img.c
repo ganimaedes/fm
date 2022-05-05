@@ -664,6 +664,7 @@ void *openx(void *arg)
 int set_img(char *path, STAT_INFO *info_file)
 {
   XInitThreads();
+  usleep(10000);
 #if defined(WITH_STBI)
   unsigned int len_path = strlen(path);
   copy(&image_path, path, len_path);
