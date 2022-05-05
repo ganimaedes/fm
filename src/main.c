@@ -120,6 +120,7 @@ int main(int argc, char **argv)
 {
   char **entries = NULL;
   signal(SIGSEGV, handler);
+  XInitThreads();
   if (argc < 2) { fprintf(stderr, "Missing Arguments\n"); exit(1); }
   setlocale(LC_ALL, "");
   save_config;

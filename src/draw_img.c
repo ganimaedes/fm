@@ -6,6 +6,7 @@
 // gcc -Wall -ggdb3 -O0 draw_img.c -o draw_img -lX11 -lm -pthread && valgrind --tool=helgrind ./draw_img
 // gcc -Wall -ggdb3 -O0 -DWITH_STBI draw_img.c -o draw_img -lX11 -lm -pthread && valgrind --tool=helgrind ./draw_img ""
 #include "draw_img.h"
+#include <signal.h>
 
 #if defined(WITH_STBI)
 #define STBI_NO_HDR
@@ -33,6 +34,7 @@ volatile sig_atomic_t just_unmapped = 0;
 volatile sig_atomic_t config_check_event_mapped = 1;
 volatile sig_atomic_t focusin_check_event_mapped = 1;
 volatile sig_atomic_t focusout_check_event_mapped = 1;
+volatile sig_atomic_t stbi_allocated_image = 0;
 
 volatile sig_atomic_t second_loop = 0;
 
@@ -159,7 +161,6 @@ void check_event(Display *display, XEvent *local_event, Window *img_window, Atom
       }
 #if defined(V_DEBUG)
       __PRINTDEBUG;
-      //__PRINTMAPINFO("FocusIn");
       __PRINTMAPINFO2("FocusIn");
 #endif // V_DEBUG
       break;
@@ -198,9 +199,12 @@ int processEvent(Display *display,
                  int *nth_call_to_process_event_function, Atom_Prop *atom_prop)
 {
   XEvent ev;
-  XLockDisplay(display);
+  //XLockDisplay(display);
 // https://stackoverflow.com/questions/12871071/x11-how-to-delay-repainting-until-all-events-are-processed
+#if defined(SHOW_PROPS)
   //Show_All_Props2(atom_prop, term_window, 1);
+  show_properties(atom_prop, term_window, display, 1);
+#endif // SHOW_PROPS
   if (XNextEvent(display, &ev) >= 0) {
 
     XSelectInput(display, *term_window, ExposureMask | PropertyChangeMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask);
@@ -211,6 +215,7 @@ int processEvent(Display *display,
     XTranslateCoordinates(display, *term_window, *img_window, 0, 0, &x, &y, &child);
     XGetWindowAttributes(display, *img_window, &xwa);
     //printf("%d %d\n", x - xwa.x, y - xwa.y);
+    XLockDisplay(display);
     check_event(display, &ev, img_window, atom_prop);
     switch (ev.type) {
       case Expose:
@@ -219,6 +224,7 @@ int processEvent(Display *display,
         XUnlockDisplay(display);
         return 1;
       case ClientMessage:
+        XLockDisplay(display);
         if (ev.xclient.message_type == WM_message[0]) {
           if (ev.xclient.data.l[0] == WM_message[1]) {
             XUnlockDisplay(display);
@@ -230,6 +236,7 @@ int processEvent(Display *display,
         __PRINTDEBUG;
 #endif // V_DEBUG
         ++*nth_call_to_process_event_function;
+        XLockDisplay(display);
         if (mapped == 1) {
           XUnmapWindow(display, *img_window);
           mapped = 0;
@@ -251,6 +258,7 @@ int processEvent(Display *display,
         break;
       default:
         if (second_loop == 1) {
+          XLockDisplay(display);
           if (mapped == 0 || just_unmapped == 1) {
             XMapRaised(display, *img_window);
             //raised = 1;
@@ -270,10 +278,11 @@ int processEvent(Display *display,
             write_line_debug(__file_descriptor, "ISMAPPED\n");
 #endif // V_DEBUG
           }
+          XUnlockDisplay(display);
         }
-        XUnlockDisplay(display);
         return 1;
     }
+    XUnlockDisplay(display);
   }
 }
 
@@ -371,54 +380,6 @@ void *detect_keypress(void *arg)
   pthread_exit(NULL);
 }
 
-/*
-char find_file_type2(STAT_INFO *info)
-{
-  info->file = fopen(info->file_name, "rb");
-  if (info->file == NULL) {
-    fprintf(stderr, "Error opening file: %s\n", info->file_name);
-    exit(1);
-  }
-
-  char *file_type = NULL;
-  char type = 0;
-
-  fseek(info->file, 0, SEEK_SET);
-  unsigned char buffer[16];
-  fread(buffer, 16, 1, info->file);
-
-  size_t i;
-  if (buffer[0] == SIGNATURE_JPG[0]) {
-    for (i = 1; i < 3; ++i) { // 0xff 0xd8 0xff
-      if (buffer[i] != SIGNATURE_JPG[i]) {
-        goto quit_file_type;
-      }
-    }
-    type = *TYPE[0];
-  } else if (buffer[0] == SIGNATURE_PNG[0]) {
-    fseek(info->file, 0, SEEK_SET);
-    for (i = 0; i < SIZE_PNG_ARRAY - 1; ++i) {
-      if (buffer[i] != SIGNATURE_PNG[i]) {
-        goto quit_file_type;
-      }
-    }
-    type = *TYPE[1];
-  } else if (buffer[0] == SIGNATURE_GIF[0]) {
-    for (i = 1; i < SIZE_GIF_ARRAY; ++i) {
-      if (buffer[i] != SIGNATURE_GIF[i]) {
-        goto quit_file_type;
-      }
-    }
-    type = *TYPE[2];
-  }
-  __PRINTDEBUG; printf("file type: %c\n", type);
-quit_file_type:
-  fseek(info->file, 0, SEEK_SET);
-  fclose(info->file);
-  return type;
-}
-*/
-
 void closex(void *arg)
 {
 #if defined(EBUG)
@@ -435,9 +396,10 @@ void closex(void *arg)
     XCloseDisplay(display);
   }
 #if defined(WITH_STBI)
-  if (_image->data) {
+  if (_image->data && stbi_allocated_image) {
     stbi_image_free(_image->data);
     _image->data = NULL;
+    stbi_allocated_image = 0;
   }
   if (_image->data_resized) {
     free(_image->data_resized);
@@ -474,6 +436,7 @@ int load_stbi()
     PRINTWRITE("Error img->data\n");
     exit(1);
   }
+  stbi_allocated_image = 1;
   double factor = 1.0;
 
   factor = fix_factor_to_fit_inside_window(_image, xwa.width, xwa.height);
@@ -513,7 +476,7 @@ void put_image(Window *img_window, int x_px, int y_px)
   XSetNormalHints(display, img_window, &my_hints);  // Where new_window is the new window
 
   _image->bpl = 0;
-  nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
+  //nanosleep((const struct timespec[]){{0, 5000000L}}, NULL);
 
   _image->depth = DefaultDepth(display, DefaultScreen(display));
   switch (_image->depth) {
@@ -662,7 +625,7 @@ void *openx(void *arg)
 
 int set_img(char *path, STAT_INFO *info_file)
 {
-  XInitThreads();
+  //XInitThreads();
   usleep(10000);
 #if defined(WITH_STBI)
   unsigned int len_path = strlen(path);
