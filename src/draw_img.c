@@ -573,7 +573,6 @@ void *openx(void *arg)
 
   Window top_window; // term_window
   top_window = get_focus_window(display);
-  //target_win = get_toplevel_parent(display, top_window);
   top_window = get_top_window(display, top_window);
 
 #if defined(WITH_STBI)
