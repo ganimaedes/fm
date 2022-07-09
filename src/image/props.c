@@ -174,7 +174,6 @@ Properties *break_down_property(const char *data, int length, Atom type, int siz
   return properties;
 }
 
-
 void show_prop2(Atom_Prop *atom_prop, const char *prop, Window *top_win, Display *dis, int use_dyn)
 {
   int size                  = 0;

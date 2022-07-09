@@ -1,11 +1,3 @@
-// https://www.linuxquestions.org/questions/programming-9/how-to-draw-color-images-with-xlib-339366/
-// https://stackoverflow.com/questions/36119241/x11-ximage-manipulation/36138997#36138997
-// x11/libaosd/libaosd/aosd.c
-// http://www.makelinux.net/alp/035.htm SHMGET if prev is img rewrite on it
-// gcc -Wall -ggdb3 -O0 draw_img.c -o draw_img -lX11 -lm -pthread && valgrind --tool=helgrind ./draw_img
-// gcc -Wall -ggdb3 -O0 -DWITH_STBI draw_img.c -o draw_img -lX11 -lm -pthread && valgrind --tool=helgrind ./draw_img <PATH>
-// gcc -Wall -ggdb3 -Og -Wextra -pedantic -DWITH_STBI -DV_DEBUG -rdynamic props.c draw.c -o draw -lX11 -pthread -lm && valgrind --tool=helgrind ./draw <PATH>
-// gcc -Wall -ggdb3 -Og -Wextra -pedantic -DWITH_STBI -DV_DEBUG -rdynamic props.c draw.c -o draw -lX11 -pthread -lm && valgrind --leak-check=full ./draw <PATH>
 #include "props.h"
 #include "draw.h"
 #include <X11/X.h>
@@ -42,8 +34,6 @@ volatile sig_atomic_t config_check_event_mapped = 1;
 volatile sig_atomic_t lower_window = 0;
 volatile sig_atomic_t close_prog = 0;
 //volatile sig_atomic_t resized = 0;
-
-
 volatile sig_atomic_t second_loop = 0;
 
 threadInfo_t threads[] = { { PTHREAD_MUTEX_INITIALIZER, { NULL, '\0' }, "q" } };
@@ -123,7 +113,6 @@ void map_notify_handler(XEvent local_event, Display* display)
 
 // https://stackoverflow.com/questions/31535560/xlib-and-firefox-behavior
 // https://github.com/leahneukirchen/cwm/blob/linux/xevents.c
-//void check_event(Display *display, XEvent *local_event, Window *img_window, Atom_Prop *atom_prop)
 int check_event(Display *display, XEvent *local_event, Window *img_window, Atom_Prop *atom_prop)
 {
   switch (local_event->type) {
@@ -395,17 +384,7 @@ int processEvent3(Display *display,
                  Atom WM_message[2],
                  int *nth_call_to_process_event_function, Atom_Prop *atom_prop)
 {
-/*
-  //fd_set set_read, set_save;
-
-  FD_ZERO(&set_save); // select modifies fd_set, re-initialize
-  int xfd = ConnectionNumber(display);
-  FD_SET(xfd, &set_save);
-  FD_SET(global.pip[0], &set_save);
-  int max_fd = xfd > global.pip[0] ? xfd : global.pip[0];
-*/
   XEvent ev;
-  //XLockDisplay(display);
 // https://stackoverflow.com/questions/12871071/x11-how-to-delay-repainting-until-all-events-are-processed
 #if defined(WITH_PROPS)
   show_properties(atom_prop, img_window, display, 1);
@@ -425,34 +404,11 @@ int processEvent3(Display *display,
     Window child;
     XTranslateCoordinates(display, top_window, *img_window, 0, 0, &x, &y, &child);
     if (check_event(display, &ev, img_window, atom_prop) == 0) {
-
-#if defined(WITH_STBI)
-/*
       XUnlockDisplay(display);
-      sem_post(&mutex);
-      resize_image();
-      int center_in_second_window_dist = xwa.width / 4;
-      int x = ((xwa.width / 2) + xwa.x + center_in_second_window_dist - (_image->new_width / 2)) - 10;
-      int y = xwa.y + _image->win_top_limit;
-      XMoveResizeWindow(display, *img_window, x, y, _image->new_width, _image->new_height);
-      XFlush(display);
-      XSync(display, True);
-*/
-#endif // WITH_STBI
-
-      XUnlockDisplay(display);
-      //usleep(90000);
       pthread_mutex_lock(&winchange_mutex);
       global.done = 1;
       pthread_mutex_unlock(&winchange_mutex);
       sem_post(&mutex);
-      //close_prog = 1;
-      //raise(SIGUSR1);
-      //usleep((rand() / (1.0 + RAND_MAX)) * 1000000);
-
-      //initialize();
-
-      //pthread_cancel(memory_thread_id);
       usleep((rand() / (1.0 + RAND_MAX)) * 1000000);
       return 0;
     }
