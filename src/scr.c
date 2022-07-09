@@ -65,7 +65,9 @@ int kbesc(void)
 {
   int c = 0;
 
-  if (!kbhit()) { return KEY_ESCAPE; }
+  //if (!kbhit()) { return KEY_ESCAPE; }
+  //if (!kbhit()) { return 113; }
+  if (!kbhit()) { return KEY_Q; }
   c = getch();
   if (c == BACKSPACE) { ungetc(c, stdin); return c; }
   if (c == '[') {
@@ -130,7 +132,16 @@ int kbesc(void)
 int kbget(void)
 {
   int c = getch();
+  // CTRL KEYS
+  // CTRL+D ^D
+  if (c == 4) {
+    return c;
+  } else if (c == 21) {
+    return c;
+  }
   return c == KEY_ESCAPE ? kbesc() : c;
+  //return c == 113 ? kbesc() : c;
+  //return c == KEY_Q ? kbesc() : c;
 }
 
 int get_cursor_position(int ifd, int ofd, int *rows, int *cols)
@@ -147,7 +158,9 @@ int get_cursor_position(int ifd, int ofd, int *rows, int *cols)
   }
   buffer[i] = '\0';
 
-  if (buffer[0] != KEY_ESCAPE || buffer[1] != '[') { return -1; }
+  //if (buffer[0] != KEY_ESCAPE || buffer[1] != '[') { return -1; }
+  //if (buffer[0] != 'q' || buffer[1] != '[') { return -1; }
+  if (buffer[0] != KEY_Q || buffer[1] != '[') { return -1; }
   if (sscanf((char *)buffer + 2, "%d;%d", rows, cols) != 2) { return -1; }
   return 0;
 }

@@ -57,6 +57,7 @@
 //int quit = FALSE;
 
 //#define _file_descriptor           1
+//int file_descriptor = 1;
 
 #ifndef __file_descriptor
 #define __file_descriptor 1
@@ -310,6 +311,9 @@ typedef struct ThreadInfo {
 #define ONECHAR "%c"
 char onechar[sizeof(ONECHAR)];
 #define write_char(ch) do { sprintf(onechar, ONECHAR, ch); if (write(1, (onechar), strlen(onechar)) < 0) { exit(1); } } while(0)
+//#ifndef write_line
+//#define write_line(str) if (write(1, (str), strlen(str)) < 0) { exit(1); }
+//#endif // write_line
 //#define write_line(str) if (write(1, (str), strlen(str)) < 0) { exit(1); }
 
 static XWindowAttributes xwa_image;

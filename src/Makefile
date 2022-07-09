@@ -1,15 +1,21 @@
 CC         = gcc
-CBASEFLAGS = -ggdb3 -O0 -rdynamic -DWITH_STBI #-DSHOW_ATOMS  -DV_DEBUG #-DEBUG -DV_DEBUG_POSITION #-DEBUG2
-CFLAGS 	   = -I. $(CBASEFLAGS) -Wall -pedantic -finstrument-functions -pthread
-IMGCFLAGS  = -I/usr/local/include -lX11 -lm
-IMGOBJS    = parcours.o positions.o scr.o deb.o array.o copy.o props.o draw_img.o #img.o
-CFILES     = parcours.c positions.c scr.c deb.c array.c copy.c props.c draw_img.c #img.c
+CBASEFLAGS = -I. -w -rdynamic -DWITH_STBI -DBOXDBG #-DPRINT_OTHERTTY -DPRINT_OTHERTTY_2 #-ggdb3 -Og #-DEBUG #-DSHOW_ATOMS  -DV_DEBUG  -DV_DEBUG_POSITION #-DEBUG2
+DEBUGFLAGS = -ggdb3 -O0
+CFLAGS 	   = $(CBASEFLAGS) -Wall -pedantic $(DEBUGFLAGS) #-finstrument-functions
+IMGCFLAGS  = -I/usr/local/include -lm -pthread
+DRAWCFLAGS = -I/usr/local/include -lX11 -lm -pthread
+IMGOBJS    = parcours.o positions.o scr.o deb.o array.o copy.o
+CFILES     = parcours.c positions.c scr.c deb.c array.c copy.c
 MAINOBJECT = main.o
+IMGFOLDER  = ./image
+PROPSOBJS  = $(IMGFOLDER)/props.o
+IMGCFILES  = $(IMGFOLDER)/props.c
+DRAWOBJECT = $(IMGFOLDER)/draw.o
 print-%    : ; @echo $* = $($*)
 
-all: fm
+all: fm drawprog
 
-main.o: parcours.h positions.h scr.h deb.h array.h copy.h props.h draw_img.h #img.h
+main.o: parcours.h positions.h scr.h deb.h array.h copy.h props.h
 
 main.o: main.c $(CFILES)
 	$(CC) $(CFLAGS) $(IMGCFLAGS) -c $<
@@ -35,16 +41,24 @@ array.o: array.c
 copy.o: copy.c
 	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
 
-props.o: props.c stb_image.h stb_image_resize.h# debug.h
-	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
+drawprog: $(IMGFOLDER)/draw
+	mv $(IMGFOLDER)/draw .
 
-draw_img.o: draw_img.c stb_image.h stb_image_resize.h
-	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
+$(IMGFOLDER)/draw.o: $(IMGFOLDER)/props.h
 
-#img.o: img.c stb_image.h stb_image_resize.h
-#	$(CC) $(CFLAGS) $(IMGCFLAGS) -o $@ -c $<
+$(IMGFOLDER)/draw.o: $(IMGFOLDER)/draw.c $(IMGCFILES)
+	$(CC) $(CBASEFLAGS) $(DRAWCFLAGS) -c $<
+
+$(IMGFOLDER)/draw: $(DRAWOBJECT) $(PROPSOBJS)
+	$(CC) -I. $(CBASEFLAGS) -o $@ $(DRAWOBJECT) $(PROPSOBJS) $(DRAWCFLAGS)
+
+$(IMGFOLDER)/props.o: $(IMGFOLDER)/props.c
+	$(CC) $(CBASEFLAGS) $(DRAWCFLAGS) -o $@ -c $<
+
+$(IMGFOLDER)/draw.o: $(IMGFOLDER)/draw.c $(IMGFOLDER)/stb_image.h $(IMGFOLDER)/stb_image_resize.h
+	$(CC) $(CBASEFLAGS) $(DRAWCFLAGS) -o $@ -c $<
 
 .PHONY: clean
 
 clean:
-	rm -f $(IMGOBJS) $(MAINOBJECT) fm
+	rm -f $(IMGOBJS) $(MAINOBJECT) $(PROPSOBJS) $(DRAWOBJECT) fm draw

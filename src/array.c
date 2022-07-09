@@ -1,5 +1,33 @@
 #include "array.h"
 
+void initialize_array2(Array ***a, int initial_size)
+{
+  *(*a) = calloc(1, sizeof *(*(*a)));
+  if (*(*a) == NULL) {
+    PRINT("Error calloc");
+  }
+  (*(*a))->menu = (Menu *)calloc(initial_size, sizeof *(*(*a))->menu);
+  if ((*(*a))->menu == NULL) {
+    PRINT("Error calloc");
+  }
+  (*(*a))->n_elements = 0;
+  (*(*a))->capacity = initial_size;
+}
+
+void initialize_array(Array **a, int initial_size)
+{
+  *a = calloc(1, sizeof *(*a));
+  if (*a == NULL) {
+    PRINT("Error calloc");
+  }
+  (*a)->menu = (Menu *)calloc(initial_size, sizeof *(*a)->menu);
+  if ((*a)->menu == NULL) {
+    PRINT("Error calloc");
+  }
+  (*a)->n_elements = 0;
+  (*a)->capacity = initial_size;
+}
+
 void init(Array *a, int initial_size)
 {
   a->menu = (Menu *)calloc(initial_size, sizeof(Menu));
@@ -33,8 +61,7 @@ void addMenu2(Array **a, Menu *menu)
   int len = strlen(menu->name);
   copy(&((*a)->menu[(*a)->n_elements].name), menu->name, len);
 
-  len = strlen(menu->type);
-  copy(&((*a)->menu[(*a)->n_elements].type), menu->type, len);
+  (*a)->menu[(*a)->n_elements].type = menu->type;
 
   if (menu->complete_path != NULL) {
     len = strlen(menu->complete_path);
@@ -54,16 +81,64 @@ void addMenu2(Array **a, Menu *menu)
   ++(*a)->n_elements;
 }
 
+void free_array3(Array ***a)
+{
+  for (int i = 0; i < (*(*a))->n_elements; ++i) {
+    if ((*(*a))->menu[i].name != NULL) {
+      free((*(*a))->menu[i].name);
+      (*(*a))->menu[i].name = NULL;
+    }
+    if ((*(*a))->menu[i].complete_path != NULL) {
+      free((*(*a))->menu[i].complete_path);
+      (*(*a))->menu[i].complete_path = NULL;
+    }
+    if ((*(*a))->menu[i].permissions != NULL) {
+      free((*(*a))->menu[i].permissions);
+      (*(*a))->menu[i].permissions = NULL;
+    }
+  }
+  if ((*(*a))->menu != NULL) {
+    free((*(*a))->menu);
+    (*(*a))->menu = NULL;
+  }
+  if (*(*a) != NULL) {
+    free(*(*a));
+    *(*a) = NULL;
+  }
+}
+
+void free_array2(Array **a)
+{
+  for (int i = 0; i < (*a)->n_elements; ++i) {
+    if ((*a)->menu[i].name != NULL) {
+      free((*a)->menu[i].name);
+      (*a)->menu[i].name = NULL;
+    }
+    if ((*a)->menu[i].complete_path != NULL) {
+      free((*a)->menu[i].complete_path);
+      (*a)->menu[i].complete_path = NULL;
+    }
+    if ((*a)->menu[i].permissions != NULL) {
+      free((*a)->menu[i].permissions);
+      (*a)->menu[i].permissions = NULL;
+    }
+  }
+  if ((*a)->menu != NULL) {
+    free((*a)->menu);
+    (*a)->menu = NULL;
+  }
+  if (*a != NULL) {
+    free(*a);
+    *a = NULL;
+  }
+}
+
 void free_array(Array *a)
 {
   for (int i = 0; i < a->n_elements; ++i) {
     if (a->menu[i].name != NULL) {
       free(a->menu[i].name);
       a->menu[i].name = NULL;
-    }
-    if (a->menu[i].type != NULL) {
-      free(a->menu[i].type);
-      a->menu[i].type = NULL;
     }
     if (a->menu[i].complete_path != NULL) {
       free(a->menu[i].complete_path);
@@ -74,10 +149,14 @@ void free_array(Array *a)
       a->menu[i].permissions = NULL;
     }
   }
-  if (a->menu != NULL) {
+  //if (a->menu != NULL) {
     free(a->menu);
     a->menu = NULL;
-  }
+  //}
+  //if (a != NULL) {
+    free(a);
+    a = NULL;
+  //}
 }
 
 void print_array(Array *a)
@@ -91,24 +170,27 @@ void dupArray2(Array *in, Array *out)
 {
   int i;
   int len = 0;
-  Menu menu = {};
+  Menu menu = { 0 };
   for (i = 0; i < in->n_elements; ++i) {
     len = strlen(in->menu[i].name);
     copy(&(menu.name), in->menu[i].name, len);
-    len = strlen(in->menu[i].type);
-    copy(&(menu.type), in->menu[i].type, len);
+    menu.type = in->menu[i].type;
     len = strlen(in->menu[i].complete_path);
     copy(&(menu.complete_path), in->menu[i].complete_path, len);
     len = strlen(in->menu[i].permissions);
     copy(&(menu.permissions), in->menu[i].permissions, len);
     addMenu2(&out, &menu);
+/*
+    if (in->menu[i].has_scroll) {
+      out->menu[i].upper_pos = in->menu[i].upper_pos;
+      out->menu[i].lower_pos = in->menu[i].lower_pos;
+      out->menu[i].highlighted_pos = in->menu[i].highlighted_pos;
+      out->menu[i].previous_pos = in->menu[i].previous_pos;
+    }
+*/
     if (menu.name) {
       free(menu.name);
       menu.name = NULL;
-    }
-    if (menu.type) {
-      free(menu.type);
-      menu.type = NULL;
     }
     if (menu.complete_path) {
       free(menu.complete_path);

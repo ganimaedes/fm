@@ -24,15 +24,17 @@
 #define del_line      "\033[2K"
 #define n_els         "left_box.n_elements: %d"
 
-#define move(fd, str)            write((fd), (str), strlen(str))
-#define save_config              write((1), (save_state), sizeof(save_state))
-#define restore_config           write((1), (restore_state), sizeof(restore_state))
-#define del_from_cursor(str)     write((1), (str), strlen(str))
-#define erase_scr(fd, str)       write((fd), (str), sizeof(str))
+#define move(fd, str)            if (write((fd), (str), strlen(str)) < 0) { exit(1); }
+#define save_config              if (write((1), (save_state), sizeof(save_state)) < 0) { exit(1); }
+#define restore_config           if (write((1), (restore_state), sizeof(restore_state)) < 0) { exit(1); }
+#define del_from_cursor(str)     if (write((1), (str), strlen(str)) < 0) { exit(1); }
+#define erase_scr(fd, str)       if (write((fd), (str), sizeof(str)) < 0) { exit(1); }
 
-
-#define save_config_fd(fd)       write((fd), (save_state), sizeof(save_state))
-#define restore_config_fd(fd)    write((fd), (restore_state), sizeof(restore_state))
+#define write_len(str)           if (write(1, (str), strlen(str)) < 0) { exit(1); }
+#define write_partial(str, len)  if (write(1, (str), (len)) < 0) { exit(1); }
+#define write_sz(str)            if (write(1, (str), sizeof(str)) < 0) { exit(1); }
+#define save_config_fd(fd)       if (write((fd), (save_state), sizeof(save_state)) < 0) { exit(1); }
+#define restore_config_fd(fd)    if (write((fd), (restore_state), sizeof(restore_state)) < 0) { exit(1); }
 
 #define test_text "TEST_TEXT"
 
@@ -40,7 +42,8 @@
 #define IN_SZ    sizeof(del)
 
 
-char position[PLACE_SZ];
+//char position[PLACE_SZ];
+char position[PLACE_SZ + 27];
 char del_in[IN_SZ];
 
 #define write_line(fd, str) if (write((fd), (str), strlen(str)) < 0) { fprintf(stderr, "Error write\n"); }
@@ -80,6 +83,7 @@ char del_in[IN_SZ];
 #define KEY_END       0x0168 // 360
 #define KEY_ALL_UP    0x0061 // 97 equivalent to key_home
 #define KEY_BACK      0x007f
+#define KEY_Q         0x0071 // 113 'q'
 
 #define DN            0x006a
 #define UP            0x006b
@@ -282,6 +286,7 @@ typedef struct {
     int array_size;
     int n_to_print;
     int n_lower_t;
+    int n_upper_t;
     int pos_upper_t;
     int pos_lower_t;
     int option_previous;
@@ -299,8 +304,8 @@ static char *TYPE[] = {
   "j", /* JPEG JIFF */
   "p", /* PNG       */
   "g", /* GIF       */
-  "d", /* PDF       */
-  "o"  /* FOLDER    */
+  "a", /* PDF       */
+  "d"  /* DIRECTORY */
 };
 
 typedef struct _STAT_INFO {
@@ -330,6 +335,7 @@ static struct timeval t1, t2;
 static volatile sig_atomic_t is_retriggered = 0;
 static volatile sig_atomic_t n_times_keypressed = 0;
 static volatile sig_atomic_t n_times_keypressed_copy = 0;
+static volatile sig_atomic_t image_cp_pos = 0;
 
 //typedef int bool;
 static int quit = FALSE;
@@ -361,8 +367,15 @@ static int quit = FALSE;
   memcpy((*(dest)), (src), (len)); \
   (*(dest))[(len)] = '\0';         \
 } while (0)
+
+#define combine2(dest, src_one, src_two, len_one, len_two) do { \
+  MALLOC((dest), (len_one) + (len_two) + 1);                    \
+  memcpy((*dest), (src_one), (len_one));                        \
+  memcpy(&((*dest)[len_one]), (src_two), len_two);              \
+  (*dest)[(len_one) + (len_two)] = '\0';                        \
+} while(0)
 #define combine(dest, src_one, src_two, len_one, len_two) do { \
-  MALLOC((dest), (len_one) + (len_two) + 1);                   \
+  MALLOC((*dest), (len_one) + (len_two) + 1);                  \
   memcpy((*dest), (src_one), (len_one));                       \
   memcpy(&((*dest)[len_one]), (src_two), len_two);             \
   (*dest)[(len_one) + (len_two)] = '\0';                       \
@@ -382,9 +395,9 @@ static int quit = FALSE;
   write_line(__file_descriptor, _str);            \
   mv((vert), (horiz));                                \
 } while(0)
-#define mv(y, x) do {                          \
+#define mv(y, x) do {                  \
   sprintf(position, place_, (y), (x)); \
-  move(__file_descriptor, position);             \
+  move(1, position);                   \
 } while(0)
 #define empty_space_debug(x_) do {                                        \
   int _k;                                                                \
@@ -434,7 +447,7 @@ static int change_kb = 0;
   size_t len_filesize = strlen(filesize); \
   empty_space_debug(n_divisions + 10); \
   mv((_y), (_x)); \
-  empty_space_debug(n_divisions + 10); \
+  empty_space_debug(n_divisions + 20); \
   mv((_y), (_x)); \
   write_line(__file_descriptor, filesize); \
   write_line(__file_descriptor, change_kb ? " Mb" : " Kb"); \
