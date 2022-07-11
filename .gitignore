@@ -79,6 +79,7 @@ find_id
 get_active_window.c
 get_active_window
 numbers
+src/numbers
 img_copy1.c
 img_copy1.h
 img_copy2.c
@@ -89,3 +90,17 @@ find_mapped_windows.c
 removed_functions.c
 method*
 raise*
+log2
+src/log2
+src/strace_output.txt
+src/stdout.txt
+src/stderr.txt
+strace_output.txt
+stdout.txt
+stderr.txt
+draw_img2.c
+src/draw_img2.c
+add_to_versions.sh
+recreate_folder.sh
+src/add_to_versions.sh
+src/recreatefolder.sh

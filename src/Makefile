@@ -1,7 +1,9 @@
 CC         = gcc
-CBASEFLAGS = -I. -w -rdynamic -DWITH_STBI -DBOXDBG #-DPRINT_OTHERTTY -DPRINT_OTHERTTY_2 #-ggdb3 -Og #-DEBUG #-DSHOW_ATOMS  -DV_DEBUG  -DV_DEBUG_POSITION #-DEBUG2
+CBASEFLAGS = -I. -w -rdynamic -DWITH_STBI
 DEBUGFLAGS = -ggdb3 -O0
-CFLAGS 	   = $(CBASEFLAGS) -Wall -pedantic $(DEBUGFLAGS) #-finstrument-functions
+TERMFLAGS1 = -DPRINT_OTHERTTY -DPRINT_OTHERTTY_2 #-ggdb3 -Og #-DEBUG #-DSHOW_ATOMS  -DV_DEBUG  -DV_DEBUG_POSITION #-DEBUG2
+TERMFLAGS2 = -DBOXDBG
+CFLAGS 	   = $(CBASEFLAGS) -Wall -pedantic $(DEBUGFLAGS) $(TERMFLAGS2) #-finstrument-functions
 IMGCFLAGS  = -I/usr/local/include -lm -pthread
 DRAWCFLAGS = -I/usr/local/include -lX11 -lm -pthread
 IMGOBJS    = parcours.o positions.o scr.o deb.o array.o copy.o

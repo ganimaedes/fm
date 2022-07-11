@@ -47,7 +47,7 @@ int _file_descriptor_;
 int _file_descriptor_2;
 int fd_boxdbg;
 int fd_attrdbg;
-int debug_fd_box = 0;
+int debug_fd_box = 1;
 int debug_fd_scroll_pos = 0;
 int debug_c_pos = 1;
 int y_position_boxdbg = 1;
@@ -313,11 +313,16 @@ int main(int argc, char **argv)
 
 #if defined(BOXDBG)
   if (argc > 2 && argv[2] != NULL) {
-    fd_boxdbg = open(argv[2], O_RDWR);
-    save_config_fd(fd_boxdbg);
     if (argv[3] != NULL) {
       fd_attrdbg = open(argv[3], O_RDWR);
       save_config_fd(fd_attrdbg);
+    }
+    if (debug_fd_box) {
+      fd_attrdbg = open(argv[2], O_RDWR);
+      save_config_fd(fd_attrdbg);
+    } else {
+      fd_boxdbg = open(argv[2], O_RDWR);
+      save_config_fd(fd_boxdbg);
     }
   }
 #endif // BOXDBG
@@ -413,8 +418,9 @@ int main(int argc, char **argv)
 
 #if defined(BOXDBG)
     if (debug_fd_box) {
-      print_all_attributes_fd(fd_attrdbg, attributes, &y_position_attrdbg);
-      print_box_fd(fd_boxdbg, left_box, &y_position_boxdbg);
+      //print_all_attributes_fd(fd_attrdbg, attributes, &y_position_attrdbg);
+      print_all_attributes_fd(fd_attrdbg, w0_attributes, &y_position_attrdbg);
+      //print_box_fd(fd_boxdbg, left_box, &y_position_boxdbg);
     }
 #endif // BOXDBG
 
@@ -562,7 +568,7 @@ int main(int argc, char **argv)
     if (enter_backspace == 1 && attributes->n_elements != 0 && back_pressed == 1 && initial_loop != 1) {
       if (number_of_windows == 3 && w0_attributes->n_elements > 0) {
         free_attr(w0_attributes);
-        initialize_attr(&w0_attributes, 2);
+        initialize_attr(&w0_attributes, 1);
       }
       free_attr(attributes);
       initialize_attr(&attributes, 1);
@@ -635,9 +641,13 @@ int main(int argc, char **argv)
 #endif // PRINT_OTHERTTY_2
 #if defined(BOXDBG)
   if (argc > 2 && argv[2] != NULL) {
-    restore_config_fd(fd_boxdbg);
     if (argc == 3) {
       restore_config_fd(fd_attrdbg);
+    }
+    if (debug_fd_box) {
+      restore_config_fd(fd_attrdbg);
+    } else {
+      restore_config_fd(fd_boxdbg);
     }
   }
 #endif // BOXDBG
@@ -1445,9 +1455,6 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
                           int *second_previous_c, int *previous_pos_c, int *option, int *secondary_loop,
                           int *left_allocation, int *backspace)
 {
-  //ttymode_reset(ECHO, 1);
-    //if (image_used == 0 && (*c = kbget()) == KEY_ESCAPE && resized == 0) {
-    //if (image_used == 0 && (*c = kbget()) == 'q' && resized == 0) {
     if (image_used == 0 && (*c = kbget()) == KEY_Q && resized == 0) {
       return 0;
     } else
@@ -1646,13 +1653,24 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       char *parent = NULL;
       //get_parent_nwindows((*left_box)->menu[*pos].complete_path, &parent);
       getParent((*left_box)->menu[*pos].complete_path, &parent);
+      if ((*w0_left_box)->n_elements > 0) {
+        free_array(*w0_left_box);
+        (*w0_left_box)->n_elements = 0;
+        initialize_array2(&w0_left_box, 1);
+      }
       parcours(parent, 0, *w0_left_box, 0, w0);
       posit->m_position = 0;
       posit->m_upper_pos = 0;
       posit->m_lower_pos = 0;
-      posit->array_size = (*w0_left_box)->n_elements;
+      //posit->array_size = (*w0_left_box)->n_elements;
+      posit->array_size = 1;
 
       posit->window_number = 0;
+
+      //if ((*w0_attributes)->n_elements > 0) {
+      //  free_attr(*w0_attributes);
+      //  initialize_attr(w0_attributes, 1);
+      //}
       add_attr(*w0_attributes, posit, parent);
       if (parent != NULL) {
         free(parent);
@@ -1661,6 +1679,14 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
     } else if (*c == 'r') {
       *n_windows = 2;
       number_of_windows = 2;
+
+      free_attr(*w0_attributes);
+      initialize_attr(w0_attributes, 1);
+      w0_s->array_size = 0;
+      w0_s->pos_lower_t = 0;
+      w0_s->pos_upper_t = 0;
+      w0_s->n_lower_t = 0;
+      w0_s->n_to_print = 0;
     }
     *previous_pos_c = *c;
 
