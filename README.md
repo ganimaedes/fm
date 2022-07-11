@@ -1,6 +1,6 @@
 # fm
 
-Fm is a terminal file manager/viewer for linux
+Fm is a terminal file manager/viewer for linux with an integrated terminal image viewer.
 
 To compile with gcc:
 
