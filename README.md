@@ -1,6 +1,6 @@
 # fm
 
-Fm is a terminal file manager/viewer for linux
+Fm is a terminal file manager/viewer for linux with an integrated terminal image viewer.
 
 To compile with gcc:
 
@@ -14,7 +14,7 @@ To execute:
 fm "$HOME"
 ```
 
-To leave press `<ESC>`
+To leave press `<ESC>` or `q`
 
 Keys
 
@@ -22,9 +22,11 @@ Keys
 | -------------    | :---------------: |
 | `UP arrow` or `k`| select item above |
 | `DN arrow` or `j`| select item below |
-| `<DEL>` or `dd`  | delete file       |
+| `<Shift+D>`      | delete file/folder|
 | `c` or `yy`      | copy file         |
 | `p`              | paste file        |
 | `<Enter>`        | enter into folder |
 | `<Backspace>`    | go up one folder  |
-| `<ESC>`          | quit program      |
+| `<ESC>` or `q`   | quit program      |
+| `<CTRL+U>`       | Scroll Up         |
+| `<CTRL+D>`       | Scroll Down       |

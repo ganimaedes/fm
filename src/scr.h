@@ -1,6 +1,7 @@
 #ifndef SCR_H
 #define SCR_H
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,31 +12,43 @@
 #include <fcntl.h>
 #include <locale.h>
 #include <sys/wait.h>
+#include <sys/time.h>
+#include <errno.h>
 //#include <wchar.h>
 
 
 #define save_state    "\033[?1049h\033[2J\033[H"
 #define restore_state "\033[2J\033[H\033[?1049l"
 #define del           "\033[%dX"
-#define place         "\033[%d;%dH"
+#define place_        "\033[%d;%dH"
 #define del_line      "\033[2K"
 #define n_els         "left_box.n_elements: %d"
 
-#define move(fd, str)            write((fd), (str), strlen(str))
-#define save_config              write((1), (save_state), sizeof(save_state))
-#define restore_config           write((1), (restore_state), sizeof(restore_state))
-#define del_from_cursor(str)     write((1), (str), strlen(str))
-#define erase_scr(fd, str)       write((fd), (str), sizeof(str))
+#define move(fd, str)            if (write((fd), (str), strlen(str)) < 0) { exit(1); }
+#define save_config              if (write((1), (save_state), sizeof(save_state)) < 0) { exit(1); }
+#define restore_config           if (write((1), (restore_state), sizeof(restore_state)) < 0) { exit(1); }
+#define del_from_cursor(str)     if (write((1), (str), strlen(str)) < 0) { exit(1); }
+#define erase_scr(fd, str)       if (write((fd), (str), sizeof(str)) < 0) { exit(1); }
 
-
-#define save_config_fd(fd)       write((fd), (save_state), sizeof(save_state))
-#define restore_config_fd(fd)    write((fd), (restore_state), sizeof(restore_state))
+#define write_len(str)           if (write(1, (str), strlen(str)) < 0) { exit(1); }
+#define write_partial(str, len)  if (write(1, (str), (len)) < 0) { exit(1); }
+#define write_sz(str)            if (write(1, (str), sizeof(str)) < 0) { exit(1); }
+#define save_config_fd(fd)       if (write((fd), (save_state), sizeof(save_state)) < 0) { exit(1); }
+#define restore_config_fd(fd)    if (write((fd), (restore_state), sizeof(restore_state)) < 0) { exit(1); }
 
 #define test_text "TEST_TEXT"
 
-#define PLACE_SZ sizeof(place)
+#define PLACE_SZ sizeof(place_)
 #define IN_SZ    sizeof(del)
 
+
+//char position[PLACE_SZ];
+char position[PLACE_SZ + 27];
+char del_in[IN_SZ];
+
+#define write_line(fd, str) if (write((fd), (str), strlen(str)) < 0) { fprintf(stderr, "Error write\n"); }
+
+/*
 #define KEY_ESCAPE    0x001b
 #define KEY_ENTER     0x000a
 #define KEY_UP        0x0105
@@ -52,9 +65,33 @@
 
 #define KEY_PAGE_UP 100
 #define KEY_PAGE_DN 200
-#define KEY_HOME    300
-#define KEY_END     400
+#define KEY_HOME    0x0300
+#define KEY_END     0x0400
+*/
+                             // DECIMAL
+#define KEY_ESCAPE    0x001b // 27
+#define KEY_ENTER     0x000c // 13
+#define KEY_UP        0x0103 // 259
+#define KEY_DOWN      0x0102 // 258
+#define KEY_LEFT      0x0104 // 260
+#define KEY_RIGHT     0x0105 // 261
+#define KEY_SUPPR     0x014a // 330
+#define KEY_BACKSPACE 0x0008 // 8
+#define KEY_PAGE_UP   0x0153 // 339
+#define KEY_PAGE_DN   0x0152 // 338
+#define KEY_HOME      0x0106 // 262
+#define KEY_END       0x0168 // 360
+#define KEY_ALL_UP    0x0061 // 97 equivalent to key_home
+#define KEY_BACK      0x007f
+#define KEY_Q         0x0071 // 113 'q'
 
+#define DN            0x006a
+#define UP            0x006b
+#define RIGHT         0x006c
+#define LEFT          0x0068
+//#define ENTER         0x000d
+#define ENTER         0x000a
+#define BACKSPACE     0x007f
 
 #define bg_cyan         "\033[46m"
 #define bg_blue         "\033[44m"
@@ -154,7 +191,7 @@
 #define search2                "\357\220\242"     // 
 #define adobe                  "\357\220\221"     // 
 #define adobe2                 "\357\234\245"     // 
-#define image                  "\357\220\217"     // 
+#define image1                 "\357\220\217"     // 
 #define image2                 "\357\211\207"     // 
 #define image3                 "\357\200\276"     // 
 #define tar                    "\357\220\220"     // 
@@ -241,21 +278,67 @@ typedef struct {
     int x_size;
     int y_previous;
     int x_previous;
-} Window;
+    unsigned short y_px_size;
+    unsigned short x_px_size;
+} Window_;
 
 typedef struct {
     int array_size;
     int n_to_print;
     int n_lower_t;
+    int n_upper_t;
     int pos_upper_t;
     int pos_lower_t;
     int option_previous;
 } Scroll;
 
+typedef struct {
+  long keypress_value;
+  unsigned long ascii_value;
+  int n_times_pressed;
+  int last_position_array;
+  int last_element_is_not_img;
+} InfoKeyPresses;
+
+static char *TYPE[] = {
+  "j", /* JPEG JIFF */
+  "p", /* PNG       */
+  "g", /* GIF       */
+  "a", /* PDF       */
+  "d"  /* DIRECTORY */
+};
+
+typedef struct _STAT_INFO {
+  unsigned short width;
+  unsigned short height;
+  //unsigned int file_len;
+  unsigned long file_len;
+  char *file_name;
+  FILE *file;
+  unsigned char *data;
+} STAT_INFO;
+
+static InfoKeyPresses info_key_presses;
+static char *file_to_be_copied;
+
+#ifndef TRUE
 #define TRUE  1
+#endif // TRUE
+#ifndef FALSE
 #define FALSE 0
-typedef int bool;
-static bool quit = FALSE;
+#endif // FALSE
+
+
+static double elapsedTime;
+static double pastElapsedTime;
+static struct timeval t1, t2;
+static volatile sig_atomic_t is_retriggered = 0;
+static volatile sig_atomic_t n_times_keypressed = 0;
+static volatile sig_atomic_t n_times_keypressed_copy = 0;
+static volatile sig_atomic_t image_cp_pos = 0;
+
+//typedef int bool;
+static int quit = FALSE;
 #define PRINT(msg) do {                                          \
   fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__); \
   fprintf(stdout, "%s\n", (msg));                                \
@@ -285,12 +368,99 @@ static bool quit = FALSE;
   (*(dest))[(len)] = '\0';         \
 } while (0)
 
-#define combine(dest, src_one, src_two, len_one, len_two) do { \
-  MALLOC((dest), (len_one) + (len_two) + 1);                \
-  memcpy((*dest), (src_one), (len_one));                    \
-  memcpy(&((*dest)[len_one]), (src_two), len_two);          \
-  (*dest)[(len_one) + (len_two)] = '\0';                    \
+#define combine2(dest, src_one, src_two, len_one, len_two) do { \
+  MALLOC((dest), (len_one) + (len_two) + 1);                    \
+  memcpy((*dest), (src_one), (len_one));                        \
+  memcpy(&((*dest)[len_one]), (src_two), len_two);              \
+  (*dest)[(len_one) + (len_two)] = '\0';                        \
 } while(0)
+#define combine(dest, src_one, src_two, len_one, len_two) do { \
+  MALLOC((*dest), (len_one) + (len_two) + 1);                  \
+  memcpy((*dest), (src_one), (len_one));                       \
+  memcpy(&((*dest)[len_one]), (src_two), len_two);             \
+  (*dest)[(len_one) + (len_two)] = '\0';                       \
+} while(0)
+
+
+#ifndef __file_descriptor
+#define __file_descriptor 1
+#endif // __file_descriptor
+#define mvprint_goback(vert, horiz, returnVert, returnHoriz, _str) do {                \
+  mv((vert), (horiz));                                \
+  write_line(__file_descriptor, _str);            \
+  mv((returnVert), (returnHoriz));                               \
+} while(0)
+#define mvprint(vert, horiz, _str) do {                \
+  mv((vert), (horiz));                                \
+  write_line(__file_descriptor, _str);            \
+  mv((vert), (horiz));                                \
+} while(0)
+#define mv(y, x) do {                  \
+  sprintf(position, place_, (y), (x)); \
+  move(1, position);                   \
+} while(0)
+#define empty_space_debug(x_) do {                                        \
+  int _k;                                                                \
+  for (_k = 0; _k < x_; ++_k) { write_line(__file_descriptor, " "); } \
+} while(0)
+#define UNSIGNEDLONG "%lu"
+static char unsignedlong[sizeof(UNSIGNEDLONG)];
+#define printTTY_UL(_x, _y, _ul_number) do { \
+  mv((_y), (_x));                 \
+  sprintf(unsignedlong, UNSIGNEDLONG, _ul_number); \
+  empty_space_debug(strlen((unsignedlong)));   \
+  write_line(__file_descriptor, unsignedlong);            \
+} while(0)
+#define printTTYSTR(_x, _y, array) do { \
+  mv((_y), (_x));                 \
+  empty_space_debug(strlen((array)));   \
+  mvprint((_y), (_y), (array));   \
+} while(0)
+#define NUMINT " = %d"
+static char numint[sizeof(NUMINT)];
+#define printTTYINT(_x, _y, _numint) do { \
+  sprintf(numint, NUMINT, _numint);       \
+  empty_space_debug(strlen((numint)));     \
+  mvprint((_y), (_y), (numint));    \
+} while(0)
+
+//#define FILESIZE "%f"
+#define FILESIZE "%.1f"
+static char filesize[sizeof(FILESIZE)];
+#define printTTY_filesize(_x, _y, _file_size) do { \
+  mv((_y), (_x));                 \
+  sprintf(filesize, FILESIZE, _file_size); \
+  empty_space_debug(strlen((filesize)) + 3);   \
+  write_line(__file_descriptor, filesize);            \
+  write_line(__file_descriptor, " Mb"); \
+} while(0)
+
+
+static int change_kb = 0;
+  //empty_space_debug(len_filesize + change_kb > n_divisions ? n_divisions + 2 : 0);
+#define print_tty_filesize3(_x, _y, _file_size) do { \
+  mv((_y), (_x)); \
+  double rate = 10.0; int n_divisions = 0; double _file_size_cp = _file_size; \
+  if (_file_size > 1000.0) { change_kb = 1; if (_file_size > 10000.0) { rate = 100.0; } } \
+  if (change_kb) { while (_file_size_cp > rate && ++n_divisions) { _file_size_cp /= 10.0; } } \
+  sprintf(filesize, FILESIZE, _file_size_cp); \
+  size_t len_filesize = strlen(filesize); \
+  empty_space_debug(n_divisions + 10); \
+  mv((_y), (_x)); \
+  empty_space_debug(n_divisions + 20); \
+  mv((_y), (_x)); \
+  write_line(__file_descriptor, filesize); \
+  write_line(__file_descriptor, change_kb ? " Mb" : " Kb"); \
+  change_kb = 0; \
+} while(0)
+// remove XGrabKey is it possible
+// faire un thread pour que un ecrive lautre dessine
+
+#define erase_size(_x, _y) do {\
+  mv((_y), (_x)); \
+  empty_space_debug(11); \
+} while(0)
+
 
 struct termios term, oterm;
 
@@ -298,6 +468,7 @@ int getch(void);
 int kbhit(void);
 int kbesc(void);
 int kbget(void);
+void ttymode_reset(int mode, int imode);
 
 int get_cursor_position(int ifd, int ofd, int *rows, int *cols);
 int get_window_size(int ifd, int ofd, int *rows, int *cols);

@@ -1,6 +1,7 @@
 #ifndef COPY_H
 #define COPY_H
 
+#include "scr.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

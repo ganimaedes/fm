@@ -1,4 +1,6 @@
 #include "scr.h"
+#include <stdio.h>
+#include <unistd.h>
 
 int getch(void)
 {
@@ -30,20 +32,70 @@ int kbhit(void)
   return c != -1 ? 1 : 0;
 }
 
+void ttymode_reset(int mode, int imode)
+{
+  int fd = 1;
+  struct termios ioval;
+  tcgetattr(STDIN_FILENO, &ioval);
+  ((ioval).c_lflag) &= ~mode;
+
+
+  while (tcsetattr(fd, TCSANOW, &ioval) == -1) {
+    //if (errno == EINTR || errno == EAGAIN)
+    //  continue;
+    printf("Error occured while reset %x: errno=%d\n", mode, errno);
+  }
+}
+
+/*
+Public Boolean tick = false;
+private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+{
+tick = !tick;
+    label1.Text = "Key Pressed: " + e.KeyChar;
+   //animate(sender, e);
+if(tick)
+    timer1.Start();
+else
+    timer1.Stop();
+}
+*/
+
 int kbesc(void)
 {
   int c = 0;
 
-  if (!kbhit()) { return KEY_ESCAPE; }
+  //if (!kbhit()) { return KEY_ESCAPE; }
+  //if (!kbhit()) { return 113; }
+  if (!kbhit()) { return KEY_Q; }
   c = getch();
+  if (c == BACKSPACE) { ungetc(c, stdin); return c; }
   if (c == '[') {
     switch ((c = getch())) {
       case 'A':
         c = KEY_UP;
+        //c = UP;
         break;
-      case 'B':
+      case 'B': {
+/*
+        is_retriggered = !is_retriggered;
+        if (is_retriggered && elapsedTime < 0.1) {
+          // start timer
+          gettimeofday(&t1, NULL);
+          printf("reprint\n");
+          elapsedTime = 0;
+          sleep(5);
+        } else {
+          // stop timer
+          gettimeofday(&t2, NULL);
+          // compute and print the elapsed time in millisec
+          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+          elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+        }
+*/
         c = KEY_DOWN;
         break;
+      }
       case 'C':
         c = KEY_LEFT;
         break;
@@ -80,7 +132,16 @@ int kbesc(void)
 int kbget(void)
 {
   int c = getch();
+  // CTRL KEYS
+  // CTRL+D ^D
+  if (c == 4) {
+    return c;
+  } else if (c == 21) {
+    return c;
+  }
   return c == KEY_ESCAPE ? kbesc() : c;
+  //return c == 113 ? kbesc() : c;
+  //return c == KEY_Q ? kbesc() : c;
 }
 
 int get_cursor_position(int ifd, int ofd, int *rows, int *cols)
@@ -97,7 +158,9 @@ int get_cursor_position(int ifd, int ofd, int *rows, int *cols)
   }
   buffer[i] = '\0';
 
-  if (buffer[0] != KEY_ESCAPE || buffer[1] != '[') { return -1; }
+  //if (buffer[0] != KEY_ESCAPE || buffer[1] != '[') { return -1; }
+  //if (buffer[0] != 'q' || buffer[1] != '[') { return -1; }
+  if (buffer[0] != KEY_Q || buffer[1] != '[') { return -1; }
   if (sscanf((char *)buffer + 2, "%d;%d", rows, cols) != 2) { return -1; }
   return 0;
 }

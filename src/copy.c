@@ -18,7 +18,8 @@ int cp(const char *from, const char *to)
   fd_to = open(to, O_WRONLY | O_CREAT | O_EXCL, 0666);
   if (fd_to < 0) {
     fprintf(stdout, "%s:%s:%d\n\t", __FILE__, __func__, __LINE__);
-    fprintf(stdout, "fd_to < 0\n");
+    //fprintf(stdout, "fd_to < 0\n");
+    fprintf(stdout, "to: %s\n", to);
     goto out_error;
   }
 

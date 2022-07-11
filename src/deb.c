@@ -6,7 +6,7 @@
 #define POS                  " pos: %d"
 
 #if defined(EBUG)
-int print_tty(Window *w, int fd, Attributes *attributes)
+int print_tty(Window_ *w, int fd, Attributes *attributes)
 {
   if (attributes->n_elements == 0) {
     return 0;
@@ -26,7 +26,7 @@ int print_tty(Window *w, int fd, Attributes *attributes)
       to_print = w_s.ws_row;
     }
     for (i = 0; i < to_print; ++i) {
-      sprintf(position, place, i + w->y_beg + 1, w->x_beg);
+      sprintf(position, place_, i + w->y_beg + 1, w->x_beg);
       move(fd, position);
       write(fd, attributes->paths[i], strlen(attributes->paths[i]));
 
@@ -42,7 +42,7 @@ int print_tty(Window *w, int fd, Attributes *attributes)
       sprintf(pos, POS, attributes->pos[i]->m_position);
       write(fd, pos, strlen(pos));
     }
-    sprintf(position, place, i + w->y_beg, w->x_beg);
+    sprintf(position, place_, i + w->y_beg, w->x_beg);
     move(fd, position);
   }
   return 1;
@@ -55,7 +55,7 @@ int print_tty(Window *w, int fd, Attributes *attributes)
 #define VALUE_CHILD   " value_child: %s"
 #define VALUE_PARENT  " value_parent: %s"
 
-int print_route_positions(Window *w, int fd, Array *left_box, char *parent, int *pos)
+int print_route_positions(Window_ *w, int fd, Array *left_box, char *parent, int *pos)
 {
 
   struct winsize w_s;
@@ -73,7 +73,7 @@ int print_route_positions(Window *w, int fd, Array *left_box, char *parent, int 
     }
 
 //    for (i = 0; i < to_print; ++i) {
-      sprintf(position, place, i + w->y_beg + 1, w->x_beg);
+      sprintf(position, place_, i + w->y_beg + 1, w->x_beg);
       move(fd, position);
       //write(fd, "length = ", strlen("length = "));
 
@@ -81,7 +81,7 @@ int print_route_positions(Window *w, int fd, Array *left_box, char *parent, int 
       sprintf(length_child, LENGTH_CHILD, len_child);
       write(fd, length_child, strlen(length_child));
 
-      sprintf(position, place, i + w->y_beg + 2, w->x_beg);
+      sprintf(position, place_, i + w->y_beg + 2, w->x_beg);
       move(fd, position);
 
       //size_t j;
@@ -92,19 +92,19 @@ int print_route_positions(Window *w, int fd, Array *left_box, char *parent, int 
       sprintf(length_parent, LENGTH_PARENT, len_parent);
       write(fd, length_parent, strlen(length_parent));
 
-      sprintf(position, place, i + w->y_beg + 3, w->x_beg);
+      sprintf(position, place_, i + w->y_beg + 3, w->x_beg);
       move(fd, position);
 
       sprintf(value_child, VALUE_CHILD, left_box->menu[*pos].complete_path);
       write(fd, value_child, strlen(value_child));
 
-      sprintf(position, place, i + w->y_beg + 4, w->x_beg);
+      sprintf(position, place_, i + w->y_beg + 4, w->x_beg);
       move(fd, position);
 
       sprintf(value_parent, VALUE_PARENT, parent);
       write(fd, value_parent, strlen(value_parent));
     }
-    sprintf(position, place, i + w->y_beg, w->x_beg);
+    sprintf(position, place_, i + w->y_beg, w->x_beg);
     move(fd, position);
 //  }
 
