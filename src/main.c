@@ -1153,7 +1153,8 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
     dup2(pfd[1], STDOUT_FILENO);        // insure write pipe is at stdout (fd#1)
     dup2(pfd[1], STDERR_FILENO);        // stderr goes to the pipe also (optional)
     close(pfd[1]);                      // child doesn't need to write pipe any more
-    execl("./draw", "./draw", win_top_limit, offset_left, win_lower_limit, img_path, (char *)0);
+    //execl("./draw", "./draw", win_top_limit, offset_left, win_lower_limit, img_path, (char *)0);
+    execl("draw", "draw", win_top_limit, offset_left, win_lower_limit, img_path, (char *)0);
     _exit(1);
   } else {
     close(pfd[1]);                      // parent doesn't need write pipe
