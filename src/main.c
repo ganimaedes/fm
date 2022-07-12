@@ -371,8 +371,6 @@ int main(int argc, char **argv)
 
   parcours(argv[1], 0, left_box, 0, &w_main);
 
-  //print_path(&s, argv[1], pos, 0);
-
   int position_before_copying = 0;
 
   int yank_counter = 0;
@@ -411,9 +409,6 @@ int main(int argc, char **argv)
       sem_post(&mutex);
     }
 
-    if (initial_loop) {
-      print_path(&s, argv[1], pos, 0);
-    }
 
 #if defined(EBUG)
     msg.print_msg = "previous_pos = ";
@@ -556,7 +551,7 @@ int main(int argc, char **argv)
     }
 #endif // BOXDBG
       //image_used = 0;
-      print_permissions(left_box, &s, &w1, pos);
+      //print_permissions(left_box, &s, &w1, pos);
 #if defined(EBUG)
       msg.n_ulong = c;
       msg.used_ulong = 1;
@@ -570,6 +565,7 @@ int main(int argc, char **argv)
       //if (c == KEY_ESCAPE) { break; }
       if (c == KEY_Q) { break; }
     }
+    print_permissions(left_box, &s, &w1, pos);
 
     if (enter_backspace == 1 && attributes->n_elements != 0 && back_pressed == 1 && initial_loop != 1) {
       if (number_of_windows == 3 && w0_attributes->n_elements > 0) {
@@ -1783,6 +1779,19 @@ int window_resize2(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
     }
     *previous_val_n_windows = n_windows;
 
+    if (*initial_loop) {
+      char *parent;
+      //getParent(left_box->menu[*pos].complete_path, &parent);
+      get_parent(left_box->menu[*pos].complete_path, &parent, 1);
+      print_path(s, parent, *pos, 0);
+      if (parent != NULL) {
+        free(parent);
+        parent = NULL;
+      }
+      //print_path(&s, argv[1], pos, 0);
+    } else {
+      print_path(s, left_box->menu[*pos].complete_path, *pos, 0);
+    }
 
     resized = 1;
   }
