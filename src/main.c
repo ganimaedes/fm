@@ -371,6 +371,8 @@ int main(int argc, char **argv)
 
   parcours(argv[1], 0, left_box, 0, &w_main);
 
+  //print_path(&s, argv[1], pos, 0);
+
   int position_before_copying = 0;
 
   int yank_counter = 0;
@@ -407,6 +409,10 @@ int main(int argc, char **argv)
       window_resize2(&w_main, &w0, &w1, &w2, left_box, n_windows, &previous_value_n_windows,
                      first_window_width_fraction, &w_s, &s, &pos, &initial_loop, &option, &i);
       sem_post(&mutex);
+    }
+
+    if (initial_loop) {
+      print_path(&s, argv[1], pos, 0);
     }
 
 #if defined(EBUG)

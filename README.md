@@ -28,5 +28,5 @@ Keys
 | `<Enter>`        | enter into folder |
 | `<Backspace>`    | go up one folder  |
 | `<ESC>` or `q`   | quit program      |
-| `<CTRL+U>`       | Scroll Up         |
-| `<CTRL+D>`       | Scroll Down       |
+| `<CTRL+u>`       | Scroll Up         |
+| `<CTRL+d>`       | Scroll Down       |

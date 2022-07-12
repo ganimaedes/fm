@@ -65,7 +65,7 @@ $(IMGFOLDER)/draw.o: $(IMGFOLDER)/draw.c $(IMGFOLDER)/stb_image.h $(IMGFOLDER)/s
 
 install:
 	@echo "Installing fm"
-	mkdir -p $(PREFIXDIR)/bin
+	[ -d $(PREFIXDIR)/bin ] || mkdir -p $(PREFIXDIR)/bin
 	cp fm $(PREFIXDIR)/bin/
 	chmod 755 $(PREFIXDIR)/bin/fm
 	cp draw $(PREFIXDIR)/bin/
