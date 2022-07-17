@@ -94,7 +94,7 @@ char del_in[IN_SZ];
 //#define ENTER         0x000d
 #define ENTER         0x000a
 #define BACKSPACE     0x007f
-enum { EOF_KEY = 4  };
+enum { EOF_KEY = 10  };
 
 #define bg_cyan         "\033[46m"
 #define bg_blue         "\033[44m"
