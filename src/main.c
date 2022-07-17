@@ -1027,14 +1027,12 @@ void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos)
       mverase(k + w->y_beg + 1, w->x_beg + 1, w->x_size);
       print(w, box, k + s->pos_upper_t);
     }
-    for (i = 0, j = *pos; i < n_to_print - k; ++i) {
-      if (*pos < box->n_elements && j + 1 < box->n_elements) {
-        mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        if (i == 0) {
-          highlight4(w, box, pos);
-        } else {
-          print(w, box, ++j);
-        }
+    for (i = 0, j = *pos; i < n_to_print - k && (j + 1 < box->n_elements); ++i) {
+      mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      if (i == 0) {
+        highlight4(w, box, pos);
+      } else {
+        print(w, box, ++j);
       }
     }
     usleep(50000);
@@ -1047,19 +1045,20 @@ void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos)
   --s->pos_lower_t;
   ++s->n_lower_t;
 
-  int left_to_scroll = scroll_down_value - n_to_scroll - 1;
+  int left_to_scroll = scroll_down_value - n_to_scroll;
   if (left_to_scroll > 1) {
     mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
     print(w, box, *pos);
 
     for (int j_ = 0; j_ < left_to_scroll && j_ <= s->pos_lower_t && *pos <= s->pos_lower_t; ++*pos, ++j_) {
-      if (*pos < box->n_elements) {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        highlight4(w, box, pos);
-        usleep(50000);
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, *pos);
-      }
+      mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      highlight4(w, box, pos);
+      usleep(50000);
+      mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      print(w, box, *pos);
+    }
+    if (*pos >= box->n_elements) {
+      --*pos;
     }
     mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
     highlight4(w, box, pos);
