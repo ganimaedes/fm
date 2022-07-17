@@ -14,6 +14,7 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <errno.h>
+#include "utils.h"
 //#include <wchar.h>
 
 
@@ -28,6 +29,7 @@
 #define save_config              if (write((1), (save_state), sizeof(save_state)) < 0) { exit(1); }
 #define restore_config           if (write((1), (restore_state), sizeof(restore_state)) < 0) { exit(1); }
 #define del_from_cursor(str)     if (write((1), (str), strlen(str)) < 0) { exit(1); }
+#define del_from_position(str)   if (write((1), (str), strlen(str)) < 0) { exit(1); }
 #define erase_scr(fd, str)       if (write((fd), (str), sizeof(str)) < 0) { exit(1); }
 
 #define write_len(str)           if (write(1, (str), strlen(str)) < 0) { exit(1); }
@@ -92,6 +94,7 @@ char del_in[IN_SZ];
 //#define ENTER         0x000d
 #define ENTER         0x000a
 #define BACKSPACE     0x007f
+enum { EOF_KEY = 4  };
 
 #define bg_cyan         "\033[46m"
 #define bg_blue         "\033[44m"
@@ -270,6 +273,20 @@ char del_in[IN_SZ];
 #endif // box_color && box_thickness
 
 #define BOX_CONTOUR(...) const char *ARRAY[] = { __VA_ARGS__ }
+
+#define space_str  if (write(1, " ", strlen(" ")) < 0) { exit(1); }
+#define background_blue  if (write(1, bg_blue, sizeof(bg_blue)) < 0) { exit(1); }
+#define string_normal  if (write(1, " NORMAL", strlen(" NORMAL")) < 0) { exit(1); }
+#define string_mode_n  if (write(1, " N", strlen(" N")) < 0) { exit(1); }
+#define string_mode_v  if (write(1, " V", strlen(" V")) < 0) { exit(1); }
+#define background_reset  if (write(1, bg_reset, sizeof(bg_reset)) < 0) { exit(1); }
+#define background_cyan  if (write(1, bg_cyan, sizeof(bg_cyan)) < 0) { exit(1); }
+#define foreground_blue  if (write(1, fg_blue, sizeof(fg_blue)) < 0) { exit(1); }
+#define foreground_cyan  if (write(1, fg_cyan, sizeof(fg_cyan)) < 0) { exit(1); }
+#define right_full_triangle if (write(1, r_full_triangle, sizeof(r_full_triangle)) < 0) { exit(1); }
+#define foreground_reset  if (write(1, fg_reset, sizeof(fg_reset)) < 0) { exit(1); }
+#define right_line_triangle  if (write(1, r_line_triangle, sizeof(r_line_triangle)) < 0) { exit(1); }
+#define background_ligth_blue  if (write(1, bg_light_blue, sizeof(bg_light_blue)) < 0) { exit(1); }
 
 typedef struct {
     int y_beg;
@@ -464,9 +481,13 @@ static int change_kb = 0;
 
 struct termios term, oterm;
 
+int identify_set_keys(char *keys, int starting_pos);
+int get_char();
+char m_getch();
 int getch(void);
 int kbhit(void);
-int kbesc(void);
+//int kbesc(void);
+long unsigned kbesc(void);
 int kbget(void);
 void ttymode_reset(int mode, int imode);
 

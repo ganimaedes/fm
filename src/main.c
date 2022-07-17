@@ -54,6 +54,8 @@ int y_position_boxdbg = 1;
 int y_position_attrdbg = 1;
 int n_passes_for_print_tty_2 = 0;
 int initial_pass_for_w0 = 0;
+int mode_normal = 1;
+int mode_visual = 0;
 
 char *deleted_file = NULL;
 
@@ -259,6 +261,7 @@ int window_resize2(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
                   Scroll *s,
                   int *pos, int *initial_loop, int *option, int *i);
 int horizontal_navigation(int *c, int *pos, int *n_windows,
+//int horizontal_navigation(long unsigned *c, int *pos, int *n_windows,
                           int *first_window_width_fraction,
                           Array **left_box, Array **right_box, Array **w0_left_box, Attributes **attributes, Attributes **w0_attributes,
                           Window_ *w0, Window_ *w1, Window_ *w2, Positions *posit,
@@ -278,6 +281,10 @@ void scroll_window3(Window_ *w, Array *box, Scroll *s, int *pos);
 void scroll_window_up7(Window_ *w, Array *box, Scroll *s, int *pos);
 void print_scroll(Scroll *s, int *pos, int *y_position);
 void ask_user(char *warning, int *c);
+int show_all_85();
+int show_all_855(int y, int x);
+int show_all_8555(int y, int x);
+void show_status_line(Window_ *w, Array *a, Scroll *s, int pos);
 
 int main(int argc, char **argv)
 {
@@ -341,7 +348,8 @@ int main(int argc, char **argv)
   struct sigaction sact;
   initialize_sigwinch(&sact);
 
-  int c = 0;
+  int c;
+  //long unsigned c;
   int previous_pos_c = 0;
   int second_previous_c = 0;
   int option = 0,
@@ -400,6 +408,9 @@ int main(int argc, char **argv)
   int pos_for_w0 = pos;
 
   int previous_pos_w0 = pos;
+
+  mode_normal = 1;
+  mode_visual = 0;
 
   for (;;) {
     if (!ioctl(0, TIOCGWINSZ, &w_s)) {
@@ -460,13 +471,18 @@ int main(int argc, char **argv)
         if (c == BACKSPACE && image_cp_signal == 1) {
           image_cp_signal = 0;
         }
-        reprint_menu(&w1, &s, left_box, attributes, pos, option);
+        if (c != 0) {
+          reprint_menu(&w1, &s, left_box, attributes, pos, option);
+        }
         if (number_of_windows == 3) {
 #if defined(PRINT_OTHERTTY)
           y_pts = 1;
           TTYINT(y_pts, 1, pos_for_w0); ++y_pts;
 #endif // PRINT_OTHERTTY
-          reprint_menu(&w0, &s_w0, w0_left_box, w0_attributes, pos_for_w0, option);
+
+          if (c != 0) {
+            reprint_menu(&w0, &s_w0, w0_left_box, w0_attributes, pos_for_w0, option);
+          }
         }
       }
       if (c == 'c' || c == 'x' || c == 'y' && image_cp_signal == 0) {
@@ -481,6 +497,7 @@ int main(int argc, char **argv)
           if (image_cp_signal == 0) {
             size_t len_copy = strlen(left_box->menu[pos].complete_path);
             copy(&file_to_be_copied, left_box->menu[pos].complete_path, len_copy);
+            left_box->menu[pos].is_marked = 1;
             if (c == 'x') {
               file_to_be_moved_signal = 1;
             }
@@ -507,6 +524,7 @@ int main(int argc, char **argv)
 
         erase_window(&w1, &s);
         reprint_menu(&w1, &s, left_box, attributes, pos, option);
+        left_box->menu[pos].is_marked = 0;
         file_pasted_signal = 1;
         if (image_cp_signal) {
           image_cp_signal = 0;
@@ -540,7 +558,9 @@ int main(int argc, char **argv)
           del_from_cursor(del_in);
         }
       }
-      print_entries(&w1, &s, NULL, option, (int)c, &pos, left_box);
+      if (c != 0 && c != KEY_ESCAPE && c > 0) {
+        print_entries(&w1, &s, NULL, option, (int)c, &pos, left_box);
+      }
 
 #if defined(BOXDBG)
     if (debug_fd_scroll_pos) {
@@ -559,13 +579,28 @@ int main(int argc, char **argv)
       print_message2(&w1, &s, 0, pos, &msg);
 #endif // EBUG
 
-      if (resized == 0 && image_used == 0) {
+      if (resized == 0 && image_used == 0 && c != 0 && c != KEY_ESCAPE && c > 0) {
         result_print_image = print_right_window3(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, &info_file, pos, &c);
       }
       //if (c == KEY_ESCAPE) { break; }
-      if (c == KEY_Q) { break; }
+      if (c == KEY_Q) {
+        break;
+      } else if (c == KEY_ESCAPE) {
+        //c = 'r';
+        //c = 1;
+        //break;
+      //} else if (c == 0) {
+        //sleep(5);
+        //resized = 0;
+        //continue;
+      }
     }
-    print_permissions(left_box, &s, &w1, pos);
+    if (number_of_windows == 2) {
+      show_status_line(&w1, left_box, &s, pos);
+    } else if (number_of_windows == 3) {
+      show_status_line(&w0, left_box, &s, pos);
+    }
+    //print_permissions(left_box, &s, &w1, pos);
 
     if (enter_backspace == 1 && attributes->n_elements != 0 && back_pressed == 1 && initial_loop != 1) {
       if (number_of_windows == 3 && w0_attributes->n_elements > 0) {
@@ -587,14 +622,19 @@ int main(int argc, char **argv)
 #endif // EBUG
 
     if (resized == 0) {
-      horizontal_navigation((int *)&c, &pos, &n_windows, &first_window_width_fraction, &left_box, &right_box, &w0_left_box, &attributes,
+      int loop = 0;
+      loop = horizontal_navigation((int *)&c, &pos, &n_windows, &first_window_width_fraction, &left_box, &right_box, &w0_left_box, &attributes,
+      //loop = horizontal_navigation((long unsigned *)&c, &pos, &n_windows, &first_window_width_fraction, &left_box, &right_box, &w0_left_box, &attributes,
                             &w0_attributes, &w0, &w1, &w2, &posit,
                             position_before_copying, &previous_pos, &s, &s_w0, &previous_pos_w0, &pos_for_w0,
                             &second_previous_c, &previous_pos_c, &option, &secondary_loop, &left_allocation, &backspace);
-
+      if (loop == 0) {
+        break;
+      }
+      //TTYINTFD(1, 30, 1, c);
     }
 
-    if (resized == 1 || enter_backspace) {
+    if (resized == 1 || enter_backspace && c != 0 && c != KEY_ESCAPE && c > 0) {
       erase_window(&w2, &s);
     }
     initial_loop = 0;
@@ -1318,15 +1358,13 @@ void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos)
       bg_blue, " NORMAL", bg_reset, bg_cyan,
       fg_blue, r_full_triangle, fg_reset, fg_blue, r_line_triangle, bg_reset, fg_reset, bg_light_blue, " ", bg_reset);
 */
-  if (pos > 0 && pos < a->n_elements -  1) {
-    mv(w_main.y_size - 1, w_main.x_beg + 1);
-    del_from_cursor(del_in);
-    sprintf(position, place_, w_main.y_size - 2, w_main.x_beg + 1);
-    move(1, position);
-    del_from_cursor(del_in);
+  if (pos >= 0 && pos < a->n_elements -  1) {
+    //mv(w_main.y_size - 1, w_main.x_beg + 1);
+    //del_from_cursor(del_in);
+    //mv(w_main.y_size - 2, w_main.x_beg + 1);
+    //del_from_position(del_in);
     write_partial(a->menu[pos].permissions, strlen(a->menu[pos].permissions));
-    sprintf(position, place_, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
-    move(1, position);
+    //mv(pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
   }
 }
 
@@ -1451,6 +1489,7 @@ void print_all_attributes_fd(int fd, Attributes *attr, int *y_position)
 }
 
 int horizontal_navigation(int *c, int *pos, int *n_windows,
+//int horizontal_navigation(long unsigned *c, int *pos, int *n_windows,
                           int *first_window_width_fraction,
                           Array **left_box, Array **right_box, Array **w0_left_box, Attributes **attributes, Attributes **w0_attributes,
                           Window_ *w0, Window_ *w1, Window_ *w2, Positions *posit,
@@ -1458,7 +1497,25 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
                           int *second_previous_c, int *previous_pos_c, int *option, int *secondary_loop,
                           int *left_allocation, int *backspace)
 {
-    if (image_used == 0 && (*c = kbget()) == KEY_Q && resized == 0) {
+  //*c = m_getch();
+  //*c = kbget();
+  /*
+  if (*c == KEY_ESCAPE) {
+    *c = kbesc();
+  }
+  */
+  *c = get_char();
+
+  TTYINTFD(1, 30, 1, *c);
+  //if (*c == KEY_ESCAPE) {
+  //  sleep(5);
+  //  TTYSTRFD(1, 30, 1, "KEY_ESCAPE");
+  //}
+  //if (*c == -1 || *c == 0) {
+    //ungetc(*c, stdin);
+    //*c = 0;
+  //}
+    if (image_used == 0 && /*(*c = kbget()) == KEY_Q*/ *c == KEY_Q && resized == 0) {
       return 0;
     } else
       if (image_used == 0 && (*c == 'l' || *c == KEY_ENTER || *c == ENTER) &&
@@ -1690,6 +1747,9 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       w0_s->pos_upper_t = 0;
       w0_s->n_lower_t = 0;
       w0_s->n_to_print = 0;
+    } else if (*c == KEY_ESCAPE) {
+      mode_normal = 0;
+      mode_visual = 1;
     }
     *previous_pos_c = *c;
 
@@ -1781,14 +1841,12 @@ int window_resize2(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
 
     if (*initial_loop) {
       char *parent;
-      //getParent(left_box->menu[*pos].complete_path, &parent);
       get_parent(left_box->menu[*pos].complete_path, &parent, 1);
       print_path(s, parent, *pos, 0);
       if (parent != NULL) {
         free(parent);
         parent = NULL;
       }
-      //print_path(&s, argv[1], pos, 0);
     } else {
       print_path(s, left_box->menu[*pos].complete_path, *pos, 0);
     }
@@ -2909,6 +2967,96 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
   move(1, position);
 }
 
+int show_all_85()
+{
+  //space
+  int len = 10;
+  background_blue
+  string_normal
+  space_str
+  foreground_blue
+  background_cyan
+  right_full_triangle
+  background_cyan
+  foreground_cyan
+  background_reset
+  right_full_triangle
+  foreground_blue
+  right_line_triangle
+  //foreground_reset
+  return len;
+}
+
+int show_all_855(int y, int x)
+{
+  //space
+  int len = 10;
+  background_blue
+  mv(y, x);
+  string_normal
+  space_str
+  foreground_blue
+  background_cyan
+  right_full_triangle
+  background_cyan
+  foreground_cyan
+  background_reset
+  background_blue
+  right_full_triangle
+  foreground_blue
+  //right_line_triangle
+  //mv(y, x + 11);
+  //background_blue
+  background_blue
+  //background_blue
+  //foreground_reset
+  return len;
+}
+
+int show_all_8555(int y, int x)
+{
+  int len = 5;
+  background_blue
+  mv(y, x);
+  string_mode_n
+  space_str
+  foreground_blue
+  background_cyan
+  right_full_triangle
+  background_cyan
+  foreground_cyan
+  background_reset
+  background_blue
+  right_full_triangle
+  foreground_blue
+  background_blue
+  return len;
+}
+
+void show_status_line(Window_ *w, Array *a, Scroll *s, int pos)
+{
+  // lower status line
+  int vert = w->y_size;
+  mv(vert + w->y_beg + 1, w->x_beg);
+  if (number_of_windows == 2 && w == &w1 || number_of_windows == 3 && w == &w0) {
+    int len_airline = show_all_8555(vert + w->y_beg + 1, w->x_beg);
+    int j;
+    int len_permissions = strlen(a->menu[pos].permissions);
+    for (j = 0; j < w_main.x_size - len_airline - len_permissions - 1; ++j) {
+      space_str
+      if (j == 1) {
+        foreground_reset
+        print_permissions(a, s, w, pos);
+        foreground_blue
+        background_blue
+      }
+    }
+    foreground_reset
+    background_reset
+  }
+  mv(pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+}
+
 void draw_box(Window_ *w)
 {
   int i = 1, j = 0;
@@ -2923,8 +3071,6 @@ void draw_box(Window_ *w)
     write_sz(fg_cyan);
   }
   // upper left corner
-  //sprintf(position, place_, w->y_beg, w->x_beg);
-  //move(1, position);
   mv(w->y_beg, w->x_beg);
   if (w != &w2) {
     write_len(ARRAY[cont_2]);
@@ -2937,8 +3083,6 @@ void draw_box(Window_ *w)
   }
   // upper right corner
   if (w == &w2) {
-    //sprintf(position, place_, w->y_beg, w->x_beg + horiz);
-    //move(1, position);
     mv(w->y_beg, w->x_beg + horiz);
     write_len(ARRAY[cont_4]);
   }
@@ -2971,6 +3115,19 @@ void draw_box(Window_ *w)
     write_len(ARRAY[cont_5]);
   }
   write_sz(fg_reset);
+/*
+  // lower status line
+  mv(vert + w->y_beg + 1, w->x_beg);
+  //int len_airline = show_all_85();
+  if (number_of_windows == 2 && w == &w1 || number_of_windows == 3 && w == &w0) {
+    int len_airline = show_all_855(vert + w->y_beg + 1, w->x_beg);
+    for (j = 0; j < w_main.x_size - len_airline - 2; ++j) {
+      space_str
+    }
+    foreground_reset
+    background_reset
+  }
+*/
   mv(vert / 2, w->x_beg + 1);
 }
 

@@ -26,6 +26,7 @@ typedef struct {
     int previous_pos;
     //int pos;
     int highlighted_pos;
+    int is_marked;
 } Menu;
 
 typedef struct {

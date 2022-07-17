@@ -72,6 +72,7 @@ static int quit = FALSE;
 #define KEY_END       0x0168 // 360
 #define KEY_ALL_UP    0x0061 // 97 equivalent to key_home
 #define KEY_BACK      0x007f
+#define KEY_Q         0x0071 // 113 'q'
 
 #define DN            0x006a
 #define UP            0x006b
