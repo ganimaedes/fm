@@ -277,10 +277,7 @@ void print_attributes(Attributes *attr, int *y_pts_2);
 void print_all_attributes(Attributes *attr, int *y_pts_2);
 void print_all_attributes_fd(int fd, Attributes *attr, int *y_position);
 void print_box_fd(int fd, Array *box, int *y_position);
-void scroll_window3(Window_ *w, Array *box, Scroll *s, int *pos);
-void scroll_window4(Window_ *w, Array *box, Scroll *s, int *pos);
 void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos);
-void scroll_window_up7(Window_ *w, Array *box, Scroll *s, int *pos);
 void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos);
 void print_scroll(Scroll *s, int *pos, int *y_position);
 void ask_user(char *warning, int *c);
@@ -933,19 +930,13 @@ void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos)
       mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
       print(w, box, *pos);
     }
-    //if (*pos >= box->n_elements || *pos <= 0) {
     if (*pos <= 0) {
       if (s->pos_upper_t == 0 && *pos < scroll_up_value) {
         --*pos;
       }
       ++*pos;
-      //mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-      //print(w, box, *pos);
     }
 
-    /*if (s->pos_upper_t == 0 && *pos < scroll_up_value) {
-      --*pos;
-    }*/
     mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
     highlight4(w, box, pos);
   }
@@ -962,134 +953,6 @@ void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos)
       TTYINTFD2(fd_boxdbg, y_position, 1, left_to_scroll); ++y_position;
     }
 #endif // BOXDBG
-}
-
-void scroll_window_up7(Window_ *w, Array *box, Scroll *s, int *pos)
-{
-  int i, j = *pos, k = 0;
-  int scroll_up_value = 5;
-  int n_to_print = 0;
-  const int last_element_pos = box->n_elements - 1;
-  if (box->n_elements > w->y_size - 1) {
-    n_to_print = w->y_size - 1;
-  } else {
-    n_to_print = box->n_elements;
-  }
-  if (*pos > 0 &&
-       *pos - scroll_up_value >= 0 &&
-        *pos <= s->pos_lower_t &&
-         *pos - scroll_up_value >= scroll_up_value  &&
-           s->pos_upper_t != 0 && s->pos_lower_t != 0 ||
-          *pos == s->pos_upper_t) {
-
-    if (*pos == s->pos_lower_t && s->pos_upper_t == 0) {
-      int pos_to_highlight = *pos - scroll_up_value;
-      for (int d = *pos; d >= pos_to_highlight + 1; --d) {
-        if (*pos > 0) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, *pos);
-          --*pos;
-          if (*pos >= 0) {
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            highlight4(w, box, pos);
-            usleep(50000);
-          }
-        }
-      }
-    } else {
-      erase_window(w, s);
-      int n = *pos - s->pos_upper_t + w->y_beg + 1;
-      int up = *pos - s->pos_upper_t;
-      int dn = s->pos_lower_t - *pos;
-      int a = 0;
-      for (int t = 0; t < scroll_up_value; --*pos, --s->pos_upper_t, --s->pos_lower_t, ++s->n_lower_t, --s->n_upper_t, ++t) {
-        if (*pos >= 1 && *pos < box->n_elements - 1 && s->pos_upper_t > 0) {
-          for (a = 0; a < up; ++a) {
-            mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            if (s->pos_upper_t + a - 1 >= 0) {
-              print(w, box, s->pos_upper_t + a - 1);
-            }
-          }
-          mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          int orig = *pos - 1;
-          highlight4(w, box, &orig);
-          usleep(50000);
-          for (++a; a < dn + up + 1; ++a) {
-            mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            if (s->pos_upper_t + a - 1 >= 0) {
-              print(w, box, s->pos_upper_t + a - 1);
-            }
-          }
-        } else if (s->pos_upper_t == 0) {
-          for (int g = 0; g < (scroll_up_value - t); ++g) {
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1 - g, w->x_beg + 1, w->x_size);
-            print(w, box, *pos);
-            if (g == scroll_up_value - t - 1) {
-              mverase(*pos - 1 - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-              int orig2 = *pos - 1;
-              highlight4(w, box, &orig2);
-            }
-          }
-        }
-        if (s->pos_upper_t < 0) {
-            mverase(*pos + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            print(w, box, *pos);
-            if (s->pos_upper_t < 0) {
-              mverase(*pos + w->y_beg, w->x_beg + 1, w->x_size);
-              int orig2 = *pos - 1;
-              highlight4(w, box, &orig2);
-            }
-            usleep(50000);
-            ++n;
-        }
-      }
-    }
-  } else if (s->pos_upper_t == 0) {
-    int pos_to_highlight = *pos - scroll_up_value;
-    for (int d = *pos; d >= pos_to_highlight + 1; --d) {
-      if (*pos > 0) {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, *pos);
-        --*pos;
-        if (*pos >= 0) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          highlight4(w, box, pos);
-          usleep(50000);
-        }
-      }
-    }
-  } else if (*pos - scroll_up_value < scroll_up_value) {
-    int a;
-    int up = *pos - s->pos_upper_t;
-    int dn = s->pos_lower_t - *pos;
-    for (int i = 0; i < scroll_up_value && *pos >= 0; ++i, --*pos, --s->pos_lower_t, --s->pos_upper_t, ++s->n_lower_t) {
-
-      if (*pos >= 0) {
-        for (a = 0; a < up; ++a) {
-          mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          if (s->pos_upper_t + a - 1 >= 0) {
-            print(w, box, s->pos_upper_t + a - 1);
-          }
-        }
-        mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        int orig = *pos - 1;
-        highlight4(w, box, &orig);
-        usleep(50000);
-        for (++a; a < dn + up + 1; ++a) {
-          mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          if (s->pos_upper_t + a - 1 >= 0) {
-            print(w, box, s->pos_upper_t + a - 1);
-          }
-        }
-      }
-    }
-  }
-
-  while (s->pos_upper_t <= -1) {
-    ++s->pos_upper_t;
-    ++s->pos_lower_t;
-    --s->n_lower_t;
-  }
 }
 
 void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos)
@@ -1158,218 +1021,6 @@ void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos)
       TTYINTFD2(fd_boxdbg, y_position, 1, left_to_scroll); ++y_position;
     }
 #endif // BOXDBG
-}
-
-void scroll_window4(Window_ *w, Array *box, Scroll *s, int *pos)
-{
-  int i, j, k, n_to_scroll = 0;
-  int scroll_down_value = 5;
-  int n_to_print = 0;
-  const int last_element_pos = box->n_elements - 1;
-  if (box->n_elements > w->y_size - 1) {
-    n_to_print = w->y_size - 1;
-  } else {
-    n_to_print = box->n_elements;
-  }
-  erase_window(w, s);
-  for (; s->n_lower_t >= 0 && n_to_scroll < scroll_down_value; ++s->pos_lower_t, ++s->pos_upper_t, --s->n_lower_t, ++*pos, ++n_to_scroll) {
-    for (k = 0; k < *pos - s->pos_upper_t; ++k) {
-      if (*pos < box->n_elements && k + s->pos_upper_t < box->n_elements - 1) {
-        mverase(k + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, k + s->pos_upper_t);
-      }
-    }
-    for (i = 0, j = *pos; i < n_to_print - k; ++i) {
-      if (*pos < box->n_elements && j + 1 < box->n_elements) {
-        mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        if (i == 0) {
-          highlight4(w, box, pos);
-        } else {
-          print(w, box, ++j);
-        }
-      }
-    }
-    //--s->pos_lower_t; ++s->pos_upper_t; --s->n_lower_t; ++*pos; ++n_to_scroll;
-    usleep(50000);
-  }
-
-  if (*pos - 1 >= 0) {
-    --*pos;
-  }
-  --s->pos_upper_t;
-  --s->pos_lower_t;
-  ++s->n_lower_t;
-
-#if defined(BOXDBG)
-    if (debug_fd_scroll_pos) {
-      int y_position = 1; //_PRINTDEBUG;
-      TTYINTFD2(fd_boxdbg, y_position, 1, *pos + scroll_down_value); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, *pos - s->pos_upper_t + w->y_beg + 1); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, n_to_print - k); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, n_to_print); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, k); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, w->y_size); ++y_position;
-    }
-#endif // BOXDBG
-}
-
-void scroll_window3(Window_ *w, Array *box, Scroll *s, int *pos)
-{
-  int i, j = *pos, k = 0, j_2 = 0;
-  int scroll_down_value = 5;
-  int n_to_print = 0;
-  const int last_element_pos = box->n_elements - 1;
-  if (box->n_elements > w->y_size - 1) {
-    n_to_print = w->y_size - 1;
-  } else {
-    n_to_print = box->n_elements;
-  }
-  if (*pos < s->array_size - 1 &&
-       *pos + scroll_down_value <= last_element_pos &&
-        *pos >= s->pos_upper_t && s->pos_lower_t != box->n_elements - 1 &&
-         *pos + scroll_down_value <= last_element_pos - scroll_down_value ||
-          *pos == s->pos_lower_t &&
-          s->pos_lower_t != last_element_pos /*|| (*pos == s->pos_lower_t && s->pos_lower_t != last_element_pos)*/ //&&
-          /*s->pos_lower_t > 0*/) {
-    erase_window(w, s);
-    int old_lower_pos = s->pos_lower_t;
-    for (; j_2 < scroll_down_value && s->n_lower_t >= 0; ++*pos, ++s->pos_upper_t, ++s->pos_lower_t, --s->n_lower_t, ++j_2) {
-      for (k = 0; k < *pos - s->pos_upper_t; ++k) {
-        if (*pos < box->n_elements && k + s->pos_upper_t < box->n_elements - 1) {
-          mverase(k + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, k + s->pos_upper_t);
-        }
-      }
-      for (i = 0, j = *pos; i < n_to_print - k; ++i) {
-        if (*pos < box->n_elements && j + 1 < box->n_elements) {
-          mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          if (i == 0) {
-            highlight4(w, box, pos);
-          } else {
-            print(w, box, ++j);
-          }
-        }
-      }
-      usleep(50000);
-    }
-#if defined(BOXDBG)
-    if (debug_fd_scroll_pos) {
-      int y_position = 1; //_PRINTDEBUG;
-      TTYINTFD2(fd_boxdbg, y_position, 1, *pos + scroll_down_value); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, *pos - s->pos_upper_t + w->y_beg + 1); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, n_to_print - k); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, n_to_print); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, k); ++y_position;
-      TTYINTFD2(fd_boxdbg, y_position, 1, w->y_size); ++y_position;
-    }
-#endif // BOXDBG
-
-    if (*pos - 1 >= 0) {
-      --*pos;
-    }
-    --s->pos_upper_t;
-    --s->pos_lower_t;
-    ++s->n_lower_t;
-  } else if (*pos + scroll_down_value > last_element_pos) {
-      int orig_pos = *pos;
-      int i = 0;
-      mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-      print(w, box, *pos);
-      for (i = 0; i < (s->pos_lower_t - orig_pos); ++i, ++*pos) {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        highlight4(w, box, pos);
-        usleep(50000);
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, *pos);
-      }
-      if (*pos == box->n_elements - 2) {
-        mverase((*pos) - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        int v_pos = *pos + 1;
-        highlight4(w, box, &v_pos);
-      } else {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        highlight4(w, box, pos);
-      }
-    }
-    //else if (*pos == s->pos_lower_t && s->pos_lower_t == box->n_elements - 1) {
-    //  return;
-    //}
-    else if (*pos < s->pos_lower_t - 1) {
-
-      //
-      if (s->n_lower_t < n_to_print && s->pos_lower_t != last_element_pos) {
-        int saved_pos = s->pos_lower_t - *pos;
-        for (int i = 0; i < saved_pos; ++i, ++*pos) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          highlight4(w, box, pos);
-          usleep(50000);
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, *pos);
-        }
-        erase_window(w, s);
-        s->pos_lower_t = last_element_pos;
-        s->pos_upper_t = s->pos_lower_t - n_to_print + 1;
-        s->n_lower_t = 0;
-        ++*pos;
-        for (int d = s->pos_upper_t; d <= s->pos_lower_t; ++d) {
-          mverase(d - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, d);
-        }
-        for (int r = 0; r <= scroll_down_value - saved_pos; ++r) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          highlight4(w, box, pos);
-          usleep(50000);
-          if (r != scroll_down_value - saved_pos) {
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            print(w, box, *pos);
-            ++*pos;
-          }
-        }
-      }
-      //
-      else {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, *pos);
-
-        for (int j_ = 0; j_ < scroll_down_value; ++*pos, ++j_) {
-          if (*pos < box->n_elements) {
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            highlight4(w, box, pos);
-            usleep(50000);
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            print(w, box, *pos);
-          }
-        }
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        highlight4(w, box, pos);
-      }
-    } else {
-      erase_window(w, s);
-      int pos_to_highlight = scroll_down_value - (s->pos_lower_t - *pos);
-      s->pos_lower_t = last_element_pos;
-      s->pos_upper_t = s->pos_lower_t - n_to_print + 1;
-      s->n_lower_t = 0;
-      //si space ds mv backslash plein de problemes
-      *pos = s->pos_upper_t;
-      // reprint
-      int d;
-      for (d = s->pos_upper_t; d <= s->pos_lower_t; ++d) {
-        mverase(d - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, d);
-      }
-
-      int r, t = 1;
-      for (r = 0; r <= pos_to_highlight; ++r) {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        highlight4(w, box, pos);
-        usleep(50000);
-        if (r != pos_to_highlight) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, *pos);
-          ++*pos;
-        }
-      }
-    }
 }
 
 int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
@@ -3144,12 +2795,9 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
       highlight4(w, a, pos);
       break;
     case 4:
-        //scroll_window3(&w1, a, s, pos);
-        //scroll_window4(&w1, a, s, pos);
         scroll_window5(&w1, a, s, pos);
       break;
     case 21:
-      //scroll_window_up7(&w1, a, s, pos);
       scroll_window_up8(&w1, a, s, pos);
       break;
     default:
