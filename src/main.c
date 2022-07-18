@@ -542,8 +542,6 @@ int main(int argc, char **argv)
           char *warning = "Delete this directory and all of its contents? (Y/n): ";
           if (ask_user(warning, &c)) {
             if (c != 0) {
-              //reprint = 0;
-              //resized = 0;
               copy(&folder_to_be_deleted, left_box->menu[pos].complete_path, len_copy);
               mv_to_trash3(&w1, &s, &left_box, &pos, &option);
               reprint_menu_only(&w1, &s, left_box, pos);
@@ -562,7 +560,10 @@ int main(int argc, char **argv)
           //del_from_cursor(del_in);
         } else if (*(left_box->menu[pos].type) == 'f') {
           char *warning = "Delete this file? (Y/n): ";
-          ask_user(warning, &c);
+          if (ask_user(warning, &c)) {
+            mv_to_trash3(&w1, &s, &left_box, &pos, &option);
+            reprint_menu_only(&w1, &s, left_box, pos);
+          }
           /*
           if (delete_file_folder_request == 1) {
             mv_to_trash3(&w1, &s, &left_box, &pos, &option);
@@ -1336,7 +1337,7 @@ int mv_to_trash3(Window_ *w1, Scroll *s, Array **left_box, int *pos, int *option
   } else if ((*left_box)->n_elements == 0) {
     *pos = 0;
   }
-  reprint_menu(w1, s, *left_box, attributes, *pos, *option);
+  //reprint_menu(w1, s, *left_box, attributes, *pos, *option);
 
   if (_parent) {
     free(_parent);
@@ -2226,6 +2227,7 @@ void reprint_menu_only(Window_ *w, Scroll *s, Array *a, int pos)
 {
   int skip_deleted_file = 0;
   int skip_deleted_folder = 0;
+  /*
   if (delete_file_folder_request == 1) {
     if (*(a->menu[pos].type) == 'd') {
       skip_deleted_folder = 1;
@@ -2233,6 +2235,7 @@ void reprint_menu_only(Window_ *w, Scroll *s, Array *a, int pos)
       skip_deleted_file = 1;
     }
   }
+  */
   if (pos >= 0 && a->n_elements > 0) {
     int i;
     for (i = s->pos_upper_t; i <= s->pos_lower_t; ++i) {
