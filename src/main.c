@@ -282,9 +282,6 @@ void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos);
 void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos);
 void print_scroll(Scroll *s, int *pos, int *y_position);
 int ask_user(char *warning, int *c);
-int show_all_85();
-int show_all_855(int y, int x);
-int show_all_8555(int y, int x);
 int show_all_airline(int y, int x);
 void show_status_line(Window_ *w, Array *a, Scroll *s, int pos);
 
@@ -606,14 +603,10 @@ int main(int argc, char **argv)
         //continue;
       }
     }
-    if (number_of_windows == 2) {
-      if (delete_file_folder_request == 0) {
-        show_status_line(&w1, left_box, &s, pos);
-      }
-    } else if (number_of_windows == 3) {
-      if (delete_file_folder_request == 0) {
-        show_status_line(&w0, left_box, &s, pos);
-      }
+    if (number_of_windows == 2 && delete_file_folder_request == 0) {
+      show_status_line(&w1, left_box, &s, pos);
+    } else if (number_of_windows == 3 && delete_file_folder_request == 0) {
+      show_status_line(&w0, left_box, &s, pos);
     }
     //print_permissions(left_box, &s, &w1, pos);
 
@@ -1245,12 +1238,7 @@ void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos)
       fg_blue, r_full_triangle, fg_reset, fg_blue, r_line_triangle, bg_reset, fg_reset, bg_light_blue, " ", bg_reset);
 */
   if (pos >= 0 && pos < a->n_elements -  1) {
-    //mv(w_main.y_size - 1, w_main.x_beg + 1);
-    //del_from_cursor(del_in);
-    //mv(w_main.y_size - 2, w_main.x_beg + 1);
-    //del_from_position(del_in);
     write_partial(a->menu[pos].permissions, strlen(a->menu[pos].permissions));
-    //mv(pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
   }
 }
 
@@ -2875,72 +2863,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
   move(1, position);
 }
 
-int show_all_85()
-{
-  //space
-  int len = 10;
-  background_blue
-  string_normal
-  space_str
-  foreground_blue
-  background_cyan
-  right_full_triangle
-  background_cyan
-  foreground_cyan
-  background_reset
-  right_full_triangle
-  foreground_blue
-  right_line_triangle
-  //foreground_reset
-  return len;
-}
-
-int show_all_855(int y, int x)
-{
-  //space
-  int len = 10;
-  background_blue
-  mv(y, x);
-  string_normal
-  space_str
-  foreground_blue
-  background_cyan
-  right_full_triangle
-  background_cyan
-  foreground_cyan
-  background_reset
-  background_blue
-  right_full_triangle
-  foreground_blue
-  //right_line_triangle
-  //mv(y, x + 11);
-  //background_blue
-  background_blue
-  //background_blue
-  //foreground_reset
-  return len;
-}
-
-int show_all_8555(int y, int x)
-{
-  int len = 5;
-  background_blue
-  mv(y, x);
-  string_mode_n
-  space_str
-  foreground_blue
-  background_cyan
-  right_full_triangle
-  background_cyan
-  foreground_cyan
-  background_reset
-  background_blue
-  right_full_triangle
-  foreground_blue
-  background_blue
-  return len;
-}
-
 int show_all_airline(int y, int x)
 {
   int len = 5;
@@ -2967,25 +2889,43 @@ int show_all_airline(int y, int x)
 
 void show_status_line(Window_ *w, Array *a, Scroll *s, int pos)
 {
-  // lower status line
   int vert = w->y_size;
   mv(vert + w->y_beg + 1, w->x_beg);
   if (number_of_windows == 2 && w == &w1 || number_of_windows == 3 && w == &w0) {
-    //int len_airline = show_all_8555(vert + w->y_beg + 1, w->x_beg);
+    empty_space_debug_fd(1, w_main.x_size - 1);
+    mv(vert + w->y_beg + 1, w->x_beg);
     int len_airline = show_all_airline(vert + w->y_beg + 1, w->x_beg);
-    int j;
-    int len_permissions = strlen(a->menu[pos].permissions);
-    for (j = 0; j < w_main.x_size - len_airline - len_permissions - 1; ++j) {
-      space_str
-      if (j == 1) {
-        foreground_reset
-        print_permissions(a, s, w, pos);
-        foreground_blue
-        background_blue
+    if (a->n_elements > 0) {
+      int j, k;
+      int len_permissions = strlen(a->menu[pos].permissions);
+      int array_position = pos + 1;
+      int n_elements = a->n_elements;
+      int len_object_number = 3;
+      while (++len_object_number && (array_position /= 10) > 0);
+      while (++len_object_number && (n_elements /= 10) > 0);
+      for (j = 0; j < w_main.x_size - len_airline - len_permissions - len_object_number - 1; ++j) {
+        space_str
+        if (j == 1) {
+          foreground_reset
+          print_permissions(a, s, w, pos);
+          foreground_blue
+          background_blue
+        }
       }
+      //for (k = j; k < w_main.x_size - 1; ++k) {
+      foreground_reset
+      mv(w->y_size + w->y_beg + 1, w_main.x_size - len_object_number);
+      sprintf(numinteger, NUMINTEGER, pos + 1);
+      write_partial(numinteger, strlen(numinteger));
+      write_partial(" / ", 3);
+      sprintf(numinteger, NUMINTEGER, a->n_elements);
+      write_partial(numinteger, strlen(numinteger));
+      foreground_blue
+      background_blue
+        //}
+      foreground_reset
+      background_reset
     }
-    foreground_reset
-    background_reset
   }
   mv(pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
 }
@@ -3003,18 +2943,18 @@ void draw_box(Window_ *w)
   if (box_color && box_thickness) {
     write_sz(fg_cyan);
   }
-  // upper left corner
+  // top left corner
   mv(w->y_beg, w->x_beg);
   if (w != &w2) {
     write_len(ARRAY[cont_2]);
   } else if (w == &w2) {
     write_len(ARRAY[cont_6]);
   }
-  // upper horizontal line
+  // top horizontal line
   for (; j < horiz - 1; ++j) {
     write_len(ARRAY[cont_0]);
   }
-  // upper right corner
+  // top right corner
   if (w == &w2) {
     mv(w->y_beg, w->x_beg + horiz);
     write_len(ARRAY[cont_4]);
@@ -3048,19 +2988,6 @@ void draw_box(Window_ *w)
     write_len(ARRAY[cont_5]);
   }
   write_sz(fg_reset);
-/*
-  // lower status line
-  mv(vert + w->y_beg + 1, w->x_beg);
-  //int len_airline = show_all_85();
-  if (number_of_windows == 2 && w == &w1 || number_of_windows == 3 && w == &w0) {
-    int len_airline = show_all_855(vert + w->y_beg + 1, w->x_beg);
-    for (j = 0; j < w_main.x_size - len_airline - 2; ++j) {
-      space_str
-    }
-    foreground_reset
-    background_reset
-  }
-*/
   mv(vert / 2, w->x_beg + 1);
 }
 
