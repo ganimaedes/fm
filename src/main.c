@@ -217,6 +217,7 @@ int show_tar(pid_t *pid, char *buffer, int *bytes_read, char *tar_name);
 int match_extension(char *name, const char *ext);
 void handler(int sig);
 void reprint_menu(Window_ *w, Scroll *s, Array *a, Attributes *attr, int pos, int option);
+void reprint_menu_only(Window_ *w, Scroll *s, Array *a, int pos);
 void copy_scroll(Scroll *s_in, Scroll *s_out);
 void indicators(Window_ *w, int y, int x, char pos_c[], char in[], char *msg);
 void erase_window(Window_ *w, Scroll *s);
@@ -280,10 +281,8 @@ void print_box_fd(int fd, Array *box, int *y_position);
 void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos);
 void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos);
 void print_scroll(Scroll *s, int *pos, int *y_position);
-void ask_user(char *warning, int *c);
-int show_all_85();
-int show_all_855(int y, int x);
-int show_all_8555(int y, int x);
+int ask_user(char *warning, int *c);
+int show_all_airline(int y, int x);
 void show_status_line(Window_ *w, Array *a, Scroll *s, int pos);
 
 int main(int argc, char **argv)
@@ -539,23 +538,39 @@ int main(int argc, char **argv)
         copy(&file_to_be_copied, left_box->menu[pos].complete_path, len_copy);
         if (*(left_box->menu[pos].type) == 'd') {
           char *warning = "Delete this directory and all of its contents? (Y/n): ";
-          ask_user(warning, &c);
+          if (ask_user(warning, &c)) {
+            if (c != 0) {
+              copy(&folder_to_be_deleted, left_box->menu[pos].complete_path, len_copy);
+              mv_to_trash3(&w1, &s, &left_box, &pos, &option);
+              reprint_menu_only(&w1, &s, left_box, pos);
+              //delete_file_folder_request = 0;
+            }
+          }
+          /*
           if (delete_file_folder_request == 1) {
             mv_to_trash3(&w1, &s, &left_box, &pos, &option);
             //int result_copy = copy_file3(&left_box, pos);
-            delete_file_folder_request = 0;
+            //delete_file_folder_request = 0;
           }
+          */
           mv(w_main.y_size - 1, w_main.x_beg + 1);
-          del_from_cursor(del_in);
+          empty_space_debug_fd(1, w_main.x_size - 1);
+          //del_from_cursor(del_in);
         } else if (*(left_box->menu[pos].type) == 'f') {
           char *warning = "Delete this file? (Y/n): ";
-          ask_user(warning, &c);
+          if (ask_user(warning, &c)) {
+            mv_to_trash3(&w1, &s, &left_box, &pos, &option);
+            reprint_menu_only(&w1, &s, left_box, pos);
+          }
+          /*
           if (delete_file_folder_request == 1) {
             mv_to_trash3(&w1, &s, &left_box, &pos, &option);
-            delete_file_folder_request = 0;
+            //delete_file_folder_request = 0;
           }
+          */
           mv(w_main.y_size - 1, w_main.x_beg + 1);
-          del_from_cursor(del_in);
+          empty_space_debug_fd(1, w_main.x_size - 1);
+          //del_from_cursor(del_in);
         }
       }
       if (c != 0 && c != KEY_ESCAPE && c > 0) {
@@ -582,22 +597,15 @@ int main(int argc, char **argv)
       if (resized == 0 && image_used == 0 && c != 0 && c != KEY_ESCAPE && c > 0) {
         result_print_image = print_right_window3(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, &info_file, pos, &c);
       }
-      //if (c == KEY_ESCAPE) { break; }
       if (c == KEY_Q) {
         break;
       } else if (c == KEY_ESCAPE) {
-        //c = 'r';
-        //c = 1;
-        //break;
-      //} else if (c == 0) {
-        //sleep(5);
-        //resized = 0;
         //continue;
       }
     }
-    if (number_of_windows == 2) {
+    if (number_of_windows == 2 && delete_file_folder_request == 0) {
       show_status_line(&w1, left_box, &s, pos);
-    } else if (number_of_windows == 3) {
+    } else if (number_of_windows == 3 && delete_file_folder_request == 0) {
       show_status_line(&w0, left_box, &s, pos);
     }
     //print_permissions(left_box, &s, &w1, pos);
@@ -646,6 +654,14 @@ int main(int argc, char **argv)
       image_used = 0;
     }
     y_pts = 1;
+    if (delete_file_folder_request == 1) {
+      //mv_to_trash3(&w1, &s, &left_box, &pos, &option);
+      delete_file_folder_request = 0;
+      if (folder_to_be_deleted) {
+        free(folder_to_be_deleted);
+        folder_to_be_deleted = NULL;
+      }
+    }
   }
   if (left_box->n_elements != 0 || left_box->capacity != 0) {
     free_array(left_box);
@@ -665,6 +681,10 @@ int main(int argc, char **argv)
   if (file_to_be_copied) {
     free(file_to_be_copied);
     file_to_be_copied = NULL;
+  }
+  if (folder_to_be_deleted) {
+    free(folder_to_be_deleted);
+    folder_to_be_deleted = NULL;
   }
 #if defined(EBUG)
   if (argv[2] != NULL) {
@@ -864,7 +884,7 @@ int print_right_window3(Array **left_box,
   return 0;
 }
 
-void ask_user(char *warning, int *c)
+int ask_user(char *warning, int *c)
 {
   write_len(warning);
   ttymode_reset(ECHO, 1);
@@ -878,6 +898,7 @@ void ask_user(char *warning, int *c)
     delete_file_folder_request = 0;
   }
   ttymode_reset(ECHO, 0);
+  return delete_file_folder_request;
 }
 
 void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos)
@@ -1216,13 +1237,8 @@ void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos)
       bg_blue, " NORMAL", bg_reset, bg_cyan,
       fg_blue, r_full_triangle, fg_reset, fg_blue, r_line_triangle, bg_reset, fg_reset, bg_light_blue, " ", bg_reset);
 */
-  if (pos >= 0 && pos < a->n_elements -  1) {
-    //mv(w_main.y_size - 1, w_main.x_beg + 1);
-    //del_from_cursor(del_in);
-    //mv(w_main.y_size - 2, w_main.x_beg + 1);
-    //del_from_position(del_in);
+  if (pos >= 0 && pos < a->n_elements) {
     write_partial(a->menu[pos].permissions, strlen(a->menu[pos].permissions));
-    //mv(pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
   }
 }
 
@@ -1303,7 +1319,7 @@ int mv_to_trash3(Window_ *w1, Scroll *s, Array **left_box, int *pos, int *option
   } else if ((*left_box)->n_elements == 0) {
     *pos = 0;
   }
-  reprint_menu(w1, s, *left_box, attributes, *pos, *option);
+  //reprint_menu(w1, s, *left_box, attributes, *pos, *option);
 
   if (_parent) {
     free(_parent);
@@ -1364,7 +1380,7 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       return 0;
     } else
       if (image_used == 0 && (*c == 'l' || *c == KEY_ENTER || *c == ENTER) &&
-               *((*left_box)->menu[*pos].type) == 'd' &&
+             (*left_box)->n_elements != 0 &&  *((*left_box)->menu[*pos].type) == 'd' &&
                (*right_box)->n_elements != 0) {
 
       if (position_before_copying_sig) {
@@ -1593,6 +1609,9 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       w0_s->n_lower_t = 0;
       w0_s->n_to_print = 0;
     } else if (*c == KEY_ESCAPE) {
+      mode_normal = 1;
+      mode_visual = 0;
+    } else if (*c == KEY_VISUAL) {
       mode_normal = 0;
       mode_visual = 1;
     }
@@ -1785,8 +1804,13 @@ int getBackSpaceFolder6(Array **left_box, Window_ *w, int *pos, int *previous_po
   size_t length_parent = 0;
   char *reference_path_for_parent = NULL;
   if ((*left_box)->n_elements == 0) {
-    length_parent = strlen(deleted_file);
-    reference_path_for_parent = deleted_file;
+    if (folder_to_be_deleted != NULL) {
+      length_parent = strlen(folder_to_be_deleted);
+      reference_path_for_parent = folder_to_be_deleted;
+    } else {
+      length_parent = strlen(deleted_file);
+      reference_path_for_parent = deleted_file;
+    }
   } else {
     length_parent = strlen((*left_box)->menu[*pos].complete_path);
     reference_path_for_parent = (*left_box)->menu[*pos].complete_path;
@@ -2184,8 +2208,34 @@ void print_attributes(Attributes *attr, int *y_pts_2)
   }
 }
 
+void reprint_menu_only(Window_ *w, Scroll *s, Array *a, int pos)
+{
+  if (pos >= 0 && a->n_elements > 0) {
+    int i;
+    for (i = s->pos_upper_t; i <= s->pos_lower_t; ++i) {
+      mv(i - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+      empty_space_debug_fd(1, w->x_size - 2);
+      mv(i - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+      if (i == pos) {
+        highlight4(w, a, &pos);
+      } else if (i < a->n_elements) {
+        print(w, a, i);
+      }
+    }
+  }
+}
+
 void reprint_menu(Window_ *w, Scroll *s, Array *a, Attributes *attr, int pos, int option)
 {
+  int skip_deleted_file = 0;
+  int skip_deleted_folder = 0;
+  if (delete_file_folder_request == 1) {
+    if (*(a->menu[pos].type) == 'd') {
+      skip_deleted_folder = 1;
+    } else if (*(a->menu[pos].type) == 'f') {
+      skip_deleted_file = 1;
+    }
+  }
   if (s->option_previous != option || resized || reprint && pos >= 0 && a->n_elements > 0) {
     if (attr->n_elements != 0) {
 #if defined(PRINT_OTHERTTY_2)
@@ -2225,9 +2275,9 @@ void reprint_menu(Window_ *w, Scroll *s, Array *a, Attributes *attr, int pos, in
         mv(i - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
         empty_space_debug_fd(1, w->x_size - 2);
         mv(i - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
-        if (i == pos) {
+        if (i == pos && skip_deleted_file == 0 && skip_deleted_folder == 0) {
           highlight4(w, a, &pos);
-        } else if (i < a->n_elements) {
+        } else if (i < a->n_elements && skip_deleted_file == 0 && skip_deleted_folder == 0) {
           print(w, a, i);
         }
       }
@@ -2813,58 +2863,16 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
   move(1, position);
 }
 
-int show_all_85()
-{
-  //space
-  int len = 10;
-  background_blue
-  string_normal
-  space_str
-  foreground_blue
-  background_cyan
-  right_full_triangle
-  background_cyan
-  foreground_cyan
-  background_reset
-  right_full_triangle
-  foreground_blue
-  right_line_triangle
-  //foreground_reset
-  return len;
-}
-
-int show_all_855(int y, int x)
-{
-  //space
-  int len = 10;
-  background_blue
-  mv(y, x);
-  string_normal
-  space_str
-  foreground_blue
-  background_cyan
-  right_full_triangle
-  background_cyan
-  foreground_cyan
-  background_reset
-  background_blue
-  right_full_triangle
-  foreground_blue
-  //right_line_triangle
-  //mv(y, x + 11);
-  //background_blue
-  background_blue
-  //background_blue
-  //foreground_reset
-  return len;
-}
-
-int show_all_8555(int y, int x)
+int show_all_airline(int y, int x)
 {
   int len = 5;
   background_blue
   mv(y, x);
-  string_mode_n
+  if (mode_normal) {
+    string_mode_n
+  } else if (mode_visual) {
+    string_mode_v
+  }
   space_str
   foreground_blue
   background_cyan
@@ -2881,26 +2889,43 @@ int show_all_8555(int y, int x)
 
 void show_status_line(Window_ *w, Array *a, Scroll *s, int pos)
 {
-  // lower status line
   int vert = w->y_size;
   mv(vert + w->y_beg + 1, w->x_beg);
   if (number_of_windows == 2 && w == &w1 || number_of_windows == 3 && w == &w0) {
-    int len_airline = show_all_8555(vert + w->y_beg + 1, w->x_beg);
-    int j;
-    int len_permissions = strlen(a->menu[pos].permissions);
-    for (j = 0; j < w_main.x_size - len_airline - len_permissions - 1; ++j) {
-      space_str
-      if (j == 1) {
-        foreground_reset
-        print_permissions(a, s, w, pos);
-        foreground_blue
-        background_blue
+    empty_space_debug_fd(1, w_main.x_size - 1);
+    mv(vert + w->y_beg + 1, w->x_beg);
+    int len_airline = show_all_airline(vert + w->y_beg + 1, w->x_beg);
+    if (a->n_elements > 0) {
+      int j, k;
+      int len_permissions = strlen(a->menu[pos].permissions);
+      int array_position = pos + 1;
+      int n_elements = a->n_elements;
+      int len_object_number = 3;
+      while (++len_object_number && (array_position /= 10) > 0);
+      while (++len_object_number && (n_elements /= 10) > 0);
+      for (j = 0; j < w_main.x_size - len_airline - len_permissions - len_object_number - 1; ++j) {
+        space_str
+        if (j == 1) {
+          foreground_reset
+          print_permissions(a, s, w, pos);
+          foreground_blue
+          background_blue
+        }
       }
+      foreground_reset
+      mv(w->y_size + w->y_beg + 1, w_main.x_size - len_object_number);
+      sprintf(numinteger, NUMINTEGER, pos + 1);
+      write_partial(numinteger, strlen(numinteger));
+      write_partial(" / ", 3);
+      sprintf(numinteger, NUMINTEGER, a->n_elements);
+      write_partial(numinteger, strlen(numinteger));
+      foreground_blue
+      background_blue
+      foreground_reset
+      background_reset
     }
-    foreground_reset
-    background_reset
   }
-  mv(pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+  mv(pos - s->pos_upper_t + w->y_beg + 1, w1.x_beg + 1);
 }
 
 void draw_box(Window_ *w)
@@ -2916,18 +2941,18 @@ void draw_box(Window_ *w)
   if (box_color && box_thickness) {
     write_sz(fg_cyan);
   }
-  // upper left corner
+  // top left corner
   mv(w->y_beg, w->x_beg);
   if (w != &w2) {
     write_len(ARRAY[cont_2]);
   } else if (w == &w2) {
     write_len(ARRAY[cont_6]);
   }
-  // upper horizontal line
+  // top horizontal line
   for (; j < horiz - 1; ++j) {
     write_len(ARRAY[cont_0]);
   }
-  // upper right corner
+  // top right corner
   if (w == &w2) {
     mv(w->y_beg, w->x_beg + horiz);
     write_len(ARRAY[cont_4]);
@@ -2961,19 +2986,6 @@ void draw_box(Window_ *w)
     write_len(ARRAY[cont_5]);
   }
   write_sz(fg_reset);
-/*
-  // lower status line
-  mv(vert + w->y_beg + 1, w->x_beg);
-  //int len_airline = show_all_85();
-  if (number_of_windows == 2 && w == &w1 || number_of_windows == 3 && w == &w0) {
-    int len_airline = show_all_855(vert + w->y_beg + 1, w->x_beg);
-    for (j = 0; j < w_main.x_size - len_airline - 2; ++j) {
-      space_str
-    }
-    foreground_reset
-    background_reset
-  }
-*/
   mv(vert / 2, w->x_beg + 1);
 }
 

@@ -14,7 +14,7 @@ To execute:
 fm "$HOME"
 ```
 
-To leave press `<ESC>` or `q`
+To leave press `q`
 
 Keys
 
@@ -27,6 +27,6 @@ Keys
 | `p`              | paste file        |
 | `<Enter>`        | enter into folder |
 | `<Backspace>`    | go up one folder  |
-| `<ESC>` or `q`   | quit program      |
+| `q`              | quit program      |
 | `<CTRL+u>`       | Scroll Up         |
 | `<CTRL+d>`       | Scroll Down       |
