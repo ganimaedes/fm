@@ -2,6 +2,123 @@
 #include <stdio.h>
 #include <unistd.h>
 
+int identify_set_keys(char *keys, int starting_pos)
+{
+  int c;
+  if (keys[starting_pos + 1] == '[') {
+    switch (keys[starting_pos + 2]) {
+      case 'A':
+        c = KEY_UP;
+        //c = UP;
+        break;
+      case 'B':
+        c = KEY_DOWN;
+        break;
+      case 'C':
+        c = KEY_LEFT;
+        break;
+      case 'D':
+        c = KEY_RIGHT;
+        break;
+      case '3':
+        c = KEY_SUPPR;
+        break;
+      case 'F':
+      case '4':
+        c = KEY_END;
+        break;
+      case 'H':
+        c = KEY_HOME;
+        break;
+      case '5':
+        c = KEY_PAGE_UP;
+        break;
+      case '6':
+        c = KEY_PAGE_DN;
+        break;
+      default:
+        c = 0;
+        break;
+    }
+  } else {
+    c = 0;
+  }
+  return c;
+}
+
+int get_char()
+{
+  tcgetattr(STDIN_FILENO, &oterm);
+  term = oterm;
+  term.c_lflag &= ~(ICANON | ECHO);
+  tcsetattr(STDIN_FILENO, TCSANOW, &term);
+
+  char keys[4];
+  int nbytes;
+  int key_pressed;
+  while ((nbytes = read(STDIN_FILENO, keys, sizeof(keys))) > 0) {
+    for (int i = 0; i < nbytes; ++i) {
+      char key = keys[i];
+      if (key == EOF_KEY) {
+        fprintf(stderr, "%d (control-D or EOF)\n", key);
+        goto end_loops;
+      } else if (key == KEY_ESCAPE && nbytes > i + 1) {
+        char *keys_copy = keys;
+        key_pressed = identify_set_keys(keys_copy, i);
+        //PRINTINT(key_pressed);
+        if (key_pressed == KEY_ESCAPE || key_pressed == KEY_UP || key_pressed == KEY_DOWN ||
+            key_pressed == KEY_HOME || key_pressed == KEY_END || key_pressed == KEY_PAGE_UP ||
+            key_pressed == KEY_PAGE_DN) {
+          //PRINTINT(key_pressed);
+          goto end_loops;
+          break;
+        }
+        break;
+      } else {
+        key_pressed = key;
+        goto end_loops;
+        //printf("%i\n", (int)key);
+      }
+      if (key == 'q') {
+        key_pressed = KEY_Q;
+        goto end_loops;
+      } else {
+        key_pressed = key;
+        goto end_loops;
+      }
+    }
+  }
+
+end_loops:
+  tcsetattr(STDIN_FILENO, TCSANOW, &oterm);
+  return key_pressed;
+}
+
+char m_getch()
+{
+  char buf = 0;
+  struct termios old = { 0 };
+  if (tcgetattr(0, &old) < 0) {
+    perror("tcsetattr()");
+  }
+  old.c_lflag &= ~ICANON;
+  old.c_lflag &= ~ECHO;
+  old.c_cc[VMIN] = 1;
+  old.c_cc[VTIME] = 0;
+  if (tcsetattr(0, TCSANOW, &old) < 0) {
+    perror("tcsetattr ICANON");
+  }
+  if (read(0, &buf, 1) < 0) {
+    perror ("read()");
+  }
+  old.c_lflag |= ICANON;
+  old.c_lflag |= ECHO;
+  if (tcsetattr(0, TCSADRAIN, &old) < 0) {
+    perror ("tcsetattr ~ICANON");
+  }
+  return (buf);
+}
+
 int getch(void)
 {
   int c = 0;
@@ -47,27 +164,14 @@ void ttymode_reset(int mode, int imode)
   }
 }
 
-/*
-Public Boolean tick = false;
-private void Form1_KeyPress(object sender, KeyPressEventArgs e)
-{
-tick = !tick;
-    label1.Text = "Key Pressed: " + e.KeyChar;
-   //animate(sender, e);
-if(tick)
-    timer1.Start();
-else
-    timer1.Stop();
-}
-*/
-
-int kbesc(void)
+//int kbesc(void)
+long unsigned kbesc(void)
 {
   int c = 0;
 
-  //if (!kbhit()) { return KEY_ESCAPE; }
-  //if (!kbhit()) { return 113; }
-  if (!kbhit()) { return KEY_Q; }
+  if (!kbhit()) { return KEY_ESCAPE; }
+  //if (!kbhit()) { return 0; }
+  //if (!kbhit()) { return KEY_Q; }
   c = getch();
   if (c == BACKSPACE) { ungetc(c, stdin); return c; }
   if (c == '[') {
@@ -76,26 +180,9 @@ int kbesc(void)
         c = KEY_UP;
         //c = UP;
         break;
-      case 'B': {
-/*
-        is_retriggered = !is_retriggered;
-        if (is_retriggered && elapsedTime < 0.1) {
-          // start timer
-          gettimeofday(&t1, NULL);
-          printf("reprint\n");
-          elapsedTime = 0;
-          sleep(5);
-        } else {
-          // stop timer
-          gettimeofday(&t2, NULL);
-          // compute and print the elapsed time in millisec
-          elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
-          elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
-        }
-*/
+      case 'B':
         c = KEY_DOWN;
         break;
-      }
       case 'C':
         c = KEY_LEFT;
         break;
@@ -125,6 +212,7 @@ int kbesc(void)
   } else {
     c = 0;
   }
+
   if (c == 0) { while (kbhit()) { getch(); } }
   return c;
 }
@@ -138,9 +226,105 @@ int kbget(void)
     return c;
   } else if (c == 21) {
     return c;
+  } else if (c == -1 /*|| c == KEY_ESCAPE*/) {
+    ungetc(c, stdin);
+    return 'w';
   }
+  //return c == KEY_ESCAPE ? kbesc() : c;
+  if (c == KEY_ESCAPE) {
+    c = kbesc();
+    if (c == KEY_ESCAPE) {
+      ungetc(c, stdin);
+      ttymode_reset(ECHO, 0);
+      c = 'w';
+    }
+  }
+  return c;
+}
+
+int kbesc2(void)
+{
+  int c = 0;
+
+  if (!kbhit()) { return KEY_ESCAPE; }
+  //if (!kbhit()) { return 113; }
+  //if (!kbhit()) { return KEY_Q; }
+  c = getch();
+  if (c == BACKSPACE) { ungetc(c, stdin); return c; }
+  if (c == '[') {
+    switch ((c = getch())) {
+      case 'A':
+        c = KEY_UP;
+        //c = UP;
+        break;
+      case 'B':
+        c = KEY_DOWN;
+        break;
+      case 'C':
+        c = KEY_LEFT;
+        break;
+      case 'D':
+        c = KEY_RIGHT;
+        break;
+      case '3':
+        c = KEY_SUPPR;
+        break;
+      case 'F':
+      case '4':
+        c = KEY_END;
+        break;
+      case 'H':
+        c = KEY_HOME;
+        break;
+      case '5': 
+        c = KEY_PAGE_UP;
+        break;
+      case '6':
+        c = KEY_PAGE_DN;
+        break;
+      default: 
+        c = 0;
+        break;
+    }
+  } else {
+    c = 0;
+  }
+
+  if (c == 0) { while (kbhit()) { getch(); } }
+  return c;
+}
+
+int kbget2(void)
+{
+  int c = getch();
+  // CTRL KEYS
+  // CTRL+D ^D
+  if (c == 4) {
+    return c;
+  } else if (c == 21) {
+    return c;
+  }
+/*
+  if (c == KEY_ESCAPE) {
+    c = kbesc();
+    TTYINTFD(1, 30, 1, c);
+  } else {
+    TTYINTFD(1, 30, 1, c);
+    return c;
+  }
+  return c;
+*/
   return c == KEY_ESCAPE ? kbesc() : c;
   //return c == 113 ? kbesc() : c;
+  //sleep(5);
+  //return c == KEY_Q ? kbesc() : c;
+/*
+  if (c == KEY_ESCAPE) {
+    return c;
+  } else {
+    kbesc();
+  }
+*/
   //return c == KEY_Q ? kbesc() : c;
 }
 

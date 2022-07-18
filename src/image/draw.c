@@ -1048,7 +1048,7 @@ int set_img(char *path)
   }
   pthread_detach(memory_thread_id);
 
-    // https://stackoverflow.com/questions/2889415/in-xlib-how-can-i-animate-until-an-event-occurs
+  // https://stackoverflow.com/questions/2889415/in-xlib-how-can-i-animate-until-an-event-occurs
 
   global.done = 0;
   int c = 0;
@@ -1063,7 +1063,7 @@ int set_img(char *path)
     sem_post(&mutex);
     if (c == KEY_DOWN || c == KEY_UP || c == KEY_ESCAPE || c == KEY_BACKSPACE ||
         c == KEY_PAGE_DN || c == KEY_PAGE_UP || c == KEY_BACK || c == KEY_END || c == KEY_HOME ||
-        global.done == 1 || resized == 1 || c == 'a' || c == 'r') {
+        global.done == 1 || resized == 1 || c == 'a' || c == 'r' || c == KEY_Q) {
       keypressed = 1;
       pthread_cancel(memory_thread_id);
       break;

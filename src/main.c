@@ -47,13 +47,15 @@ int _file_descriptor_;
 int _file_descriptor_2;
 int fd_boxdbg;
 int fd_attrdbg;
-int debug_fd_box = 1;
-int debug_fd_scroll_pos = 0;
+int debug_fd_box = 0;
+int debug_fd_scroll_pos = 1;
 int debug_c_pos = 1;
 int y_position_boxdbg = 1;
 int y_position_attrdbg = 1;
 int n_passes_for_print_tty_2 = 0;
 int initial_pass_for_w0 = 0;
+int mode_normal = 1;
+int mode_visual = 0;
 
 char *deleted_file = NULL;
 
@@ -259,6 +261,7 @@ int window_resize2(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
                   Scroll *s,
                   int *pos, int *initial_loop, int *option, int *i);
 int horizontal_navigation(int *c, int *pos, int *n_windows,
+//int horizontal_navigation(long unsigned *c, int *pos, int *n_windows,
                           int *first_window_width_fraction,
                           Array **left_box, Array **right_box, Array **w0_left_box, Attributes **attributes, Attributes **w0_attributes,
                           Window_ *w0, Window_ *w1, Window_ *w2, Positions *posit,
@@ -274,10 +277,14 @@ void print_attributes(Attributes *attr, int *y_pts_2);
 void print_all_attributes(Attributes *attr, int *y_pts_2);
 void print_all_attributes_fd(int fd, Attributes *attr, int *y_position);
 void print_box_fd(int fd, Array *box, int *y_position);
-void scroll_window3(Window_ *w, Array *box, Scroll *s, int *pos);
-void scroll_window_up7(Window_ *w, Array *box, Scroll *s, int *pos);
+void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos);
+void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos);
 void print_scroll(Scroll *s, int *pos, int *y_position);
 void ask_user(char *warning, int *c);
+int show_all_85();
+int show_all_855(int y, int x);
+int show_all_8555(int y, int x);
+void show_status_line(Window_ *w, Array *a, Scroll *s, int pos);
 
 int main(int argc, char **argv)
 {
@@ -341,7 +348,8 @@ int main(int argc, char **argv)
   struct sigaction sact;
   initialize_sigwinch(&sact);
 
-  int c = 0;
+  int c;
+  //long unsigned c;
   int previous_pos_c = 0;
   int second_previous_c = 0;
   int option = 0,
@@ -400,6 +408,9 @@ int main(int argc, char **argv)
   int pos_for_w0 = pos;
 
   int previous_pos_w0 = pos;
+
+  mode_normal = 1;
+  mode_visual = 0;
 
   for (;;) {
     if (!ioctl(0, TIOCGWINSZ, &w_s)) {
@@ -460,13 +471,18 @@ int main(int argc, char **argv)
         if (c == BACKSPACE && image_cp_signal == 1) {
           image_cp_signal = 0;
         }
-        reprint_menu(&w1, &s, left_box, attributes, pos, option);
+        if (c != 0) {
+          reprint_menu(&w1, &s, left_box, attributes, pos, option);
+        }
         if (number_of_windows == 3) {
 #if defined(PRINT_OTHERTTY)
           y_pts = 1;
           TTYINT(y_pts, 1, pos_for_w0); ++y_pts;
 #endif // PRINT_OTHERTTY
-          reprint_menu(&w0, &s_w0, w0_left_box, w0_attributes, pos_for_w0, option);
+
+          if (c != 0) {
+            reprint_menu(&w0, &s_w0, w0_left_box, w0_attributes, pos_for_w0, option);
+          }
         }
       }
       if (c == 'c' || c == 'x' || c == 'y' && image_cp_signal == 0) {
@@ -481,6 +497,7 @@ int main(int argc, char **argv)
           if (image_cp_signal == 0) {
             size_t len_copy = strlen(left_box->menu[pos].complete_path);
             copy(&file_to_be_copied, left_box->menu[pos].complete_path, len_copy);
+            left_box->menu[pos].is_marked = 1;
             if (c == 'x') {
               file_to_be_moved_signal = 1;
             }
@@ -507,6 +524,7 @@ int main(int argc, char **argv)
 
         erase_window(&w1, &s);
         reprint_menu(&w1, &s, left_box, attributes, pos, option);
+        left_box->menu[pos].is_marked = 0;
         file_pasted_signal = 1;
         if (image_cp_signal) {
           image_cp_signal = 0;
@@ -540,7 +558,9 @@ int main(int argc, char **argv)
           del_from_cursor(del_in);
         }
       }
-      print_entries(&w1, &s, NULL, option, (int)c, &pos, left_box);
+      if (c != 0 && c != KEY_ESCAPE && c > 0) {
+        print_entries(&w1, &s, NULL, option, (int)c, &pos, left_box);
+      }
 
 #if defined(BOXDBG)
     if (debug_fd_scroll_pos) {
@@ -559,13 +579,28 @@ int main(int argc, char **argv)
       print_message2(&w1, &s, 0, pos, &msg);
 #endif // EBUG
 
-      if (resized == 0 && image_used == 0) {
+      if (resized == 0 && image_used == 0 && c != 0 && c != KEY_ESCAPE && c > 0) {
         result_print_image = print_right_window3(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, &info_file, pos, &c);
       }
       //if (c == KEY_ESCAPE) { break; }
-      if (c == KEY_Q) { break; }
+      if (c == KEY_Q) {
+        break;
+      } else if (c == KEY_ESCAPE) {
+        //c = 'r';
+        //c = 1;
+        //break;
+      //} else if (c == 0) {
+        //sleep(5);
+        //resized = 0;
+        //continue;
+      }
     }
-    print_permissions(left_box, &s, &w1, pos);
+    if (number_of_windows == 2) {
+      show_status_line(&w1, left_box, &s, pos);
+    } else if (number_of_windows == 3) {
+      show_status_line(&w0, left_box, &s, pos);
+    }
+    //print_permissions(left_box, &s, &w1, pos);
 
     if (enter_backspace == 1 && attributes->n_elements != 0 && back_pressed == 1 && initial_loop != 1) {
       if (number_of_windows == 3 && w0_attributes->n_elements > 0) {
@@ -587,14 +622,19 @@ int main(int argc, char **argv)
 #endif // EBUG
 
     if (resized == 0) {
-      horizontal_navigation((int *)&c, &pos, &n_windows, &first_window_width_fraction, &left_box, &right_box, &w0_left_box, &attributes,
+      int loop = 0;
+      loop = horizontal_navigation((int *)&c, &pos, &n_windows, &first_window_width_fraction, &left_box, &right_box, &w0_left_box, &attributes,
+      //loop = horizontal_navigation((long unsigned *)&c, &pos, &n_windows, &first_window_width_fraction, &left_box, &right_box, &w0_left_box, &attributes,
                             &w0_attributes, &w0, &w1, &w2, &posit,
                             position_before_copying, &previous_pos, &s, &s_w0, &previous_pos_w0, &pos_for_w0,
                             &second_previous_c, &previous_pos_c, &option, &secondary_loop, &left_allocation, &backspace);
-
+      if (loop == 0) {
+        break;
+      }
+      //TTYINTFD(1, 30, 1, c);
     }
 
-    if (resized == 1 || enter_backspace) {
+    if (resized == 1 || enter_backspace && c != 0 && c != KEY_ESCAPE && c > 0) {
       erase_window(&w2, &s);
     }
     initial_loop = 0;
@@ -840,9 +880,9 @@ void ask_user(char *warning, int *c)
   ttymode_reset(ECHO, 0);
 }
 
-void scroll_window_up7(Window_ *w, Array *box, Scroll *s, int *pos)
+void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos)
 {
-  int i, j = *pos, k = 0;
+  int i, j, k, n_to_scroll = 0;
   int scroll_up_value = 5;
   int n_to_print = 0;
   const int last_element_pos = box->n_elements - 1;
@@ -851,160 +891,56 @@ void scroll_window_up7(Window_ *w, Array *box, Scroll *s, int *pos)
   } else {
     n_to_print = box->n_elements;
   }
-  if (*pos > 0 &&
-       *pos - scroll_up_value >= 0 &&
-        *pos <= s->pos_lower_t &&
-         *pos - scroll_up_value >= scroll_up_value  &&
-           s->pos_upper_t != 0 && s->pos_lower_t != 0 ||
-          *pos == s->pos_upper_t) {
-
-    if (*pos == s->pos_lower_t && s->pos_upper_t == 0) {
-      int pos_to_highlight = *pos - scroll_up_value;
-      for (int d = *pos; d >= pos_to_highlight + 1; --d) {
-        if (*pos > 0) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, *pos);
-          --*pos;
-          if (*pos >= 0) {
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            highlight4(w, box, pos);
-            usleep(50000);
-          }
-        }
-      }
-    } else {
-      erase_window(w, s);
-      int n = *pos - s->pos_upper_t + w->y_beg + 1;
-      int up = *pos - s->pos_upper_t;
-      int dn = s->pos_lower_t - *pos;
-      int a = 0;
-      for (int t = 0; t < scroll_up_value; --*pos, --s->pos_upper_t, --s->pos_lower_t, ++s->n_lower_t, --s->n_upper_t, ++t) {
-        if (*pos >= 1 && *pos < box->n_elements - 1 && s->pos_upper_t > 0) {
-          for (a = 0; a < up; ++a) {
-            mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            if (s->pos_upper_t + a - 1 >= 0) {
-              print(w, box, s->pos_upper_t + a - 1);
-            }
-          }
-          mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          int orig = *pos - 1;
-          highlight4(w, box, &orig);
-          usleep(50000);
-          for (++a; a < dn + up + 1; ++a) {
-            mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            if (s->pos_upper_t + a - 1 >= 0) {
-              print(w, box, s->pos_upper_t + a - 1);
-            }
-          }
-        } else if (s->pos_upper_t == 0) {
-          for (int g = 0; g < (scroll_up_value - t); ++g) {
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1 - g, w->x_beg + 1, w->x_size);
-            print(w, box, *pos);
-            if (g == scroll_up_value - t - 1) {
-              mverase(*pos - 1 - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-              int orig2 = *pos - 1;
-              highlight4(w, box, &orig2);
-            }
-          }
-        }
-        if (s->pos_upper_t < 0) {
-            mverase(*pos + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            print(w, box, *pos);
-            if (s->pos_upper_t < 0) {
-              mverase(*pos + w->y_beg, w->x_beg + 1, w->x_size);
-              int orig2 = *pos - 1;
-              highlight4(w, box, &orig2);
-            }
-            usleep(50000);
-            ++n;
-        }
+  erase_window(w, s);
+  for (; s->pos_upper_t >= 0 && n_to_scroll < scroll_up_value; --s->pos_lower_t, --s->pos_upper_t, ++s->n_lower_t, --*pos, ++n_to_scroll) {
+    for (k = 0; k < *pos - s->pos_upper_t && *pos < box->n_elements && k + s->pos_upper_t < box->n_elements - 1; ++k) {
+      mverase(k + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      print(w, box, k + s->pos_upper_t);
+    }
+    for (i = 0, j = *pos; i < n_to_print - k && (j + 1 < box->n_elements); ++i) {
+      mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      if (i == 0) {
+        highlight4(w, box, pos);
+      } else {
+        print(w, box, ++j);
       }
     }
-  } else if (s->pos_upper_t == 0) {
-    int pos_to_highlight = *pos - scroll_up_value;
-    for (int d = *pos; d >= pos_to_highlight + 1; --d) {
-      if (*pos > 0) {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, *pos);
-        --*pos;
-        if (*pos >= 0) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          highlight4(w, box, pos);
-          usleep(50000);
-        }
-      }
-    }
-  } else if (*pos - scroll_up_value < scroll_up_value) {
-    int a;
-    int up = *pos - s->pos_upper_t;
-    int dn = s->pos_lower_t - *pos;
-    for (int i = 0; i < scroll_up_value && *pos >= 0; ++i, --*pos, --s->pos_lower_t, --s->pos_upper_t, ++s->n_lower_t) {
-
-      if (*pos >= 0) {
-        for (a = 0; a < up; ++a) {
-          mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          if (s->pos_upper_t + a - 1 >= 0) {
-            print(w, box, s->pos_upper_t + a - 1);
-          }
-        }
-        mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        int orig = *pos - 1;
-        highlight4(w, box, &orig);
-        usleep(50000);
-        for (++a; a < dn + up + 1; ++a) {
-          mverase(a + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          if (s->pos_upper_t + a - 1 >= 0) {
-            print(w, box, s->pos_upper_t + a - 1);
-          }
-        }
-      }
-    }
+    usleep(50000);
   }
 
-  while (s->pos_upper_t <= -1) {
-    ++s->pos_upper_t;
-    ++s->pos_lower_t;
-    --s->n_lower_t;
+  if (*pos - 1 >= 0) {
+    ++*pos;
   }
-}
+  ++s->pos_upper_t;
+  ++s->pos_lower_t;
+  --s->n_lower_t;
 
-void scroll_window3(Window_ *w, Array *box, Scroll *s, int *pos)
-{
-  int i, j = *pos, k = 0, j_2 = 0;
-  int scroll_down_value = 5;
-  int n_to_print = 0;
-  const int last_element_pos = box->n_elements - 1;
-  if (box->n_elements > w->y_size - 1) {
-    n_to_print = w->y_size - 1;
-  } else {
-    n_to_print = box->n_elements;
+  int left_to_scroll = scroll_up_value - n_to_scroll;
+  if (s->pos_upper_t == 0 && *pos < scroll_up_value) {
+    left_to_scroll = ++*pos;
   }
-  if (*pos < s->array_size - 1 &&
-       *pos + scroll_down_value <= last_element_pos &&
-        *pos >= s->pos_upper_t && s->pos_lower_t != box->n_elements - 1 &&
-         *pos + scroll_down_value <= last_element_pos - scroll_down_value ||
-          *pos == s->pos_lower_t &&
-          s->pos_lower_t != last_element_pos /*|| (*pos == s->pos_lower_t && s->pos_lower_t != last_element_pos)*/) {
-    erase_window(w, s);
-    for (; j_2 < scroll_down_value && s->n_lower_t >= 0; ++*pos, ++s->pos_upper_t, ++s->pos_lower_t, --s->n_lower_t, ++j_2) {
-      for (k = 0; k < *pos - s->pos_upper_t; ++k) {
-        if (*pos < box->n_elements && k + s->pos_upper_t < box->n_elements - 1) {
-          mverase(k + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, k + s->pos_upper_t);
-        }
-      }
-      for (i = 0, j = *pos; i < n_to_print - k; ++i) {
-        if (*pos < box->n_elements && j + 1 < box->n_elements) {
-          mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          if (i == 0) {
-            highlight4(w, box, pos);
-          } else {
-            print(w, box, ++j);
-          }
-        }
-      }
+  if (left_to_scroll > 0) {
+    mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+    print(w, box, *pos);
+
+    for (int j_ = 0; j_ < left_to_scroll && j_ <= s->pos_lower_t && *pos >= s->pos_upper_t; --*pos, ++j_) {
+      mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      highlight4(w, box, pos);
       usleep(50000);
+      mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      print(w, box, *pos);
     }
+    if (*pos <= 0) {
+      if (s->pos_upper_t == 0 && *pos < scroll_up_value) {
+        --*pos;
+      }
+      ++*pos;
+    }
+
+    mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+    highlight4(w, box, pos);
+  }
+
 #if defined(BOXDBG)
     if (debug_fd_scroll_pos) {
       int y_position = 1; //_PRINTDEBUG;
@@ -1014,115 +950,77 @@ void scroll_window3(Window_ *w, Array *box, Scroll *s, int *pos)
       TTYINTFD2(fd_boxdbg, y_position, 1, n_to_print); ++y_position;
       TTYINTFD2(fd_boxdbg, y_position, 1, k); ++y_position;
       TTYINTFD2(fd_boxdbg, y_position, 1, w->y_size); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, left_to_scroll); ++y_position;
     }
 #endif // BOXDBG
+}
 
-    if (*pos - 1 >= 0) {
+void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos)
+{
+  int i, j, k, n_to_scroll = 0;
+  int scroll_down_value = 5;
+  int n_to_print = 0;
+  const int last_element_pos = box->n_elements - 1;
+  if (box->n_elements > w->y_size - 1) {
+    n_to_print = w->y_size - 1;
+  } else {
+    n_to_print = box->n_elements;
+  }
+  erase_window(w, s);
+  for (; s->n_lower_t >= 0 && n_to_scroll < scroll_down_value; ++s->pos_lower_t, ++s->pos_upper_t, --s->n_lower_t, ++*pos, ++n_to_scroll) {
+    for (k = 0; k < *pos - s->pos_upper_t && *pos < box->n_elements && k + s->pos_upper_t < box->n_elements - 1; ++k) {
+      mverase(k + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      print(w, box, k + s->pos_upper_t);
+    }
+    for (i = 0, j = *pos; i < n_to_print - k && (j + 1 < box->n_elements); ++i) {
+      mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      if (i == 0) {
+        highlight4(w, box, pos);
+      } else {
+        print(w, box, ++j);
+      }
+    }
+    usleep(50000);
+  }
+
+  if (*pos - 1 >= 0) {
+    --*pos;
+  }
+  --s->pos_upper_t;
+  --s->pos_lower_t;
+  ++s->n_lower_t;
+
+  int left_to_scroll = scroll_down_value - n_to_scroll;
+  if (left_to_scroll > 1) {
+    mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+    print(w, box, *pos);
+
+    for (int j_ = 0; j_ < left_to_scroll && j_ <= s->pos_lower_t && *pos <= s->pos_lower_t; ++*pos, ++j_) {
+      mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      highlight4(w, box, pos);
+      usleep(50000);
+      mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      print(w, box, *pos);
+    }
+    if (*pos >= box->n_elements) {
       --*pos;
     }
-    --s->pos_upper_t;
-    --s->pos_lower_t;
-    ++s->n_lower_t;
-  } else if (*pos + scroll_down_value > last_element_pos) {
-      int orig_pos = *pos;
-      int i = 0;
-      mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-      print(w, box, *pos);
-      for (i = 0; i < (s->pos_lower_t - orig_pos); ++i, ++*pos) {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        highlight4(w, box, pos);
-        usleep(50000);
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, *pos);
-      }
-      if (*pos == box->n_elements - 2) {
-        mverase((*pos) - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        int v_pos = *pos + 1;
-        highlight4(w, box, &v_pos);
-      } else {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        highlight4(w, box, pos);
-      }
+    mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+    highlight4(w, box, pos);
+  }
+
+#if defined(BOXDBG)
+    if (debug_fd_scroll_pos) {
+      int y_position = 1; //_PRINTDEBUG;
+      TTYINTFD2(fd_boxdbg, y_position, 1, *pos + scroll_down_value); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, *pos - s->pos_upper_t + w->y_beg + 1); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, n_to_print - k); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, n_to_print); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, k); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, w->y_size); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, left_to_scroll); ++y_position;
     }
-    //else if (*pos == s->pos_lower_t && s->pos_lower_t == box->n_elements - 1) {
-    //  return;
-    //}
-    else if (*pos < s->pos_lower_t - 1) {
-
-      //
-      if (s->n_lower_t < n_to_print && s->pos_lower_t != last_element_pos) {
-        int saved_pos = s->pos_lower_t - *pos;
-        for (int i = 0; i < saved_pos; ++i, ++*pos) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          highlight4(w, box, pos);
-          usleep(50000);
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, *pos);
-        }
-        erase_window(w, s);
-        s->pos_lower_t = last_element_pos;
-        s->pos_upper_t = s->pos_lower_t - n_to_print + 1;
-        s->n_lower_t = 0;
-        ++*pos;
-        for (int d = s->pos_upper_t; d <= s->pos_lower_t; ++d) {
-          mverase(d - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, d);
-        }
-        for (int r = 0; r <= scroll_down_value - saved_pos; ++r) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          highlight4(w, box, pos);
-          usleep(50000);
-          if (r != scroll_down_value - saved_pos) {
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            print(w, box, *pos);
-            ++*pos;
-          }
-        }
-      }
-      //
-      else {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, *pos);
-
-        for (int j_ = 0; j_ < scroll_down_value; ++*pos, ++j_) {
-          if (*pos < box->n_elements) {
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            highlight4(w, box, pos);
-            usleep(50000);
-            mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-            print(w, box, *pos);
-          }
-        }
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        highlight4(w, box, pos);
-      }
-    } else {
-      erase_window(w, s);
-      int pos_to_highlight = scroll_down_value - (s->pos_lower_t - *pos);
-      s->pos_lower_t = last_element_pos;
-      s->pos_upper_t = s->pos_lower_t - n_to_print + 1;
-      s->n_lower_t = 0;
-      //si space ds mv backslash plein de problemes
-      *pos = s->pos_upper_t;
-      // reprint
-      int d;
-      for (d = s->pos_upper_t; d <= s->pos_lower_t; ++d) {
-        mverase(d - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        print(w, box, d);
-      }
-
-      int r, t = 1;
-      for (r = 0; r <= pos_to_highlight; ++r) {
-        mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-        highlight4(w, box, pos);
-        usleep(50000);
-        if (r != pos_to_highlight) {
-          mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
-          print(w, box, *pos);
-          ++*pos;
-        }
-      }
-    }
+#endif // BOXDBG
 }
 
 int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
@@ -1318,15 +1216,13 @@ void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos)
       bg_blue, " NORMAL", bg_reset, bg_cyan,
       fg_blue, r_full_triangle, fg_reset, fg_blue, r_line_triangle, bg_reset, fg_reset, bg_light_blue, " ", bg_reset);
 */
-  if (pos > 0 && pos < a->n_elements -  1) {
-    mv(w_main.y_size - 1, w_main.x_beg + 1);
-    del_from_cursor(del_in);
-    sprintf(position, place_, w_main.y_size - 2, w_main.x_beg + 1);
-    move(1, position);
-    del_from_cursor(del_in);
+  if (pos >= 0 && pos < a->n_elements -  1) {
+    //mv(w_main.y_size - 1, w_main.x_beg + 1);
+    //del_from_cursor(del_in);
+    //mv(w_main.y_size - 2, w_main.x_beg + 1);
+    //del_from_position(del_in);
     write_partial(a->menu[pos].permissions, strlen(a->menu[pos].permissions));
-    sprintf(position, place_, pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
-    move(1, position);
+    //mv(pos - s1->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
   }
 }
 
@@ -1451,6 +1347,7 @@ void print_all_attributes_fd(int fd, Attributes *attr, int *y_position)
 }
 
 int horizontal_navigation(int *c, int *pos, int *n_windows,
+//int horizontal_navigation(long unsigned *c, int *pos, int *n_windows,
                           int *first_window_width_fraction,
                           Array **left_box, Array **right_box, Array **w0_left_box, Attributes **attributes, Attributes **w0_attributes,
                           Window_ *w0, Window_ *w1, Window_ *w2, Positions *posit,
@@ -1458,7 +1355,12 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
                           int *second_previous_c, int *previous_pos_c, int *option, int *secondary_loop,
                           int *left_allocation, int *backspace)
 {
-    if (image_used == 0 && (*c = kbget()) == KEY_Q && resized == 0) {
+  //*c = get_char();
+  //*c = kbget();
+
+  // TTYINTFD(1, 30, 1, *c);
+  //  TTYSTRFD(1, 30, 1, "KEY_ESCAPE");
+    if (image_used == 0 && (*c = get_char()) && /*(*c = kbget()) == KEY_Q*/ *c == KEY_Q && resized == 0) {
       return 0;
     } else
       if (image_used == 0 && (*c == 'l' || *c == KEY_ENTER || *c == ENTER) &&
@@ -1690,6 +1592,9 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       w0_s->pos_upper_t = 0;
       w0_s->n_lower_t = 0;
       w0_s->n_to_print = 0;
+    } else if (*c == KEY_ESCAPE) {
+      mode_normal = 0;
+      mode_visual = 1;
     }
     *previous_pos_c = *c;
 
@@ -1781,14 +1686,12 @@ int window_resize2(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
 
     if (*initial_loop) {
       char *parent;
-      //getParent(left_box->menu[*pos].complete_path, &parent);
       get_parent(left_box->menu[*pos].complete_path, &parent, 1);
       print_path(s, parent, *pos, 0);
       if (parent != NULL) {
         free(parent);
         parent = NULL;
       }
-      //print_path(&s, argv[1], pos, 0);
     } else {
       print_path(s, left_box->menu[*pos].complete_path, *pos, 0);
     }
@@ -2423,36 +2326,37 @@ void highlight4(Window_ *w, Array *a, int *pos)
   size_t len_space = 1;
   size_t len_logo = 2;
   size_t len_vert_bars = 2;
-  int len_entry = strlen(a->menu[*pos].name);
-  int space_available_in_win = w->x_size - len_vert_bars - len_space - len_logo;
-  int horiz = 0;
-  if (len_entry > space_available_in_win) {
-    len_entry = space_available_in_win;
-    //horiz = len_entry;
-  } else {
-    horiz = w->x_size - len_entry - len_vert_bars - len_space - len_logo;
-  }
+  if (*pos < a->n_elements) {
+    int len_entry = strlen(a->menu[*pos].name);
+    int space_available_in_win = w->x_size - len_vert_bars - len_space - len_logo;
+    int horiz = 0;
+    if (len_entry > space_available_in_win) {
+      len_entry = space_available_in_win;
+      //horiz = len_entry;
+    } else {
+      horiz = w->x_size - len_entry - len_vert_bars - len_space - len_logo;
+    }
 
-  write_sz(bg_cyan);
-  print_logos(a->menu[*pos].name, a->menu[*pos].type);
-  write_partial(a->menu[*pos].name, len_entry);
+    write_sz(bg_cyan);
+    print_logos(a->menu[*pos].name, a->menu[*pos].type);
+    write_partial(a->menu[*pos].name, len_entry);
 
-  int i;
-  if (horiz > 0) {
-    char space[1] = " ";
-    for (i = 0; i < horiz; ++i) {
-      if (i == horiz - 2 && image_cp_signal && file_to_be_copied != NULL && strcmp(file_to_be_copied, a->menu[*pos].complete_path) == 0) {
-        size_t len_copy_logo = strlen(copy_files);
-        write_partial(copy_files, len_copy_logo);
-      } else {
-        //write(1, space, strlen(space));
-        write_partial(space, 1);
-        //write_len(space);
+    int i;
+    if (horiz > 0) {
+      char space[1] = " ";
+      for (i = 0; i < horiz; ++i) {
+        if (i == horiz - 2 && image_cp_signal && file_to_be_copied != NULL && strcmp(file_to_be_copied, a->menu[*pos].complete_path) == 0) {
+          size_t len_copy_logo = strlen(copy_files);
+          write_partial(copy_files, len_copy_logo);
+        } else {
+          write_partial(space, 1);
+          //write_len(space);
+        }
       }
     }
+    //if (write(1, bg_reset, sizeof(bg_reset)) < 0) { exit(1); }
+    write_sz(bg_reset);
   }
-  if (write(1, bg_reset, sizeof(bg_reset)) < 0) { exit(1); }
-  //write_sz(bg_reset);
 }
 
 static void sig_win_ch_handler(int sig) { resized = 1; }
@@ -2891,10 +2795,10 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
       highlight4(w, a, pos);
       break;
     case 4:
-        scroll_window3(&w1, a, s, pos);
+        scroll_window5(&w1, a, s, pos);
       break;
     case 21:
-      scroll_window_up7(&w1, a, s, pos);
+      scroll_window_up8(&w1, a, s, pos);
       break;
     default:
       break;
@@ -2907,6 +2811,96 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
 
   snprintf(position, strlen(place_), place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
   move(1, position);
+}
+
+int show_all_85()
+{
+  //space
+  int len = 10;
+  background_blue
+  string_normal
+  space_str
+  foreground_blue
+  background_cyan
+  right_full_triangle
+  background_cyan
+  foreground_cyan
+  background_reset
+  right_full_triangle
+  foreground_blue
+  right_line_triangle
+  //foreground_reset
+  return len;
+}
+
+int show_all_855(int y, int x)
+{
+  //space
+  int len = 10;
+  background_blue
+  mv(y, x);
+  string_normal
+  space_str
+  foreground_blue
+  background_cyan
+  right_full_triangle
+  background_cyan
+  foreground_cyan
+  background_reset
+  background_blue
+  right_full_triangle
+  foreground_blue
+  //right_line_triangle
+  //mv(y, x + 11);
+  //background_blue
+  background_blue
+  //background_blue
+  //foreground_reset
+  return len;
+}
+
+int show_all_8555(int y, int x)
+{
+  int len = 5;
+  background_blue
+  mv(y, x);
+  string_mode_n
+  space_str
+  foreground_blue
+  background_cyan
+  right_full_triangle
+  background_cyan
+  foreground_cyan
+  background_reset
+  background_blue
+  right_full_triangle
+  foreground_blue
+  background_blue
+  return len;
+}
+
+void show_status_line(Window_ *w, Array *a, Scroll *s, int pos)
+{
+  // lower status line
+  int vert = w->y_size;
+  mv(vert + w->y_beg + 1, w->x_beg);
+  if (number_of_windows == 2 && w == &w1 || number_of_windows == 3 && w == &w0) {
+    int len_airline = show_all_8555(vert + w->y_beg + 1, w->x_beg);
+    int j;
+    int len_permissions = strlen(a->menu[pos].permissions);
+    for (j = 0; j < w_main.x_size - len_airline - len_permissions - 1; ++j) {
+      space_str
+      if (j == 1) {
+        foreground_reset
+        print_permissions(a, s, w, pos);
+        foreground_blue
+        background_blue
+      }
+    }
+    foreground_reset
+    background_reset
+  }
+  mv(pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
 }
 
 void draw_box(Window_ *w)
@@ -2923,8 +2917,6 @@ void draw_box(Window_ *w)
     write_sz(fg_cyan);
   }
   // upper left corner
-  //sprintf(position, place_, w->y_beg, w->x_beg);
-  //move(1, position);
   mv(w->y_beg, w->x_beg);
   if (w != &w2) {
     write_len(ARRAY[cont_2]);
@@ -2937,8 +2929,6 @@ void draw_box(Window_ *w)
   }
   // upper right corner
   if (w == &w2) {
-    //sprintf(position, place_, w->y_beg, w->x_beg + horiz);
-    //move(1, position);
     mv(w->y_beg, w->x_beg + horiz);
     write_len(ARRAY[cont_4]);
   }
@@ -2971,6 +2961,19 @@ void draw_box(Window_ *w)
     write_len(ARRAY[cont_5]);
   }
   write_sz(fg_reset);
+/*
+  // lower status line
+  mv(vert + w->y_beg + 1, w->x_beg);
+  //int len_airline = show_all_85();
+  if (number_of_windows == 2 && w == &w1 || number_of_windows == 3 && w == &w0) {
+    int len_airline = show_all_855(vert + w->y_beg + 1, w->x_beg);
+    for (j = 0; j < w_main.x_size - len_airline - 2; ++j) {
+      space_str
+    }
+    foreground_reset
+    background_reset
+  }
+*/
   mv(vert / 2, w->x_beg + 1);
 }
 
