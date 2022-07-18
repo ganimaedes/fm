@@ -281,6 +281,7 @@ void scroll_window3(Window_ *w, Array *box, Scroll *s, int *pos);
 void scroll_window4(Window_ *w, Array *box, Scroll *s, int *pos);
 void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos);
 void scroll_window_up7(Window_ *w, Array *box, Scroll *s, int *pos);
+void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos);
 void print_scroll(Scroll *s, int *pos, int *y_position);
 void ask_user(char *warning, int *c);
 int show_all_85();
@@ -880,6 +881,87 @@ void ask_user(char *warning, int *c)
     delete_file_folder_request = 0;
   }
   ttymode_reset(ECHO, 0);
+}
+
+void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos)
+{
+  int i, j, k, n_to_scroll = 0;
+  int scroll_up_value = 5;
+  int n_to_print = 0;
+  const int last_element_pos = box->n_elements - 1;
+  if (box->n_elements > w->y_size - 1) {
+    n_to_print = w->y_size - 1;
+  } else {
+    n_to_print = box->n_elements;
+  }
+  erase_window(w, s);
+  for (; s->pos_upper_t >= 0 && n_to_scroll < scroll_up_value; --s->pos_lower_t, --s->pos_upper_t, ++s->n_lower_t, --*pos, ++n_to_scroll) {
+    for (k = 0; k < *pos - s->pos_upper_t && *pos < box->n_elements && k + s->pos_upper_t < box->n_elements - 1; ++k) {
+      mverase(k + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      print(w, box, k + s->pos_upper_t);
+    }
+    for (i = 0, j = *pos; i < n_to_print - k && (j + 1 < box->n_elements); ++i) {
+      mverase(i + *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      if (i == 0) {
+        highlight4(w, box, pos);
+      } else {
+        print(w, box, ++j);
+      }
+    }
+    usleep(50000);
+  }
+
+  if (*pos - 1 >= 0) {
+    ++*pos;
+  }
+  ++s->pos_upper_t;
+  ++s->pos_lower_t;
+  --s->n_lower_t;
+
+  int left_to_scroll = scroll_up_value - n_to_scroll;
+  if (s->pos_upper_t == 0 && *pos < scroll_up_value) {
+    left_to_scroll = ++*pos;
+  }
+  if (left_to_scroll > 0) {
+    mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+    print(w, box, *pos);
+
+    for (int j_ = 0; j_ < left_to_scroll && j_ <= s->pos_lower_t && *pos >= s->pos_upper_t; --*pos, ++j_) {
+      mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      highlight4(w, box, pos);
+      usleep(50000);
+      mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      print(w, box, *pos);
+    }
+    //if (*pos >= box->n_elements || *pos <= 0) {
+    if (*pos <= 0) {
+      if (s->pos_upper_t == 0 && *pos < scroll_up_value) {
+        --*pos;
+      }
+      ++*pos;
+      //mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+      //print(w, box, *pos);
+    }
+
+    /*if (s->pos_upper_t == 0 && *pos < scroll_up_value) {
+      --*pos;
+    }*/
+    mverase(*pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1, w->x_size);
+    highlight4(w, box, pos);
+  }
+
+#if defined(BOXDBG)
+    if (debug_fd_scroll_pos) {
+      int y_position = 1; //_PRINTDEBUG;
+      TTYINTFD2(fd_boxdbg, y_position, 1, *pos + scroll_down_value); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, *pos - s->pos_upper_t + w->y_beg + 1); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, n_to_print - k); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, n_to_print); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, k); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, w->y_size); ++y_position;
+      TTYINTFD2(fd_boxdbg, y_position, 1, left_to_scroll); ++y_position;
+    }
+#endif // BOXDBG
 }
 
 void scroll_window_up7(Window_ *w, Array *box, Scroll *s, int *pos)
@@ -3067,7 +3149,8 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
         scroll_window5(&w1, a, s, pos);
       break;
     case 21:
-      scroll_window_up7(&w1, a, s, pos);
+      //scroll_window_up7(&w1, a, s, pos);
+      scroll_window_up8(&w1, a, s, pos);
       break;
     default:
       break;
