@@ -1237,7 +1237,7 @@ void print_permissions(Array *a, Scroll *s1, Window_ *w, int pos)
       bg_blue, " NORMAL", bg_reset, bg_cyan,
       fg_blue, r_full_triangle, fg_reset, fg_blue, r_line_triangle, bg_reset, fg_reset, bg_light_blue, " ", bg_reset);
 */
-  if (pos >= 0 && pos < a->n_elements -  1) {
+  if (pos >= 0 && pos < a->n_elements) {
     write_partial(a->menu[pos].permissions, strlen(a->menu[pos].permissions));
   }
 }
@@ -2912,7 +2912,6 @@ void show_status_line(Window_ *w, Array *a, Scroll *s, int pos)
           background_blue
         }
       }
-      //for (k = j; k < w_main.x_size - 1; ++k) {
       foreground_reset
       mv(w->y_size + w->y_beg + 1, w_main.x_size - len_object_number);
       sprintf(numinteger, NUMINTEGER, pos + 1);
@@ -2922,12 +2921,11 @@ void show_status_line(Window_ *w, Array *a, Scroll *s, int pos)
       write_partial(numinteger, strlen(numinteger));
       foreground_blue
       background_blue
-        //}
       foreground_reset
       background_reset
     }
   }
-  mv(pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+  mv(pos - s->pos_upper_t + w->y_beg + 1, w1.x_beg + 1);
 }
 
 void draw_box(Window_ *w)
