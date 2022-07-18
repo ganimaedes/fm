@@ -217,6 +217,7 @@ int show_tar(pid_t *pid, char *buffer, int *bytes_read, char *tar_name);
 int match_extension(char *name, const char *ext);
 void handler(int sig);
 void reprint_menu(Window_ *w, Scroll *s, Array *a, Attributes *attr, int pos, int option);
+void reprint_menu_only(Window_ *w, Scroll *s, Array *a, int pos);
 void copy_scroll(Scroll *s_in, Scroll *s_out);
 void indicators(Window_ *w, int y, int x, char pos_c[], char in[], char *msg);
 void erase_window(Window_ *w, Scroll *s);
@@ -280,7 +281,7 @@ void print_box_fd(int fd, Array *box, int *y_position);
 void scroll_window5(Window_ *w, Array *box, Scroll *s, int *pos);
 void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos);
 void print_scroll(Scroll *s, int *pos, int *y_position);
-void ask_user(char *warning, int *c);
+int ask_user(char *warning, int *c);
 int show_all_85();
 int show_all_855(int y, int x);
 int show_all_8555(int y, int x);
@@ -539,23 +540,38 @@ int main(int argc, char **argv)
         copy(&file_to_be_copied, left_box->menu[pos].complete_path, len_copy);
         if (*(left_box->menu[pos].type) == 'd') {
           char *warning = "Delete this directory and all of its contents? (Y/n): ";
-          ask_user(warning, &c);
+          if (ask_user(warning, &c)) {
+            if (c != 0) {
+              //reprint = 0;
+              //resized = 0;
+              copy(&folder_to_be_deleted, left_box->menu[pos].complete_path, len_copy);
+              mv_to_trash3(&w1, &s, &left_box, &pos, &option);
+              reprint_menu_only(&w1, &s, left_box, pos);
+              //delete_file_folder_request = 0;
+            }
+          }
+          /*
           if (delete_file_folder_request == 1) {
             mv_to_trash3(&w1, &s, &left_box, &pos, &option);
             //int result_copy = copy_file3(&left_box, pos);
-            delete_file_folder_request = 0;
+            //delete_file_folder_request = 0;
           }
+          */
           mv(w_main.y_size - 1, w_main.x_beg + 1);
-          del_from_cursor(del_in);
+          empty_space_debug_fd(1, w_main.x_size - 1);
+          //del_from_cursor(del_in);
         } else if (*(left_box->menu[pos].type) == 'f') {
           char *warning = "Delete this file? (Y/n): ";
           ask_user(warning, &c);
+          /*
           if (delete_file_folder_request == 1) {
             mv_to_trash3(&w1, &s, &left_box, &pos, &option);
-            delete_file_folder_request = 0;
+            //delete_file_folder_request = 0;
           }
+          */
           mv(w_main.y_size - 1, w_main.x_beg + 1);
-          del_from_cursor(del_in);
+          empty_space_debug_fd(1, w_main.x_size - 1);
+          //del_from_cursor(del_in);
         }
       }
       if (c != 0 && c != KEY_ESCAPE && c > 0) {
@@ -596,9 +612,13 @@ int main(int argc, char **argv)
       }
     }
     if (number_of_windows == 2) {
-      show_status_line(&w1, left_box, &s, pos);
+      if (delete_file_folder_request == 0) {
+        show_status_line(&w1, left_box, &s, pos);
+      }
     } else if (number_of_windows == 3) {
-      show_status_line(&w0, left_box, &s, pos);
+      if (delete_file_folder_request == 0) {
+        show_status_line(&w0, left_box, &s, pos);
+      }
     }
     //print_permissions(left_box, &s, &w1, pos);
 
@@ -646,6 +666,14 @@ int main(int argc, char **argv)
       image_used = 0;
     }
     y_pts = 1;
+    if (delete_file_folder_request == 1) {
+      //mv_to_trash3(&w1, &s, &left_box, &pos, &option);
+      delete_file_folder_request = 0;
+      if (folder_to_be_deleted) {
+        free(folder_to_be_deleted);
+        folder_to_be_deleted = NULL;
+      }
+    }
   }
   if (left_box->n_elements != 0 || left_box->capacity != 0) {
     free_array(left_box);
@@ -665,6 +693,10 @@ int main(int argc, char **argv)
   if (file_to_be_copied) {
     free(file_to_be_copied);
     file_to_be_copied = NULL;
+  }
+  if (folder_to_be_deleted) {
+    free(folder_to_be_deleted);
+    folder_to_be_deleted = NULL;
   }
 #if defined(EBUG)
   if (argv[2] != NULL) {
@@ -864,7 +896,7 @@ int print_right_window3(Array **left_box,
   return 0;
 }
 
-void ask_user(char *warning, int *c)
+int ask_user(char *warning, int *c)
 {
   write_len(warning);
   ttymode_reset(ECHO, 1);
@@ -878,6 +910,7 @@ void ask_user(char *warning, int *c)
     delete_file_folder_request = 0;
   }
   ttymode_reset(ECHO, 0);
+  return delete_file_folder_request;
 }
 
 void scroll_window_up8(Window_ *w, Array *box, Scroll *s, int *pos)
@@ -1364,7 +1397,7 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       return 0;
     } else
       if (image_used == 0 && (*c == 'l' || *c == KEY_ENTER || *c == ENTER) &&
-               *((*left_box)->menu[*pos].type) == 'd' &&
+             (*left_box)->n_elements != 0 &&  *((*left_box)->menu[*pos].type) == 'd' &&
                (*right_box)->n_elements != 0) {
 
       if (position_before_copying_sig) {
@@ -1785,8 +1818,13 @@ int getBackSpaceFolder6(Array **left_box, Window_ *w, int *pos, int *previous_po
   size_t length_parent = 0;
   char *reference_path_for_parent = NULL;
   if ((*left_box)->n_elements == 0) {
-    length_parent = strlen(deleted_file);
-    reference_path_for_parent = deleted_file;
+    if (folder_to_be_deleted != NULL) {
+      length_parent = strlen(folder_to_be_deleted);
+      reference_path_for_parent = folder_to_be_deleted;
+    } else {
+      length_parent = strlen(deleted_file);
+      reference_path_for_parent = deleted_file;
+    }
   } else {
     length_parent = strlen((*left_box)->menu[*pos].complete_path);
     reference_path_for_parent = (*left_box)->menu[*pos].complete_path;
@@ -2184,8 +2222,43 @@ void print_attributes(Attributes *attr, int *y_pts_2)
   }
 }
 
+void reprint_menu_only(Window_ *w, Scroll *s, Array *a, int pos)
+{
+  int skip_deleted_file = 0;
+  int skip_deleted_folder = 0;
+  if (delete_file_folder_request == 1) {
+    if (*(a->menu[pos].type) == 'd') {
+      skip_deleted_folder = 1;
+    } else if (*(a->menu[pos].type) == 'f') {
+      skip_deleted_file = 1;
+    }
+  }
+  if (pos >= 0 && a->n_elements > 0) {
+    int i;
+    for (i = s->pos_upper_t; i <= s->pos_lower_t; ++i) {
+      mv(i - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+      empty_space_debug_fd(1, w->x_size - 2);
+      mv(i - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
+      if (i == pos) {
+        highlight4(w, a, &pos);
+      } else if (i < a->n_elements) {
+        print(w, a, i);
+      }
+    }
+  }
+}
+
 void reprint_menu(Window_ *w, Scroll *s, Array *a, Attributes *attr, int pos, int option)
 {
+  int skip_deleted_file = 0;
+  int skip_deleted_folder = 0;
+  if (delete_file_folder_request == 1) {
+    if (*(a->menu[pos].type) == 'd') {
+      skip_deleted_folder = 1;
+    } else if (*(a->menu[pos].type) == 'f') {
+      skip_deleted_file = 1;
+    }
+  }
   if (s->option_previous != option || resized || reprint && pos >= 0 && a->n_elements > 0) {
     if (attr->n_elements != 0) {
 #if defined(PRINT_OTHERTTY_2)
@@ -2225,9 +2298,9 @@ void reprint_menu(Window_ *w, Scroll *s, Array *a, Attributes *attr, int pos, in
         mv(i - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
         empty_space_debug_fd(1, w->x_size - 2);
         mv(i - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
-        if (i == pos) {
+        if (i == pos && skip_deleted_file == 0 && skip_deleted_folder == 0) {
           highlight4(w, a, &pos);
-        } else if (i < a->n_elements) {
+        } else if (i < a->n_elements && skip_deleted_file == 0 && skip_deleted_folder == 0) {
           print(w, a, i);
         }
       }

@@ -337,6 +337,7 @@ typedef struct _STAT_INFO {
 
 static InfoKeyPresses info_key_presses;
 static char *file_to_be_copied;
+static char *folder_to_be_deleted;
 
 #ifndef TRUE
 #define TRUE  1

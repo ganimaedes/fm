@@ -59,10 +59,12 @@ int get_char()
   while ((nbytes = read(STDIN_FILENO, keys, sizeof(keys))) > 0) {
     for (int i = 0; i < nbytes; ++i) {
       char key = keys[i];
-      if (key == EOF_KEY) {
-        fprintf(stderr, "%d (control-D or EOF)\n", key);
-        goto end_loops;
-      } else if (key == KEY_ESCAPE && nbytes > i + 1) {
+      //if (key == EOF_KEY) {
+      //  fprintf(stderr, "%d (control-D or EOF)\n", key);
+      //  goto end_loops;
+      //}
+    //else
+      if (key == KEY_ESCAPE && nbytes > i + 1) {
         char *keys_copy = keys;
         key_pressed = identify_set_keys(keys_copy, i);
         //PRINTINT(key_pressed);
