@@ -86,6 +86,7 @@ char del_in[IN_SZ];
 #define KEY_ALL_UP    0x0061 // 97 equivalent to key_home
 #define KEY_BACK      0x007f
 #define KEY_Q         0x0071 // 113 'q'
+#define KEY_VISUAL    0x0056
 
 #define DN            0x006a
 #define UP            0x006b

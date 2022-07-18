@@ -285,6 +285,7 @@ int ask_user(char *warning, int *c);
 int show_all_85();
 int show_all_855(int y, int x);
 int show_all_8555(int y, int x);
+int show_all_airline(int y, int x);
 void show_status_line(Window_ *w, Array *a, Scroll *s, int pos);
 
 int main(int argc, char **argv)
@@ -599,16 +600,9 @@ int main(int argc, char **argv)
       if (resized == 0 && image_used == 0 && c != 0 && c != KEY_ESCAPE && c > 0) {
         result_print_image = print_right_window3(&left_box, &right_box, &s, &w1, &w2, &w_main, &msg, &info_file, pos, &c);
       }
-      //if (c == KEY_ESCAPE) { break; }
       if (c == KEY_Q) {
         break;
       } else if (c == KEY_ESCAPE) {
-        //c = 'r';
-        //c = 1;
-        //break;
-      //} else if (c == 0) {
-        //sleep(5);
-        //resized = 0;
         //continue;
       }
     }
@@ -1627,6 +1621,9 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       w0_s->n_lower_t = 0;
       w0_s->n_to_print = 0;
     } else if (*c == KEY_ESCAPE) {
+      mode_normal = 1;
+      mode_visual = 0;
+    } else if (*c == KEY_VISUAL) {
       mode_normal = 0;
       mode_visual = 1;
     }
@@ -2225,17 +2222,6 @@ void print_attributes(Attributes *attr, int *y_pts_2)
 
 void reprint_menu_only(Window_ *w, Scroll *s, Array *a, int pos)
 {
-  int skip_deleted_file = 0;
-  int skip_deleted_folder = 0;
-  /*
-  if (delete_file_folder_request == 1) {
-    if (*(a->menu[pos].type) == 'd') {
-      skip_deleted_folder = 1;
-    } else if (*(a->menu[pos].type) == 'f') {
-      skip_deleted_file = 1;
-    }
-  }
-  */
   if (pos >= 0 && a->n_elements > 0) {
     int i;
     for (i = s->pos_upper_t; i <= s->pos_lower_t; ++i) {
@@ -2955,13 +2941,38 @@ int show_all_8555(int y, int x)
   return len;
 }
 
+int show_all_airline(int y, int x)
+{
+  int len = 5;
+  background_blue
+  mv(y, x);
+  if (mode_normal) {
+    string_mode_n
+  } else if (mode_visual) {
+    string_mode_v
+  }
+  space_str
+  foreground_blue
+  background_cyan
+  right_full_triangle
+  background_cyan
+  foreground_cyan
+  background_reset
+  background_blue
+  right_full_triangle
+  foreground_blue
+  background_blue
+  return len;
+}
+
 void show_status_line(Window_ *w, Array *a, Scroll *s, int pos)
 {
   // lower status line
   int vert = w->y_size;
   mv(vert + w->y_beg + 1, w->x_beg);
   if (number_of_windows == 2 && w == &w1 || number_of_windows == 3 && w == &w0) {
-    int len_airline = show_all_8555(vert + w->y_beg + 1, w->x_beg);
+    //int len_airline = show_all_8555(vert + w->y_beg + 1, w->x_beg);
+    int len_airline = show_all_airline(vert + w->y_beg + 1, w->x_beg);
     int j;
     int len_permissions = strlen(a->menu[pos].permissions);
     for (j = 0; j < w_main.x_size - len_airline - len_permissions - 1; ++j) {
