@@ -632,10 +632,9 @@ int main(int argc, char **argv)
     if (resized == 0) {
       int loop = 0;
       loop = horizontal_navigation((int *)&c, &pos, &n_windows, &first_window_width_fraction, &left_box, &right_box, &w0_left_box, &attributes,
-      //loop = horizontal_navigation((long unsigned *)&c, &pos, &n_windows, &first_window_width_fraction, &left_box, &right_box, &w0_left_box, &attributes,
-                            &w0_attributes, &w0, &w1, &w2, &posit,
-                            position_before_copying, &previous_pos, &s, &s_w0, &previous_pos_w0, &pos_for_w0,
-                            &second_previous_c, &previous_pos_c, &option, &secondary_loop, &left_allocation, &backspace);
+                                   &w0_attributes, &w0, &w1, &w2, &posit,
+                                   position_before_copying, &previous_pos, &s, &s_w0, &previous_pos_w0, &pos_for_w0,
+                                   &second_previous_c, &previous_pos_c, &option, &secondary_loop, &left_allocation, &backspace);
       if (loop == 0) {
         break;
       }
@@ -1054,7 +1053,7 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
 #define STRINGFROMINT "%.2f"
   char win_top_limit[ENOUGH_DOUBLE];
   char win_lower_limit[ENOUGH_DOUBLE];
-  sprintf(win_top_limit, STRINGFROMINT, (double)(w1.y_size + 40));
+  sprintf(win_top_limit, STRINGFROMINT, (double)(w1.y_size + 100));
   sprintf(win_lower_limit, STRINGFROMINT, 210.0);
 #if defined(EBUG)
   write(fd, win_top_limit, strlen(win_lower_limit)); write(fd, "\n", strlen("\n"));
