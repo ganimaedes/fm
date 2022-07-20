@@ -1087,10 +1087,9 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
 
 int strpos5(char *hay, char *needle, int offset)
 {
-  int i = offset;
-  for (; *(hay + i) != '\0'; ++i) {
-    if (*(hay + i) == *needle) {
-      return i;
+  for (; *(hay + offset) != '\0'; ++offset) {
+    if (*(hay + offset) == *needle) {
+      return offset;
     }
   }
   return -1;
@@ -1103,9 +1102,6 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
   //char read_line[4096];
   size_t len = 0;
   ssize_t read;
-
-
-  //MALLOC(read_line, 4096);
 
   fp = fopen(left_box->menu[pos].complete_path, "r");
   if (fp == NULL) {
@@ -1132,7 +1128,6 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
           ++counter;
           copy_read[pos_tab] = ' ';
           pos_tab = strpos5(copy_read, "\t", pos_tab);
-        //} while (pos_tab > -1 /* && pos_tab < (w2->x_size - 2 - counter) && read_line[pos_tab] == '\t' */ && pos_tab < len  && len > 0);
         } while (pos_tab > -1 && read_line[pos_tab] == '\t' && pos_tab < len && len > 0);
         ++counter;
       }
