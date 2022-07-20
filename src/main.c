@@ -253,9 +253,9 @@ int print_right_window3(Array **left_box,
                          int pos, int *c);
 void open_file(STAT_INFO *info);
 char find_file_type(STAT_INFO *info, char *file_name);
-int strpos4(char *hay, char *needle, int offset);
+int strpos5(char *hay, char *needle, int offset);
 int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path);
-int window_resize2(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
+int window_resize(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
                   Array *left_box, int n_windows, int *previous_val_n_windows,
                   int first_window_width_fraction,
                   struct winsize *w_s,
@@ -413,7 +413,7 @@ int main(int argc, char **argv)
   for (;;) {
     if (!ioctl(0, TIOCGWINSZ, &w_s)) {
       sem_wait(&mutex);
-      window_resize2(&w_main, &w0, &w1, &w2, left_box, n_windows, &previous_value_n_windows,
+      window_resize(&w_main, &w0, &w1, &w2, left_box, n_windows, &previous_value_n_windows,
                      first_window_width_fraction, &w_s, &s, &pos, &initial_loop, &option, &i);
       sem_post(&mutex);
     }
@@ -648,7 +648,6 @@ int main(int argc, char **argv)
     }
     y_pts = 1;
     if (delete_file_folder_request == 1) {
-      //mv_to_trash3(&w1, &s, &left_box, &pos, &option);
       delete_file_folder_request = 0;
       if (folder_to_be_deleted) {
         free(folder_to_be_deleted);
@@ -861,8 +860,6 @@ int print_right_window3(Array **left_box,
           image_used = 1;
         }
         image_appeared = 1;
-        //sprintf(position, place_, pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
-        //move(1, position);
         mv(pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
         sem_post(&mutex);
         return 1;
@@ -1051,12 +1048,12 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
   int total_read = 0;
   int pfd[2];
   pipe(pfd);
-// https://stackoverflow.com/questions/8257714/how-to-convert-an-int-to-string-in-c
 #define ENOUGH_DOUBLE ((CHAR_BIT * sizeof(double)) / 3 + 2)
 #define STRINGFROMINT "%.2f"
   char win_top_limit[ENOUGH_DOUBLE];
   char win_lower_limit[ENOUGH_DOUBLE];
-  sprintf(win_top_limit, STRINGFROMINT, (double)(w1.y_size + 100));
+  //sprintf(win_top_limit, STRINGFROMINT, (double)(w1.y_size + 90));
+  sprintf(win_top_limit, STRINGFROMINT, (double)(w1.y_size + 70));
   sprintf(win_lower_limit, STRINGFROMINT, 210.0);
 #if defined(EBUG)
   write(fd, win_top_limit, strlen(win_lower_limit)); write(fd, "\n", strlen("\n"));
@@ -1076,7 +1073,6 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
     dup2(pfd[1], STDOUT_FILENO);        // insure write pipe is at stdout (fd#1)
     dup2(pfd[1], STDERR_FILENO);        // stderr goes to the pipe also (optional)
     close(pfd[1]);                      // child doesn't need to write pipe any more
-    //execl("./draw", "./draw", win_top_limit, offset_left, win_lower_limit, img_path, (char *)0);
     execl("draw", "draw", win_top_limit, offset_left, win_lower_limit, img_path, (char *)0);
     _exit(1);
   } else {
@@ -1090,14 +1086,11 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
   return total_read;
 }
 
-int strpos4(char *hay, char *needle, int offset)
+int strpos5(char *hay, char *needle, int offset)
 {
-  int len_hay = strlen(hay);
-  if (len_hay > 0) {
-    for (int i = 0; i < len_hay; ++i) {
-      if (hay[i + offset] == *needle) {
-        return i + offset;
-      }
+  for (; *(hay + offset) != '\0'; ++offset) {
+    if (*(hay + offset) == *needle) {
+      return offset;
     }
   }
   return -1;
@@ -1110,9 +1103,6 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
   //char read_line[4096];
   size_t len = 0;
   ssize_t read;
-
-
-  //MALLOC(read_line, 4096);
 
   fp = fopen(left_box->menu[pos].complete_path, "r");
   if (fp == NULL) {
@@ -1130,7 +1120,7 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
       del_from_cursor(del_in);
       move(1, position);
       // goes past window limits if first characters are spaces
-      int pos_tab = strpos4(read_line, "\t", 0);
+      int pos_tab = strpos5(read_line, "\t", 0);
       char *copy_read = NULL;
       int counter = 0;
       if (pos_tab >= 0) {
@@ -1138,8 +1128,7 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
         do {
           ++counter;
           copy_read[pos_tab] = ' ';
-          pos_tab = strpos4(copy_read, "\t", pos_tab);
-        //} while (pos_tab > -1 /* && pos_tab < (w2->x_size - 2 - counter) && read_line[pos_tab] == '\t' */ && pos_tab < len  && len > 0);
+          pos_tab = strpos5(copy_read, "\t", pos_tab);
         } while (pos_tab > -1 && read_line[pos_tab] == '\t' && pos_tab < len && len > 0);
         ++counter;
       }
@@ -1365,7 +1354,6 @@ void print_all_attributes_fd(int fd, Attributes *attr, int *y_position)
 }
 
 int horizontal_navigation(int *c, int *pos, int *n_windows,
-//int horizontal_navigation(long unsigned *c, int *pos, int *n_windows,
                           int *first_window_width_fraction,
                           Array **left_box, Array **right_box, Array **w0_left_box, Attributes **attributes, Attributes **w0_attributes,
                           Window_ *w0, Window_ *w1, Window_ *w2, Positions *posit,
@@ -1373,12 +1361,9 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
                           int *second_previous_c, int *previous_pos_c, int *option, int *secondary_loop,
                           int *left_allocation, int *backspace)
 {
-  //*c = get_char();
-  //*c = kbget();
-
   // TTYINTFD(1, 30, 1, *c);
   //  TTYSTRFD(1, 30, 1, "KEY_ESCAPE");
-    if (image_used == 0 && (*c = get_char()) && /*(*c = kbget()) == KEY_Q*/ *c == KEY_Q && resized == 0) {
+    if (image_used == 0 && (*c = get_char()) && *c == KEY_Q && resized == 0) {
       return 0;
     } else
       if (image_used == 0 && (*c == 'l' || *c == KEY_ENTER || *c == ENTER) &&
@@ -1574,7 +1559,6 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       *n_windows = 3;
       number_of_windows = 3;
       char *parent = NULL;
-      //get_parent_nwindows((*left_box)->menu[*pos].complete_path, &parent);
       getParent((*left_box)->menu[*pos].complete_path, &parent);
       if ((*w0_left_box)->n_elements > 0) {
         free_array(*w0_left_box);
@@ -1619,8 +1603,6 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
     }
     *previous_pos_c = *c;
 
-    //reprint_menu(w1, s, *left_box, *attributes, *pos, *option);
-
 #if defined(BOXDBG)
     if (debug_c_pos) {
       int y_position = 1;
@@ -1630,7 +1612,7 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
     return 1;
 }
 
-int window_resize2(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
+int window_resize(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
                   Array *left_box, int n_windows, int *previous_val_n_windows,
                   int first_window_width_fraction,
                   struct winsize *w_s,
@@ -2541,7 +2523,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
         if (image_used == 0) {
           --*pos;
         }
-        //resized = 0;
         if (*pos >= s->pos_upper_t && *pos < s->pos_lower_t) {
           y = *pos - s->pos_upper_t + w->y_beg + 1;
 
@@ -2562,7 +2543,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
               print(w, a, s->pos_upper_t + i);
             }
           }
-          //del_from_cursor(del_in);
           sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
           move(1, position);
         }
@@ -2575,8 +2555,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
         }
 
         if (*pos < s->pos_lower_t + 1) {
-          //sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
-          //del_from_cursor(del_in);
           highlight4(w, a, pos);
         }
       }
@@ -2584,19 +2562,8 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
     case KEY_DOWN:
     case DN:
       if (*pos < s->array_size - 1) {
-        //if (image_used == 0) {
-        //  ++*pos;
-        //}
         ++*pos;
 
-/*
-        if (*pos - 1 >= s->pos_lower_t) {
-          --s->pos_upper_t;
-          ++s->n_lower_t;
-          --s->pos_lower_t;
-        }
-*/
-        //resized = 0;
         if (*pos > s->pos_upper_t && *pos <= s->pos_lower_t) {
           y = *pos - s->pos_upper_t + w->y_beg;
           move_erase(w, 1, y, w->x_beg + 1);
@@ -2634,9 +2601,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
       }
       break;
     case KEY_PAGE_UP:
-      //char pg_up[] = "pg_up";
-
-      //sprintf(in, del, w->x_size - 2);
       if (*pos - s->n_to_print + 1 >= 0) {
 
         if (*pos - s->n_to_print + 1 >= s->pos_upper_t) {
@@ -2713,8 +2677,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
 
         *pos = 0;
 
-        //sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
-        //move(1, position);
         for (i = 0; i < s->n_to_print; ++i) {
 
           sprintf(position, place_, i + w->y_beg + 1, w->x_beg + 1);
@@ -2736,9 +2698,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
       }
       break;
     case KEY_PAGE_DN:
-      //char pg_dn[] = "pg_dn";
-
-      //PRINTVALUE(c);
       sprintf(in, del, w->x_size - 2);
       if (*pos + s->n_to_print - 1 <= s->array_size - 1) {
         if (debug) {

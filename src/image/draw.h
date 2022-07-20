@@ -23,7 +23,7 @@ int processEvent3(Display *display,
 Window get_top_window(Display* d, Window start);
 Window get_focus_window(Display* d);
 void *detect_keypress(void *arg);
-void closex(void *arg);
+void close_xwindow(void *arg);
 double fix_factor_to_fit_inside_window(Image *img, int width, int height);
 #if defined(WITH_STBI)
 void resize_image();

@@ -617,7 +617,7 @@ quit_file_type:
   return type;
 }
 
-void closex(void *arg)
+void close_xwindow(void *arg)
 {
 //  if (close_prog == 0) {
     sem_wait(&mutex);
@@ -871,7 +871,7 @@ XImage *CreateTrueColorImage(Display *display,
 void *openx(void *arg)
 {
   int old_cancel_type;
-  pthread_cleanup_push(closex, NULL);
+  pthread_cleanup_push(close_xwindow, NULL);
 
   _image->new_width = 512;
   _image->new_height = 512;
@@ -924,7 +924,7 @@ void *openx(void *arg)
   for (; i < len; ++i) {
     dp[i] = (dp[i] & 0xFF00FF00) | ((dp[i] >> 16) & 0xFF) | ((dp[i] << 16) & 0xFF0000);
   }
-///*
+
   if (_image->data != NULL) {
 #if defined(EBUG)
     PRINTWRITE("trying stbi_image_free(_image->data)");
@@ -935,8 +935,7 @@ void *openx(void *arg)
     PRINTWRITE("stbi_image_free(_image->data) called");
 #endif // EBUG
   }
-//*/
-  //int center_in_second_window_dist = xwa.width / 4;
+
   int center_in_second_window_dist = xwa.width / (_image->n_windows_in_fm * 2);
   double x = ((double)xwa.width / _image->n_windows_in_fm);
   double x_pos = xwa.width / 2;
@@ -945,16 +944,15 @@ void *openx(void *arg)
   }
 #endif // WITH_STBI
 
-
   img_window = XCreateWindow(display, RootWindow(display, 0),
 #if defined(WITH_STBI)
-                             (x_pos + xwa.x + center_in_second_window_dist - _image->new_width / 2) - 10, _image->win_top_limit,
+                             (x_pos + xwa.x + center_in_second_window_dist - _image->new_width / 2) - 10, xwa.y + _image->win_top_limit,
 #else
                              820, 10,
 #endif // WITH_STBI
                              _image->new_width, _image->new_height,
                              0, 24, InputOutput, visual,
-                             CWEventMask | CWOverrideRedirect /* | CWBitGravity */,
+                             CWEventMask | CWOverrideRedirect,
                              &attr);
 
   _image->gc = XCreateGC(display, img_window, 0, 0);
@@ -1063,16 +1061,12 @@ int set_img(char *path)
     sem_post(&mutex);
     if (c == KEY_DOWN || c == KEY_UP || c == KEY_ESCAPE || c == KEY_BACKSPACE ||
         c == KEY_PAGE_DN || c == KEY_PAGE_UP || c == KEY_BACK || c == KEY_END || c == KEY_HOME ||
-        global.done == 1 || resized == 1 || c == 'a' || c == 'r' || c == KEY_Q) {
+        global.done == 1 || resized == 1 || c == 'a' || c == 'r' || c == KEY_Q || c == KEY_SHIFT_d ||
+        c == KEY_SHIFT_u) {
       keypressed = 1;
       pthread_cancel(memory_thread_id);
       break;
     }
-  }
-
-  // if uncomment next line and q pressed before image is loaded it causes segfault error in xcb
-  if (keypressed == 0) {
-    pthread_join(memory_thread_id, NULL);
   }
   return c;
 }
