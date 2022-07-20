@@ -254,6 +254,7 @@ int print_right_window3(Array **left_box,
 void open_file(STAT_INFO *info);
 char find_file_type(STAT_INFO *info, char *file_name);
 int strpos4(char *hay, char *needle, int offset);
+int strpos5(char *hay, char *needle, int offset);
 int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path);
 int window_resize(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
                   Array *left_box, int n_windows, int *previous_val_n_windows,
@@ -860,8 +861,6 @@ int print_right_window3(Array **left_box,
           image_used = 1;
         }
         image_appeared = 1;
-        //sprintf(position, place_, pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
-        //move(1, position);
         mv(pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
         sem_post(&mutex);
         return 1;
@@ -1050,7 +1049,6 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
   int total_read = 0;
   int pfd[2];
   pipe(pfd);
-// https://stackoverflow.com/questions/8257714/how-to-convert-an-int-to-string-in-c
 #define ENOUGH_DOUBLE ((CHAR_BIT * sizeof(double)) / 3 + 2)
 #define STRINGFROMINT "%.2f"
   char win_top_limit[ENOUGH_DOUBLE];
@@ -1075,7 +1073,6 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
     dup2(pfd[1], STDOUT_FILENO);        // insure write pipe is at stdout (fd#1)
     dup2(pfd[1], STDERR_FILENO);        // stderr goes to the pipe also (optional)
     close(pfd[1]);                      // child doesn't need to write pipe any more
-    //execl("./draw", "./draw", win_top_limit, offset_left, win_lower_limit, img_path, (char *)0);
     execl("draw", "draw", win_top_limit, offset_left, win_lower_limit, img_path, (char *)0);
     _exit(1);
   } else {
@@ -1087,6 +1084,16 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
     wait(NULL);
   }
   return total_read;
+}
+
+int strpos5(char *hay, char *needle, int offset)
+{
+  for (int i = 0; *(hay + i) != '\0'; ++i) {
+    if (*(hay + i + offset) == *needle) {
+      return (i + offset);
+    }
+  }
+  return -1;
 }
 
 int strpos4(char *hay, char *needle, int offset)
@@ -1129,7 +1136,8 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
       del_from_cursor(del_in);
       move(1, position);
       // goes past window limits if first characters are spaces
-      int pos_tab = strpos4(read_line, "\t", 0);
+      //int pos_tab = strpos4(read_line, "\t", 0);
+      int pos_tab = strpos5(read_line, "\t", 0);
       char *copy_read = NULL;
       int counter = 0;
       if (pos_tab >= 0) {
@@ -1137,7 +1145,8 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
         do {
           ++counter;
           copy_read[pos_tab] = ' ';
-          pos_tab = strpos4(copy_read, "\t", pos_tab);
+          //pos_tab = strpos4(copy_read, "\t", pos_tab);
+          pos_tab = strpos5(copy_read, "\t", pos_tab);
         //} while (pos_tab > -1 /* && pos_tab < (w2->x_size - 2 - counter) && read_line[pos_tab] == '\t' */ && pos_tab < len  && len > 0);
         } while (pos_tab > -1 && read_line[pos_tab] == '\t' && pos_tab < len && len > 0);
         ++counter;
