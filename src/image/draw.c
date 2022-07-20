@@ -946,7 +946,7 @@ void *openx(void *arg)
 
   img_window = XCreateWindow(display, RootWindow(display, 0),
 #if defined(WITH_STBI)
-                             (x_pos + xwa.x + center_in_second_window_dist - _image->new_width / 2) - 10, _image->win_top_limit,
+                             (x_pos + xwa.x + center_in_second_window_dist - _image->new_width / 2) - 10, xwa.y + _image->win_top_limit,
 #else
                              820, 10,
 #endif // WITH_STBI
