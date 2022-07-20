@@ -617,7 +617,7 @@ quit_file_type:
   return type;
 }
 
-void closex(void *arg)
+void close_xwindow(void *arg)
 {
 //  if (close_prog == 0) {
     sem_wait(&mutex);
@@ -871,7 +871,7 @@ XImage *CreateTrueColorImage(Display *display,
 void *openx(void *arg)
 {
   int old_cancel_type;
-  pthread_cleanup_push(closex, NULL);
+  pthread_cleanup_push(close_xwindow, NULL);
 
   _image->new_width = 512;
   _image->new_height = 512;

@@ -1052,7 +1052,7 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
 #define STRINGFROMINT "%.2f"
   char win_top_limit[ENOUGH_DOUBLE];
   char win_lower_limit[ENOUGH_DOUBLE];
-  sprintf(win_top_limit, STRINGFROMINT, (double)(w1.y_size + 100));
+  sprintf(win_top_limit, STRINGFROMINT, (double)(w1.y_size + 90));
   sprintf(win_lower_limit, STRINGFROMINT, 210.0);
 #if defined(EBUG)
   write(fd, win_top_limit, strlen(win_lower_limit)); write(fd, "\n", strlen("\n"));
