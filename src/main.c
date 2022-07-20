@@ -253,7 +253,6 @@ int print_right_window3(Array **left_box,
                          int pos, int *c);
 void open_file(STAT_INFO *info);
 char find_file_type(STAT_INFO *info, char *file_name);
-int strpos4(char *hay, char *needle, int offset);
 int strpos5(char *hay, char *needle, int offset);
 int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path);
 int window_resize(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
@@ -1088,22 +1087,10 @@ int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path)
 
 int strpos5(char *hay, char *needle, int offset)
 {
-  for (int i = 0; *(hay + i) != '\0'; ++i) {
-    if (*(hay + i + offset) == *needle) {
-      return (i + offset);
-    }
-  }
-  return -1;
-}
-
-int strpos4(char *hay, char *needle, int offset)
-{
-  int len_hay = strlen(hay);
-  if (len_hay > 0) {
-    for (int i = 0; i < len_hay; ++i) {
-      if (hay[i + offset] == *needle) {
-        return i + offset;
-      }
+  int i = offset;
+  for (; *(hay + i) != '\0'; ++i) {
+    if (*(hay + i) == *needle) {
+      return i;
     }
   }
   return -1;
@@ -1136,7 +1123,6 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
       del_from_cursor(del_in);
       move(1, position);
       // goes past window limits if first characters are spaces
-      //int pos_tab = strpos4(read_line, "\t", 0);
       int pos_tab = strpos5(read_line, "\t", 0);
       char *copy_read = NULL;
       int counter = 0;
@@ -1145,7 +1131,6 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
         do {
           ++counter;
           copy_read[pos_tab] = ' ';
-          //pos_tab = strpos4(copy_read, "\t", pos_tab);
           pos_tab = strpos5(copy_read, "\t", pos_tab);
         //} while (pos_tab > -1 /* && pos_tab < (w2->x_size - 2 - counter) && read_line[pos_tab] == '\t' */ && pos_tab < len  && len > 0);
         } while (pos_tab > -1 && read_line[pos_tab] == '\t' && pos_tab < len && len > 0);
