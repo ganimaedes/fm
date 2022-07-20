@@ -829,6 +829,7 @@ int print_right_window3(Array **left_box,
   } else if ((*left_box)->n_elements > 0 && *((*left_box)->menu[pos].type) == 'f') {
       char file_type = find_file_type(info_file, (*left_box)->menu[pos].complete_path);
       if (file_type == 'j' || file_type == 'p' || file_type == 'g') {
+        (*left_box)->menu[pos].is_img = 1;
         sem_wait(&mutex);
         info_key_presses.last_position_array = pos;
         //ttymode_reset(ECHO, 0);
@@ -841,7 +842,9 @@ int print_right_window3(Array **left_box,
         pid_t pid;
         if (resized == 0) {
           ttymode_reset(ECHO, 1);
-          print_tty_filesize3(2, w_main->y_size - 3, ((double)info_file->file_len / 1000.0));
+          (*left_box)->menu[pos].file_len = info_file->file_len;
+          //print_tty_filesize3(2, w_main->y_size - 3, ((double)info_file->file_len / 1000.0));
+          show_status_line(w1, *left_box, s, pos);
           mv(pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
           ttymode_reset(ECHO, 0);
           total_read = show_image(&pid, buffer, &bytes_read, (*left_box)->menu[pos].complete_path);
@@ -859,8 +862,9 @@ int print_right_window3(Array **left_box,
           image_used = 1;
         }
         image_appeared = 1;
-        sprintf(position, place_, pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
-        move(1, position);
+        //sprintf(position, place_, pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
+        //move(1, position);
+        mv(pos - s->pos_upper_t + w1->y_beg + 1, w1->x_beg + 1);
         sem_post(&mutex);
         return 1;
       } else if (pos >= 0 && (*left_box)->n_elements > 0 &&
@@ -2900,9 +2904,23 @@ void show_status_line(Window_ *w, Array *a, Scroll *s, int pos)
       int array_position = pos + 1;
       int n_elements = a->n_elements;
       int len_object_number = 3;
+
       while (++len_object_number && (array_position /= 10) > 0);
       while (++len_object_number && (n_elements /= 10) > 0);
-      for (j = 0; j < w_main.x_size - len_airline - len_permissions - len_object_number - 1; ++j) {
+
+      double _file_size = ((double)a->menu[pos].file_len / 1000.0);
+      double rate = 10.0;
+      int n_divisions = 0;
+      double _file_size_cp = _file_size;
+      if (*(a->menu[pos].type) == 'f' && a->menu[pos].is_img) {
+        if (_file_size > 1000.0) { change_kb = 1; if (_file_size > 10000.0) { rate = 100.0; } }
+        if (change_kb) { while (_file_size_cp > rate && ++n_divisions) { _file_size_cp /= 10.0; } }
+        sprintf(filesize, FILESIZE, _file_size_cp);
+        n_divisions = 9;
+      }
+
+      int total_len = w_main.x_size - len_airline - len_permissions - len_object_number - n_divisions - 1;
+      for (j = 0; j < total_len; ++j) {
         space_str
         if (j == 1) {
           foreground_reset
@@ -2911,6 +2929,18 @@ void show_status_line(Window_ *w, Array *a, Scroll *s, int pos)
           background_blue
         }
       }
+
+      if (*(a->menu[pos].type) == 'f' && a->menu[pos].is_img) {
+        foreground_reset
+        size_t len_filesize = strlen(filesize);
+        mv(w->y_size + w->y_beg + 1, w_main.x_size - len_object_number - n_divisions);
+        write_line(1, filesize);
+        write_line(1, change_kb ? " Mb" : " Kb");
+        change_kb = 0;
+        foreground_blue
+      }
+      space_str
+      space_str
       foreground_reset
       mv(w->y_size + w->y_beg + 1, w_main.x_size - len_object_number);
       sprintf(numinteger, NUMINTEGER, pos + 1);
