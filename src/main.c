@@ -255,7 +255,7 @@ void open_file(STAT_INFO *info);
 char find_file_type(STAT_INFO *info, char *file_name);
 int strpos4(char *hay, char *needle, int offset);
 int show_image(pid_t *pid, char *buffer, int *bytes_read, char *img_path);
-int window_resize2(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
+int window_resize(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
                   Array *left_box, int n_windows, int *previous_val_n_windows,
                   int first_window_width_fraction,
                   struct winsize *w_s,
@@ -413,7 +413,7 @@ int main(int argc, char **argv)
   for (;;) {
     if (!ioctl(0, TIOCGWINSZ, &w_s)) {
       sem_wait(&mutex);
-      window_resize2(&w_main, &w0, &w1, &w2, left_box, n_windows, &previous_value_n_windows,
+      window_resize(&w_main, &w0, &w1, &w2, left_box, n_windows, &previous_value_n_windows,
                      first_window_width_fraction, &w_s, &s, &pos, &initial_loop, &option, &i);
       sem_post(&mutex);
     }
@@ -648,7 +648,6 @@ int main(int argc, char **argv)
     }
     y_pts = 1;
     if (delete_file_folder_request == 1) {
-      //mv_to_trash3(&w1, &s, &left_box, &pos, &option);
       delete_file_folder_request = 0;
       if (folder_to_be_deleted) {
         free(folder_to_be_deleted);
@@ -1365,7 +1364,6 @@ void print_all_attributes_fd(int fd, Attributes *attr, int *y_position)
 }
 
 int horizontal_navigation(int *c, int *pos, int *n_windows,
-//int horizontal_navigation(long unsigned *c, int *pos, int *n_windows,
                           int *first_window_width_fraction,
                           Array **left_box, Array **right_box, Array **w0_left_box, Attributes **attributes, Attributes **w0_attributes,
                           Window_ *w0, Window_ *w1, Window_ *w2, Positions *posit,
@@ -1373,12 +1371,9 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
                           int *second_previous_c, int *previous_pos_c, int *option, int *secondary_loop,
                           int *left_allocation, int *backspace)
 {
-  //*c = get_char();
-  //*c = kbget();
-
   // TTYINTFD(1, 30, 1, *c);
   //  TTYSTRFD(1, 30, 1, "KEY_ESCAPE");
-    if (image_used == 0 && (*c = get_char()) && /*(*c = kbget()) == KEY_Q*/ *c == KEY_Q && resized == 0) {
+    if (image_used == 0 && (*c = get_char()) && *c == KEY_Q && resized == 0) {
       return 0;
     } else
       if (image_used == 0 && (*c == 'l' || *c == KEY_ENTER || *c == ENTER) &&
@@ -1574,7 +1569,6 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       *n_windows = 3;
       number_of_windows = 3;
       char *parent = NULL;
-      //get_parent_nwindows((*left_box)->menu[*pos].complete_path, &parent);
       getParent((*left_box)->menu[*pos].complete_path, &parent);
       if ((*w0_left_box)->n_elements > 0) {
         free_array(*w0_left_box);
@@ -1619,8 +1613,6 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
     }
     *previous_pos_c = *c;
 
-    //reprint_menu(w1, s, *left_box, *attributes, *pos, *option);
-
 #if defined(BOXDBG)
     if (debug_c_pos) {
       int y_position = 1;
@@ -1630,7 +1622,7 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
     return 1;
 }
 
-int window_resize2(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
+int window_resize(Window_ *w_main, Window_ *w0, Window_ *w1, Window_ *w2,
                   Array *left_box, int n_windows, int *previous_val_n_windows,
                   int first_window_width_fraction,
                   struct winsize *w_s,
