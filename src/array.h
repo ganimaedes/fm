@@ -28,6 +28,8 @@ typedef struct {
     int highlighted_pos;
     int is_marked;
     int is_deleted;
+    int is_img;
+    unsigned long file_len;
 } Menu;
 
 typedef struct {

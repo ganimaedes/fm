@@ -457,7 +457,7 @@ static char filesize[sizeof(FILESIZE)];
 
 static int change_kb = 0;
   //empty_space_debug(len_filesize + change_kb > n_divisions ? n_divisions + 2 : 0);
-#define print_tty_filesize3(_x, _y, _file_size) do { \
+#define print_tty_filesize3(_y, _x, _file_size) do { \
   mv((_y), (_x)); \
   double rate = 10.0; int n_divisions = 0; double _file_size_cp = _file_size; \
   if (_file_size > 1000.0) { change_kb = 1; if (_file_size > 10000.0) { rate = 100.0; } } \
