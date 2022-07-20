@@ -2533,7 +2533,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
         if (image_used == 0) {
           --*pos;
         }
-        //resized = 0;
         if (*pos >= s->pos_upper_t && *pos < s->pos_lower_t) {
           y = *pos - s->pos_upper_t + w->y_beg + 1;
 
@@ -2554,7 +2553,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
               print(w, a, s->pos_upper_t + i);
             }
           }
-          //del_from_cursor(del_in);
           sprintf(position, place_, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
           move(1, position);
         }
@@ -2567,8 +2565,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
         }
 
         if (*pos < s->pos_lower_t + 1) {
-          //sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
-          //del_from_cursor(del_in);
           highlight4(w, a, pos);
         }
       }
@@ -2576,19 +2572,8 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
     case KEY_DOWN:
     case DN:
       if (*pos < s->array_size - 1) {
-        //if (image_used == 0) {
-        //  ++*pos;
-        //}
         ++*pos;
 
-/*
-        if (*pos - 1 >= s->pos_lower_t) {
-          --s->pos_upper_t;
-          ++s->n_lower_t;
-          --s->pos_lower_t;
-        }
-*/
-        //resized = 0;
         if (*pos > s->pos_upper_t && *pos <= s->pos_lower_t) {
           y = *pos - s->pos_upper_t + w->y_beg;
           move_erase(w, 1, y, w->x_beg + 1);
@@ -2626,9 +2611,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
       }
       break;
     case KEY_PAGE_UP:
-      //char pg_up[] = "pg_up";
-
-      //sprintf(in, del, w->x_size - 2);
       if (*pos - s->n_to_print + 1 >= 0) {
 
         if (*pos - s->n_to_print + 1 >= s->pos_upper_t) {
@@ -2705,8 +2687,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
 
         *pos = 0;
 
-        //sprintf(position, place, *pos - s->pos_upper_t + w->y_beg + 1, w->x_beg + 1);
-        //move(1, position);
         for (i = 0; i < s->n_to_print; ++i) {
 
           sprintf(position, place_, i + w->y_beg + 1, w->x_beg + 1);
@@ -2728,9 +2708,6 @@ void print_entries(Window_ *w, Scroll *s, __attribute__((__unused__)) char **ent
       }
       break;
     case KEY_PAGE_DN:
-      //char pg_dn[] = "pg_dn";
-
-      //PRINTVALUE(c);
       sprintf(in, del, w->x_size - 2);
       if (*pos + s->n_to_print - 1 <= s->array_size - 1) {
         if (debug) {

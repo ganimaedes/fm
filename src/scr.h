@@ -87,6 +87,8 @@ char del_in[IN_SZ];
 #define KEY_BACK      0x007f
 #define KEY_Q         0x0071 // 113 'q'
 #define KEY_VISUAL    0x0056
+#define KEY_SHIFT_d   0x0004
+#define KEY_SHIFT_u   0x0015
 
 #define DN            0x006a
 #define UP            0x006b
