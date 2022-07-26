@@ -1687,49 +1687,6 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       mode_visual = 1;
     } else if (*c == KEY_SORT) {
       if ((*left_box)->n_elements > 0) {
-        //qsort((*left_box)->menu[*pos].complete_path, (*left_box)->n_elements, sizeof(char *), compare);
-        /*
-        ArrayName *array_name = NULL;
-        CALLOC(array_name, 1);
-        //CALLOC(array_name->elements, (*left_box)->n_elements);
-        CALLOC(array_name->complete_path, (*left_box)->n_elements);
-        CALLOC(array_name->name, (*left_box)->n_elements);
-        array_name->capacity = (*left_box)->n_elements;
-        array_name->n_elements = (*left_box)->n_elements;
-        int i;
-        unsigned int len = 0;
-        for (i = 0; i < (*left_box)->n_elements; ++i) {
-          len = strlen((*left_box)->menu[i].complete_path);
-          copy(&array_name->complete_path[i], (*left_box)->menu[i].complete_path, len);
-          m_free((*left_box)->menu[i].complete_path);
-          len = strlen((*left_box)->menu[i].name);
-          copy(&array_name->name[i], (*left_box)->menu[i].name, len);
-          m_free((*left_box)->menu[i].name);
-        }
-        //qsort((*left_box)->menu[*pos].name, (*left_box)->n_elements, sizeof(char *), compare);
-        //qsort(array_name->name, array_name->n_elements, sizeof(char *), compare);
-        //qsort(array_name->complete_path, array_name->n_elements, sizeof(char *), compare);
-
-        //qsort(array_name->name, array_name->n_elements, sizeof(char *), sortstring_string);
-        //qsort(array_name->complete_path, array_name->n_elements, sizeof(char *), sortstring_string);
-
-        qsort(array_name->name, array_name->n_elements, sizeof(char *), sortstring);
-        qsort(array_name->complete_path, array_name->n_elements, sizeof(char *), sortstring);
-
-        for (i = 0; i < array_name->n_elements; ++i) {
-          len = strlen(array_name->complete_path[i]);
-          copy(&(*left_box)->menu[i].complete_path, array_name->complete_path[i], len);
-          m_free(array_name->complete_path[i]);
-          len = strlen(array_name->name[i]);
-          copy(&(*left_box)->menu[i].name, array_name->name[i], len);
-          m_free(array_name->name[i]);
-        }
-
-        m_free(array_name->complete_path);
-        m_free(array_name->name);
-
-        */
-
 
         Array *copy_left = NULL;
         initialize_array(&copy_left, (*left_box)->capacity);
@@ -1748,25 +1705,20 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
 
         for (i = 0; i < (*left_box)->n_elements; ++i) {
           len_entry = strlen(array_data[i].name);
-          //copy(&(*left_box)->menu[i].name, array_data[array_data[i].orig_pos].name, len_entry);
           m_free((*left_box)->menu[i].name);
           copy(&(*left_box)->menu[i].name, array_data[i].name, len_entry);
           if (i != array_data[i].orig_pos) {
-            //len_entry = strlen((*left_box)->menu[array_data[i].orig_pos].complete_path);
             len_entry = strlen(copy_left->menu[array_data[i].orig_pos].complete_path);
             m_free((*left_box)->menu[i].complete_path);
-            //copy(&(*left_box)->menu[i].complete_path, (*left_box)->menu[array_data[i].orig_pos].complete_path, len_entry);
             copy(&(*left_box)->menu[i].complete_path, copy_left->menu[array_data[i].orig_pos].complete_path, len_entry);
-            //len_entry = strlen((*left_box)->menu[array_data[i].orig_pos].permissions);
             len_entry = strlen(copy_left->menu[array_data[i].orig_pos].permissions);
             m_free((*left_box)->menu[i].permissions);
-            //copy(&(*left_box)->menu[i].permissions, (*left_box)->menu[array_data[i].orig_pos].permissions, len_entry);
             copy(&(*left_box)->menu[i].permissions, copy_left->menu[array_data[i].orig_pos].permissions, len_entry);
             if (copy_left->menu[i].parent != NULL) {
               len_entry = strlen(copy_left->menu[array_data[i].orig_pos].parent);
               m_free((*left_box)->menu[i].parent);
               copy(&(*left_box)->menu[i].parent, copy_left->menu[array_data[i].orig_pos].parent, len_entry);
-            } 
+            }
             ((*left_box)->menu[i].type) = copy_left->menu[array_data[i].orig_pos].type;
           }
         }
@@ -1786,8 +1738,6 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
 
         erase_window(w1, s);
         reprint_menu_only(w1, s, *left_box, *pos);
-        //sleep(5);
-        //qsort((*attributes)->menu[*pos].complete_path, (*left_box)->n_elements, sizeof(char *), compare);
       }
     }
     *previous_pos_c = *c;
