@@ -283,6 +283,10 @@ void print_scroll(Scroll *s, int *pos, int *y_position);
 int ask_user(char *warning, int *c);
 int show_all_airline(int y, int x);
 void show_status_line(Window_ *w, Array *a, Scroll *s, int pos);
+int compare(const void *a, const void *b);
+int data_compare(const void *a, const void *b);
+//int sortstring_string(const void *str1, const void *str2);
+int sortstring(const void *str1, const void *str2);
 
 int main(int argc, char **argv)
 {
@@ -1353,6 +1357,87 @@ void print_all_attributes_fd(int fd, Attributes *attr, int *y_position)
   }
 }
 
+int compare(const void *a, const void *b)
+{
+  //return (strcmp((const char *)a, (const char *)b));
+  //return (strcmp(*(char **)a,*(char **)b));
+  //char a_char = tolower(**((char**) a));
+  char av = tolower((*(char *)a));
+  //char *bv = (*(char **)b);
+  char bv = tolower((*(char *)b));
+
+  return (strcmp(*(char **)a, *(char **)b));
+  //return (strcmp(&av, &bv));
+  //return (strcmp(&(tolower(**(char **)a)), *(char **)b));
+}
+
+
+int sortstring(const void *str1, const void *str2)
+{
+#define is_a_number_str(str) ((str) > 47 && (str) < 58)
+  char *const *pp1 = str1;
+  char *const *pp2 = str2;
+  if (**pp1 == **pp2 && *(*pp1 + 1) == *(*pp2 + 1)) {
+    unsigned int len_pp1 = strlen(*pp1);
+    unsigned int len_pp2 = strlen(*pp2);
+    if (len_pp1 != len_pp2) {
+      unsigned int i;
+      for (i = 0; *(*pp1 + i) != '\0' && *(*pp2 + i) != '\0'; ++i) {
+        if (is_a_number_str(*(*pp1 + i)) && is_a_number_str(*(*pp2 + i))) {
+          if (*(*pp1) == '0') {
+            return -1;
+          }
+          if (*(*pp1 + i) == *(*pp2 + i)) {
+            if (len_pp1 > len_pp2) {
+              return 1;
+            }
+            return -1;
+          } else if (*(*pp1 + i) > *(*pp2 + i)) {
+            if (len_pp1 > len_pp2) {
+              return 1;
+            }
+            return -1;
+          } else if (*(*pp1 + i) < *(*pp2 + i)) {
+            if (len_pp1 > len_pp2) {
+              return 1;
+            }
+            return -1;
+          }
+        }
+      }
+    }
+  }
+
+  return strcmp(*pp1, *pp2);
+}
+
+int data_compare(const void *a, const void *b)
+{
+#define is_a_number_str(str) ((str) > 47 && (str) < 58)
+  const struct Data *aa = (const struct Data *)a;
+  const struct Data *bb = (const struct Data *)b;
+
+  if (*(aa->name) == *(bb->name) && *(aa->name + 1) == *(bb->name + 1)) {
+    unsigned int len_pp1 = strlen(aa->name);
+    unsigned int len_pp2 = strlen(bb->name);
+    if (len_pp1 != len_pp2) {
+      unsigned int i;
+      for (i = 0; *(aa->name + i) != '\0' && *(bb->name + i) != '\0'; ++i) {
+        if (is_a_number_str(*(aa->name + i)) && is_a_number_str(*(bb->name + i))) {
+          if (*(aa->name) == '0') {
+            return -1;
+          }
+          if (len_pp1 > len_pp2) {
+            return 1;
+          }
+          return -1;
+        }
+      }
+    }
+  }
+  return strcmp(aa->name, bb->name);
+}
+
 int horizontal_navigation(int *c, int *pos, int *n_windows,
                           int *first_window_width_fraction,
                           Array **left_box, Array **right_box, Array **w0_left_box, Attributes **attributes, Attributes **w0_attributes,
@@ -1600,6 +1685,110 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
     } else if (*c == KEY_VISUAL) {
       mode_normal = 0;
       mode_visual = 1;
+    } else if (*c == KEY_SORT) {
+      if ((*left_box)->n_elements > 0) {
+        //qsort((*left_box)->menu[*pos].complete_path, (*left_box)->n_elements, sizeof(char *), compare);
+        /*
+        ArrayName *array_name = NULL;
+        CALLOC(array_name, 1);
+        //CALLOC(array_name->elements, (*left_box)->n_elements);
+        CALLOC(array_name->complete_path, (*left_box)->n_elements);
+        CALLOC(array_name->name, (*left_box)->n_elements);
+        array_name->capacity = (*left_box)->n_elements;
+        array_name->n_elements = (*left_box)->n_elements;
+        int i;
+        unsigned int len = 0;
+        for (i = 0; i < (*left_box)->n_elements; ++i) {
+          len = strlen((*left_box)->menu[i].complete_path);
+          copy(&array_name->complete_path[i], (*left_box)->menu[i].complete_path, len);
+          m_free((*left_box)->menu[i].complete_path);
+          len = strlen((*left_box)->menu[i].name);
+          copy(&array_name->name[i], (*left_box)->menu[i].name, len);
+          m_free((*left_box)->menu[i].name);
+        }
+        //qsort((*left_box)->menu[*pos].name, (*left_box)->n_elements, sizeof(char *), compare);
+        //qsort(array_name->name, array_name->n_elements, sizeof(char *), compare);
+        //qsort(array_name->complete_path, array_name->n_elements, sizeof(char *), compare);
+
+        //qsort(array_name->name, array_name->n_elements, sizeof(char *), sortstring_string);
+        //qsort(array_name->complete_path, array_name->n_elements, sizeof(char *), sortstring_string);
+
+        qsort(array_name->name, array_name->n_elements, sizeof(char *), sortstring);
+        qsort(array_name->complete_path, array_name->n_elements, sizeof(char *), sortstring);
+
+        for (i = 0; i < array_name->n_elements; ++i) {
+          len = strlen(array_name->complete_path[i]);
+          copy(&(*left_box)->menu[i].complete_path, array_name->complete_path[i], len);
+          m_free(array_name->complete_path[i]);
+          len = strlen(array_name->name[i]);
+          copy(&(*left_box)->menu[i].name, array_name->name[i], len);
+          m_free(array_name->name[i]);
+        }
+
+        m_free(array_name->complete_path);
+        m_free(array_name->name);
+
+        */
+
+
+        Array *copy_left = NULL;
+        initialize_array(&copy_left, (*left_box)->capacity);
+        dupArray2(*left_box, copy_left);
+        copy_left->n_elements = (*left_box)->n_elements;
+
+        struct Data *array_data = NULL;
+        MALLOC(array_data, (*left_box)->n_elements);
+        unsigned int i, len_entry = 0;
+        for (i = 0; i < (*left_box)->n_elements; ++i) {
+          array_data[i].orig_pos = i;
+          len_entry = strlen((*left_box)->menu[i].name);
+          copy(&array_data[i].name, (*left_box)->menu[i].name, len_entry);
+        }
+        qsort(array_data, (*left_box)->n_elements, sizeof *array_data, data_compare);
+
+        for (i = 0; i < (*left_box)->n_elements; ++i) {
+          len_entry = strlen(array_data[i].name);
+          //copy(&(*left_box)->menu[i].name, array_data[array_data[i].orig_pos].name, len_entry);
+          m_free((*left_box)->menu[i].name);
+          copy(&(*left_box)->menu[i].name, array_data[i].name, len_entry);
+          if (i != array_data[i].orig_pos) {
+            //len_entry = strlen((*left_box)->menu[array_data[i].orig_pos].complete_path);
+            len_entry = strlen(copy_left->menu[array_data[i].orig_pos].complete_path);
+            m_free((*left_box)->menu[i].complete_path);
+            //copy(&(*left_box)->menu[i].complete_path, (*left_box)->menu[array_data[i].orig_pos].complete_path, len_entry);
+            copy(&(*left_box)->menu[i].complete_path, copy_left->menu[array_data[i].orig_pos].complete_path, len_entry);
+            //len_entry = strlen((*left_box)->menu[array_data[i].orig_pos].permissions);
+            len_entry = strlen(copy_left->menu[array_data[i].orig_pos].permissions);
+            m_free((*left_box)->menu[i].permissions);
+            //copy(&(*left_box)->menu[i].permissions, (*left_box)->menu[array_data[i].orig_pos].permissions, len_entry);
+            copy(&(*left_box)->menu[i].permissions, copy_left->menu[array_data[i].orig_pos].permissions, len_entry);
+            if (copy_left->menu[i].parent != NULL) {
+              len_entry = strlen(copy_left->menu[array_data[i].orig_pos].parent);
+              m_free((*left_box)->menu[i].parent);
+              copy(&(*left_box)->menu[i].parent, copy_left->menu[array_data[i].orig_pos].parent, len_entry);
+            } 
+            ((*left_box)->menu[i].type) = copy_left->menu[array_data[i].orig_pos].type;
+          }
+        }
+
+        for (i = 0; i < (*left_box)->n_elements; ++i) {
+          m_free(copy_left->menu[i].name);
+          m_free(copy_left->menu[i].complete_path);
+          m_free(copy_left->menu[i].permissions);
+          if (copy_left->menu[i].parent != NULL) {
+            m_free(copy_left->menu[i].parent);
+          }
+          m_free(array_data[i].name);
+        }
+        m_free(array_data);
+        m_free(copy_left->menu);
+        m_free(copy_left);
+
+        erase_window(w1, s);
+        reprint_menu_only(w1, s, *left_box, *pos);
+        //sleep(5);
+        //qsort((*attributes)->menu[*pos].complete_path, (*left_box)->n_elements, sizeof(char *), compare);
+      }
     }
     *previous_pos_c = *c;
 

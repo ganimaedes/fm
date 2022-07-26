@@ -89,6 +89,7 @@ char del_in[IN_SZ];
 #define KEY_VISUAL    0x0056
 #define KEY_SHIFT_d   0x0004
 #define KEY_SHIFT_u   0x0015
+#define KEY_SORT      0x0073 // 115 's'
 
 #define DN            0x006a
 #define UP            0x006b
@@ -338,6 +339,13 @@ typedef struct _STAT_INFO {
   unsigned char *data;
 } STAT_INFO;
 
+struct Data {
+    int data;
+    int new_pos;
+    int orig_pos;
+    char *name;
+};
+
 static InfoKeyPresses info_key_presses;
 static char *file_to_be_copied;
 static char *folder_to_be_deleted;
@@ -400,6 +408,10 @@ static int quit = FALSE;
   memcpy((*dest), (src_one), (len_one));                       \
   memcpy(&((*dest)[len_one]), (src_two), len_two);             \
   (*dest)[(len_one) + (len_two)] = '\0';                       \
+} while(0)
+
+#define m_free(str) do { \
+  free(str); str = NULL; \
 } while(0)
 
 

@@ -12,7 +12,7 @@
 //#include <string.h>
 
 
-typedef struct {
+typedef struct _Menu {
     char *name;
     char *type;
     char *complete_path;
@@ -32,10 +32,22 @@ typedef struct {
     unsigned long file_len;
 } Menu;
 
-typedef struct {
-    Menu *menu;
-    int n_elements;
-    int capacity;
+
+typedef struct _ArrayName {
+  char **elements;
+  char **complete_path;
+  char **name;
+  int **positions;
+  int n_elements;
+  int capacity;
+} ArrayName;
+
+typedef struct _Array {
+  Menu *menu;
+  int *new_positions;
+  int *old_positions;
+  int n_elements;
+  int capacity;
 } Array;
 
 void init(Array *a, int initial_size);
