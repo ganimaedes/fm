@@ -100,6 +100,7 @@ stdout.txt
 stderr.txt
 draw_img2.c
 src/draw_img2.c
+src/draw
 add_to_versions.sh
 recreate_folder.sh
 src/add_to_versions.sh

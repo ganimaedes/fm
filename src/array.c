@@ -122,6 +122,10 @@ void free_array2(Array **a)
       free((*a)->menu[i].permissions);
       (*a)->menu[i].permissions = NULL;
     }
+    if ((*a)->menu[i].parent != NULL) {
+      free((*a)->menu[i].parent);
+      (*a)->menu[i].parent = NULL;
+    }
   }
   if ((*a)->menu != NULL) {
     free((*a)->menu);
@@ -148,15 +152,21 @@ void free_array(Array *a)
       free(a->menu[i].permissions);
       a->menu[i].permissions = NULL;
     }
+    /*
+    if (a->menu[i].parent != NULL) {
+      free(a->menu[i].parent);
+      a->menu[i].parent = NULL;
+    }
+    */
   }
-  //if (a->menu != NULL) {
+  if (a->menu != NULL) {
     free(a->menu);
     a->menu = NULL;
-  //}
-  //if (a != NULL) {
+  }
+  if (a != NULL) {
     free(a);
     a = NULL;
-  //}
+  }
 }
 
 void print_array(Array *a)
@@ -179,6 +189,11 @@ void dupArray2(Array *in, Array *out)
     copy(&(menu.complete_path), in->menu[i].complete_path, len);
     len = strlen(in->menu[i].permissions);
     copy(&(menu.permissions), in->menu[i].permissions, len);
+    /*
+    if (in->menu[i].parent != NULL && (len = strlen(in->menu[i].parent)) > 0) {
+      copy(&(menu.parent), in->menu[i].parent, len);
+    }
+    */
     addMenu2(&out, &menu);
 /*
     if (in->menu[i].has_scroll) {
