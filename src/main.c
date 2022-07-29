@@ -805,6 +805,9 @@ int print_right_window3(Array **left_box,
       initialize_array2(&right_box, 1);
     }
     parcours((*left_box)->menu[pos].complete_path, 0, *right_box, 0, w_main);
+    if (sort_alpha) {
+      sort_alphabet(right_box);
+    }
     int to_print = 0;
     if ((*right_box)->n_elements <= s->n_to_print) {
       to_print = (*right_box)->n_elements;
@@ -1110,6 +1113,7 @@ void read_file2(Array *left_box, Window_ *w1, Window_ *w2, Scroll *s, int pos)
   //char read_line[4096];
   size_t len = 0;
   ssize_t read;
+  erase_window(w2, s);
 
   fp = fopen(left_box->menu[pos].complete_path, "r");
   if (fp == NULL) {
