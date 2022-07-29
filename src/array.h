@@ -46,6 +46,7 @@ typedef struct _Array {
   Menu *menu;
   int *new_positions;
   int *old_positions;
+  int *alpha_pos;
   int n_elements;
   int capacity;
 } Array;

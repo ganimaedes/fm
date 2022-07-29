@@ -43,6 +43,8 @@ volatile sig_atomic_t modify_pos_bc_image_used = 0;
 volatile sig_atomic_t image_appeared = 0;
 volatile sig_atomic_t previous_position_before_backspace = 0;
 volatile sig_atomic_t delete_file_folder_request = 0;
+volatile sig_atomic_t sort_alpha = 0;
+
 int _file_descriptor_;
 int _file_descriptor_2;
 int fd_boxdbg;
@@ -285,6 +287,7 @@ int show_all_airline(int y, int x);
 void show_status_line(Window_ *w, Array *a, Scroll *s, int pos);
 int compare(const void *a, const void *b);
 int data_compare(const void *a, const void *b);
+int sort_alphabet(Array **left_box);
 //int sortstring_string(const void *str1, const void *str2);
 int sortstring(const void *str1, const void *str2);
 
@@ -1438,6 +1441,62 @@ int data_compare(const void *a, const void *b)
   return strcmp(aa->name, bb->name);
 }
 
+int sort_alphabet(Array **left_box)
+{
+  Array *copy_left = NULL;
+  initialize_array(&copy_left, (*left_box)->capacity);
+  dupArray2(*left_box, copy_left);
+  copy_left->n_elements = (*left_box)->n_elements;
+
+  struct Data *array_data = NULL;
+  MALLOC(array_data, (*left_box)->n_elements);
+  unsigned int i, len_entry = 0;
+  for (i = 0; i < (*left_box)->n_elements; ++i) {
+    array_data[i].orig_pos = i;
+    len_entry = strlen((*left_box)->menu[i].name);
+    copy(&array_data[i].name, (*left_box)->menu[i].name, len_entry);
+  }
+  qsort(array_data, (*left_box)->n_elements, sizeof *array_data, data_compare);
+
+  CALLOC((*left_box)->alpha_pos, (*left_box)->n_elements);
+
+  for (i = 0; i < (*left_box)->n_elements; ++i) {
+    (*left_box)->alpha_pos[i] = array_data[i].orig_pos;
+  }
+  for (i = 0; i < (*left_box)->n_elements; ++i) {
+    len_entry = strlen(array_data[i].name);
+    m_free((*left_box)->menu[i].name);
+    copy(&(*left_box)->menu[i].name, array_data[i].name, len_entry);
+    if (i != array_data[i].orig_pos) {
+      len_entry = strlen(copy_left->menu[array_data[i].orig_pos].complete_path);
+      m_free((*left_box)->menu[i].complete_path);
+      copy(&(*left_box)->menu[i].complete_path, copy_left->menu[array_data[i].orig_pos].complete_path, len_entry);
+      len_entry = strlen(copy_left->menu[array_data[i].orig_pos].permissions);
+      m_free((*left_box)->menu[i].permissions);
+      copy(&(*left_box)->menu[i].permissions, copy_left->menu[array_data[i].orig_pos].permissions, len_entry);
+      if (copy_left->menu[i].parent != NULL) {
+        len_entry = strlen(copy_left->menu[array_data[i].orig_pos].parent);
+        m_free((*left_box)->menu[i].parent);
+        copy(&(*left_box)->menu[i].parent, copy_left->menu[array_data[i].orig_pos].parent, len_entry);
+      }
+      ((*left_box)->menu[i].type) = copy_left->menu[array_data[i].orig_pos].type;
+    }
+  }
+  for (i = 0; i < (*left_box)->n_elements; ++i) {
+    m_free(copy_left->menu[i].name);
+    m_free(copy_left->menu[i].complete_path);
+    m_free(copy_left->menu[i].permissions);
+    if (copy_left->menu[i].parent != NULL) {
+      m_free(copy_left->menu[i].parent);
+    }
+    m_free(array_data[i].name);
+  }
+  m_free(array_data);
+  m_free(copy_left->menu);
+  m_free(copy_left);
+  return 1;
+}
+
 int horizontal_navigation(int *c, int *pos, int *n_windows,
                           int *first_window_width_fraction,
                           Array **left_box, Array **right_box, Array **w0_left_box, Attributes **attributes, Attributes **w0_attributes,
@@ -1548,6 +1607,9 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
           initialize_array2(&left_box, 1);
         }
         (*right_box)->menu->has_scroll = 0;
+      }
+      if (sort_alpha) {
+        sort_alphabet(right_box);
       }
       dupArray2(*right_box, *left_box);
 
@@ -1686,56 +1748,9 @@ int horizontal_navigation(int *c, int *pos, int *n_windows,
       mode_normal = 0;
       mode_visual = 1;
     } else if (*c == KEY_SORT) {
+      sort_alpha = 1;
       if ((*left_box)->n_elements > 0) {
-
-        Array *copy_left = NULL;
-        initialize_array(&copy_left, (*left_box)->capacity);
-        dupArray2(*left_box, copy_left);
-        copy_left->n_elements = (*left_box)->n_elements;
-
-        struct Data *array_data = NULL;
-        MALLOC(array_data, (*left_box)->n_elements);
-        unsigned int i, len_entry = 0;
-        for (i = 0; i < (*left_box)->n_elements; ++i) {
-          array_data[i].orig_pos = i;
-          len_entry = strlen((*left_box)->menu[i].name);
-          copy(&array_data[i].name, (*left_box)->menu[i].name, len_entry);
-        }
-        qsort(array_data, (*left_box)->n_elements, sizeof *array_data, data_compare);
-
-        for (i = 0; i < (*left_box)->n_elements; ++i) {
-          len_entry = strlen(array_data[i].name);
-          m_free((*left_box)->menu[i].name);
-          copy(&(*left_box)->menu[i].name, array_data[i].name, len_entry);
-          if (i != array_data[i].orig_pos) {
-            len_entry = strlen(copy_left->menu[array_data[i].orig_pos].complete_path);
-            m_free((*left_box)->menu[i].complete_path);
-            copy(&(*left_box)->menu[i].complete_path, copy_left->menu[array_data[i].orig_pos].complete_path, len_entry);
-            len_entry = strlen(copy_left->menu[array_data[i].orig_pos].permissions);
-            m_free((*left_box)->menu[i].permissions);
-            copy(&(*left_box)->menu[i].permissions, copy_left->menu[array_data[i].orig_pos].permissions, len_entry);
-            if (copy_left->menu[i].parent != NULL) {
-              len_entry = strlen(copy_left->menu[array_data[i].orig_pos].parent);
-              m_free((*left_box)->menu[i].parent);
-              copy(&(*left_box)->menu[i].parent, copy_left->menu[array_data[i].orig_pos].parent, len_entry);
-            }
-            ((*left_box)->menu[i].type) = copy_left->menu[array_data[i].orig_pos].type;
-          }
-        }
-
-        for (i = 0; i < (*left_box)->n_elements; ++i) {
-          m_free(copy_left->menu[i].name);
-          m_free(copy_left->menu[i].complete_path);
-          m_free(copy_left->menu[i].permissions);
-          if (copy_left->menu[i].parent != NULL) {
-            m_free(copy_left->menu[i].parent);
-          }
-          m_free(array_data[i].name);
-        }
-        m_free(array_data);
-        m_free(copy_left->menu);
-        m_free(copy_left);
-
+        sort_alphabet(left_box);
         erase_window(w1, s);
         reprint_menu_only(w1, s, *left_box, *pos);
       }
@@ -1962,6 +1977,9 @@ int getBackSpaceFolder6(Array **left_box, Window_ *w, int *pos, int *previous_po
       for (; k >= 0; --k) if (parent[k] == '/') break;
       copy(&real_parent, parent, k);
       parcours(real_parent, 0, *left_box, 0, &w_main);
+      if (sort_alpha) {
+        sort_alphabet(left_box);
+      }
     } else {
       if (b > 0) {
         if (strlen(parent) == 0) {
@@ -1977,6 +1995,9 @@ int getBackSpaceFolder6(Array **left_box, Window_ *w, int *pos, int *previous_po
           parent[1] = '\0';
         }
         parcours(parent, 0, *left_box, 0, &w_main);
+        if (sort_alpha) {
+          sort_alphabet(left_box);
+        }
       }
     }
 

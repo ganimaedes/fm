@@ -159,6 +159,10 @@ void free_array(Array *a)
     }
     */
   }
+  if (a->alpha_pos != NULL) {
+    free(a->alpha_pos);
+    a->alpha_pos = NULL;
+  }
   if (a->menu != NULL) {
     free(a->menu);
     a->menu = NULL;

@@ -223,12 +223,10 @@ void parcours(char *fn, int indent, Array *a, int recursive, Window_ *w)
           write(1, num, sizeof(num));
         }
 
-        ///*
         if (menu.parent != NULL) {
           free(menu.parent);
           menu.parent = NULL;
         }
-        //*/
         if (stat(path, &info) != 0) {
           sprintf(error_str, err_str, errno, str);
           sprintf(m_place, place_, w->y_size - 1, w->x_beg + 2);

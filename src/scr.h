@@ -340,10 +340,8 @@ typedef struct _STAT_INFO {
 } STAT_INFO;
 
 struct Data {
-    int data;
-    int new_pos;
-    int orig_pos;
-    char *name;
+  int orig_pos;
+  char *name;
 };
 
 static InfoKeyPresses info_key_presses;

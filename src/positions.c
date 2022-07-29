@@ -60,25 +60,48 @@ void duplicate_attributes(Attributes *attr_in, Attributes **attr_out)
   }
 }
 
+void add_to_positions(Positions **positions, int *alpha_positions, int n_positions)
+{
+  CALLOC((*positions)->alpha_pos, n_positions);
+  (*positions)->num_alpha_pos = n_positions;
+  unsigned int i;
+  for (i = 0; i < n_positions; ++i) {
+    (*positions)->alpha_pos[i] = alpha_positions[i];
+  }
+}
+
+void free_positions(Positions *positions)
+{
+  free(positions->alpha_pos);
+  positions->alpha_pos = NULL;
+}
+
 void add_attr(Attributes *attr, Positions *positions, char *path)
 {
   if (attr->n_elements >= attr->capacity)
     double_cap(attr);
 
-  if ((attr->pos[attr->n_elements] = (Positions *)malloc(sizeof(Positions))) != NULL) {
-    attr->pos[attr->n_elements]->m_position = positions->m_position;
-    attr->pos[attr->n_elements]->m_upper_pos = positions->m_upper_pos;
-    attr->pos[attr->n_elements]->m_lower_pos = positions->m_lower_pos;
-    attr->pos[attr->n_elements]->window_number = positions->window_number;
-    attr->pos[attr->n_elements]->array_size = positions->array_size;
+  attr->pos[attr->n_elements] = malloc(sizeof(Positions));
+  if (attr->pos[attr->n_elements] == NULL && (quit = TRUE)) {
+    PRINT("malloc");
   }
+  attr->pos[attr->n_elements]->m_position = positions->m_position;
+  attr->pos[attr->n_elements]->m_upper_pos = positions->m_upper_pos;
+  attr->pos[attr->n_elements]->m_lower_pos = positions->m_lower_pos;
+  attr->pos[attr->n_elements]->window_number = positions->window_number;
+  attr->pos[attr->n_elements]->array_size = positions->array_size;
 
   int len = strlen(path);
-  if ((attr->paths[attr->n_elements] = (char *)malloc(sizeof(char) * (len + 1))) != NULL) {
-    //strncpy(attr->paths[attr->n_elements], path, len);
-    memcpy(attr->paths[attr->n_elements], path, len);
-    attr->paths[attr->n_elements][len] = '\0';
+  copy(&attr->paths[attr->n_elements], path, len);
+/*
+  if (positions->num_alpha_pos > 0) {
+    CALLOC(attr->alpha_pos, attr->n_elements);
+    unsigned int i;
+    for (i = 0; i < positions->num_alpha_pos; ++i) {
+      attr->alpha_pos[i] = positions->alpha_pos[i];
+    }
   }
+*/
   ++attr->n_elements;
 }
 
@@ -95,6 +118,10 @@ void free_attr(Attributes *attr)
   attr->pos = NULL;
   free(attr->paths);
   attr->paths = NULL;
+  if (attr->alpha_pos != NULL) {
+    free(attr->alpha_pos);
+    attr->alpha_pos = NULL;
+  }
   if (attr != NULL) {
     free(attr);
     attr = NULL;
